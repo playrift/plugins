@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 7,
+  "seq": 8,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -145,6 +145,25 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.click-1.0.0/rift.movement.click-1.0.0.jar",
           "sha256": "bf3facd3b36975e686eac4b3eecd0ebd46c3bdaeb6eea8aeec1c20a04cbbf956",
           "size": 11223
+        }
+      ]
+    },
+    {
+      "id": "rift.movement.pathfinding",
+      "name": "Pathfinding core",
+      "author": "Rift",
+      "description": "Core dependency for pathfinding plugins",
+      "licence": "Free to use in Rift games; no redistribution.",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.pathfinding-1.0.0/rift.movement.pathfinding-1.0.0.jar",
+          "sha256": "735071828f3c2ab64ae7d406ed63379944dae6dbd389ffa876f917c68541df8e",
+          "size": 7015
         }
       ]
     }
