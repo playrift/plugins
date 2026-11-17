@@ -1,0 +1,11 @@
+public final class co/playrift/movement/click/ClickMovementPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/movement/click/ClickMovementPackage;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+
+public final class co/playrift/movement/click/ClickWalkSystemKt {
+	public static final fun getClickWalkSystem ()Lrift/ecs/AnonymousSystem;
+}
+
