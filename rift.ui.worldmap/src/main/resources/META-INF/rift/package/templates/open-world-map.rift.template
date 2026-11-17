@@ -1,0 +1,13 @@
+import rift.ts2.UI
+import co.playrift.ui.worldmap.openWorldMap
+import co.playrift.ui.worldmap.openWorldMapFullscreen
+
+val FLOATING_OPTION = 2
+val FULLSCREEN_OPTION = 3
+
+on_ui_component_click(UI.Orbs.worldmap) { subject ->
+  when (option) {
+    FLOATING_OPTION -> subject.openWorldMap()
+    FULLSCREEN_OPTION -> subject.openWorldMapFullscreen()
+  }
+}

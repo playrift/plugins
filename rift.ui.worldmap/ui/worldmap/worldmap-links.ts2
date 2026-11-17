@@ -1,0 +1,38 @@
+import { GameEnums } from './worldmap.assets';
+import { Missing } from './worldmap.constants';
+import { WorldmapMap } from './worldmap-maps';
+
+export enum LinkEnd {
+  FIRST = 1,
+  OTHER = 2,
+}
+
+export const LinkRows = listOf<Int>([
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+  25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+]);
+
+export function linkCount(): Int {
+  return GameEnums.worldmap_link_ends.length;
+}
+
+export function linkFrom(index: Int): Coord {
+  return GameEnums.worldmap_link_from.at(index) ?? (Missing.COORD as Coord);
+}
+
+export function linkTo(index: Int): Coord {
+  return GameEnums.worldmap_link_to.at(index) ?? (Missing.COORD as Coord);
+}
+
+export function linkFromMap(index: Int): Int {
+  return GameEnums.worldmap_link_from_map.at(index) ?? WorldmapMap.NONE;
+}
+
+export function linkToMap(index: Int): Int {
+  return GameEnums.worldmap_link_to_map.at(index) ?? WorldmapMap.NONE;
+}
+
+export function linkDraws(index: Int, end: Int): Boolean {
+  const ends: Int = GameEnums.worldmap_link_ends.at(index) ?? 0;
+  return (ends & end) !== 0;
+}

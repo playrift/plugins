@@ -1,0 +1,365 @@
+import { CS2, useState } from 'ts2';
+
+import { keyboardTimeout, tooltipBuilt, worldmapSearching } from 'rift.ui.default/lib/game/varcs';
+import { clientClock, hasBit, playSound, textWidth } from 'rift.ui.default/lib/lib.engine';
+import { Anchor, OverlayDodge, overlayInit } from 'rift.ui.default/lib/lib.overlay';
+
+import { KeyCategories, KeyHeaderRows, KeyRows, ToggleLabels } from './worldmap-key.data';
+import { WorldmapMap, listedMapAt, listedMapCount } from './worldmap-maps';
+import { GameEnums } from './worldmap.assets';
+import {
+  EmbedClose, Flag, Missing, Tooltip, WorldmapCategory, WorldmapChoice, WorldmapEmbedded, WorldmapFont, WorldmapLayout,
+  WorldmapLevel, WorldmapSound, WorldmapTiming, WorldmapToggle, dodgerRef, frameRef,
+} from './worldmap.constants';
+import {
+  worldmapEmbedded, worldmapListOpen, worldmapMapChoice, worldmapSearch, worldmapTipH, worldmapTipText,
+  worldmapTipW, worldmapTipX, worldmapTipY, worldmapToggles, worldmapZoomChoice,
+} from './worldmap.state';
+
+export function worldmapEmbed(hideClose: Int): void {
+  const [, setEmbedded] = useState(worldmapEmbedded);
+  setEmbedded(hideClose === EmbedClose.HIDE ? WorldmapEmbedded.WITHOUT_CLOSE : WorldmapEmbedded.WITH_CLOSE);
+  CS2.show_loading_messages_set(false);
+  CS2.worldmap_disable_icons(false);
+}
+
+export function playerSquare(): Int {
+  return CS2.coord() as Int;
+}
+
+export function coordInMap(map: Int, from: Coord): Coord {
+  if (map === WorldmapMap.NONE || from === Missing.COORD) {
+    return Missing.COORD as Coord;
+  }
+
+  if (CS2.worldmap_coordinmap(map, from)) {
+    return from;
+  }
+
+  let at: Coord = from;
+  while (at.plane > WorldmapLevel.LOWEST) {
+    at = CS2.movecoord(at, 0, -1, 0);
+    if (CS2.worldmap_coordinmap(map, at)) {
+      return at;
+    }
+  }
+
+  while (at.plane < WorldmapLevel.HIGHEST) {
+    at = CS2.movecoord(at, 0, 1, 0);
+    if (CS2.worldmap_coordinmap(map, at)) {
+      return at;
+    }
+  }
+
+  return Missing.COORD as Coord;
+}
+
+export function initialMap(): Int {
+  const first: Int = listedMapAt(0);
+  if (first === WorldmapMap.NONE) {
+    return CS2.worldmap_current_map_get() as Int;
+  }
+
+  const here: Coord = playerSquare() as Coord;
+  let chosen: Int = first;
+  let index: Int = 0;
+  while (index < listedMapCount()) {
+    const map: Int = listedMapAt(index);
+    if (coordInMap(map, here) !== Missing.COORD) {
+      chosen = map;
+    }
+    index = index + 1;
+  }
+
+  return chosen;
+}
+
+export function mapHolding(at: Coord): Int {
+  const current: Int = CS2.worldmap_current_map_get() as Int;
+  if (coordInMap(current, at) !== Missing.COORD) {
+    return current;
+  }
+
+  let index: Int = 0;
+  while (index < listedMapCount()) {
+    const map: Int = listedMapAt(index);
+    if (coordInMap(map, at) !== Missing.COORD) {
+      return map;
+    }
+    index = index + 1;
+  }
+
+  return WorldmapMap.NONE;
+}
+
+export function showMapAt(map: Int, at: Coord): void {
+  const [, setListOpen] = useState(worldmapListOpen);
+  const [, setMapChoice] = useState(worldmapMapChoice);
+  const [, setZoomChoice] = useState(worldmapZoomChoice);
+  playSound(WorldmapSound.CLICK);
+  setListOpen(Flag.OFF);
+  if (CS2.worldmap_current_map_get() !== map) {
+    setMapChoice(map);
+    setZoomChoice(WorldmapChoice.NONE);
+    CS2.worldmap_map_set(map);
+    CS2.worldmap_zoom_set(CS2.worldmap_config_zoom_get(map));
+  }
+
+  CS2.worldmap_jumptosourcecoord(at);
+}
+
+export function followMapLink(icon: Coord): void {
+  const target = GameEnums.worldmap_links.get(icon);
+  if (target === null) {
+    return;
+  }
+
+  const map: Int = mapHolding(target);
+  if (map === WorldmapMap.NONE) {
+    return;
+  }
+
+  showMapAt(map, coordInMap(map, target));
+}
+
+export function keyPanelWidth(): Int {
+  let widest: Int = 0;
+  let index: Int = 0;
+  while (index < KeyRows.length) {
+    const row = KeyRows.at(index);
+    if (row !== null) {
+      widest = Math.max(widest, textWidth(row.name, WorldmapLayout.TEXT_WIDTH, WorldmapFont.PLAIN));
+    }
+    index = index + 1;
+  }
+  widest = widest + WorldmapLayout.KEY_PAD_TEXT;
+
+  index = 0;
+  while (index < KeyHeaderRows.length) {
+    const header = KeyHeaderRows.at(index);
+    if (header !== null) {
+      widest = Math.max(widest, textWidth(header.title, WorldmapLayout.TEXT_WIDTH, WorldmapFont.PLAIN));
+    }
+    index = index + 1;
+  }
+  widest = widest + WorldmapLayout.KEY_PAD_BAR;
+
+  let toggles: Int = 0;
+  index = 0;
+  while (index < ToggleLabels.length) {
+    const caption: String = ToggleLabels.at(index) ?? '';
+    toggles = Math.max(toggles, WorldmapLayout.TOGGLE_CAPTION_PAD + textWidth(caption, WorldmapLayout.TEXT_WIDTH, WorldmapFont.PLAIN));
+    index = index + 1;
+  }
+
+  return Math.max(widest, toggles + WorldmapLayout.TOGGLE_PAD);
+}
+
+export function mapListFont(index: Int): Font {
+  return index === 0 ? WorldmapFont.PLAIN : WorldmapFont.SMALL;
+}
+
+export function mapListWidth(): Int {
+  let widest: Int = 0;
+  let index: Int = 0;
+  while (index < listedMapCount()) {
+    const map: Int = listedMapAt(index);
+    widest = Math.max(widest, textWidth(CS2.worldmap_map_name_get(map), WorldmapLayout.TEXT_WIDTH, mapListFont(index)));
+    index = index + 1;
+  }
+
+  return widest + WorldmapLayout.LIST_PAD;
+}
+
+export function mapListSlot(map: Int, index: Int): Int {
+  if (index === 0) {
+    return 0;
+  }
+
+  const mine: String = CS2.lowercase(CS2.worldmap_map_name_get(map));
+  let slot: Int = 1;
+  let other: Int = 1;
+  while (other < listedMapCount()) {
+    if (other !== index) {
+      const order: Int = CS2.compare(CS2.lowercase(CS2.worldmap_map_name_get(listedMapAt(other))), mine);
+      if (order < 0 || (order === 0 && other < index)) {
+        slot = slot + 1;
+      }
+    }
+    other = other + 1;
+  }
+
+  return slot;
+}
+
+export function edgeDragMinus(minus: Int, pos: Int, limit: Int): Int {
+  let shrunk: Int = minus;
+  let at: Int = pos;
+  if (at < WorldmapLayout.DRAG_SNAP) {
+    shrunk = shrunk - at;
+    at = 0;
+  }
+
+  if (shrunk < at + WorldmapLayout.DRAG_SNAP) {
+    shrunk = at;
+  }
+
+  return Math.max(Math.min(shrunk, limit), 0);
+}
+
+export function edgeDragPos(minus: Int, pos: Int, limit: Int): Int {
+  const at: Int = pos < WorldmapLayout.DRAG_SNAP ? 0 : pos;
+  return Math.max(Math.min(at, edgeDragMinus(minus, pos, limit)), 0);
+}
+
+export function toggleOff(bits: Int, row: Int): Boolean {
+  return hasBit(bits, row);
+}
+
+export function hideTooltip(): void {
+  const [, setBuilt] = useState(tooltipBuilt);
+  setBuilt(Tooltip.NONE);
+}
+
+export function toggleEffects(bits: Int): void {
+  CS2.worldmap_disable_icon_category(WorldmapCategory.MAP_LABELS, !toggleOff(bits, WorldmapToggle.MAP_LABELS));
+  hideTooltip();
+}
+
+export function stopSearching(): void {
+  const [, setQuery] = useState(worldmapSearch);
+  const [, setSearching] = useState(worldmapSearching);
+  const [, setKeyTimeout] = useState(keyboardTimeout);
+  setQuery('');
+  setSearching(0);
+  setKeyTimeout(clientClock() + WorldmapTiming.SEARCH_KEYBOARD);
+}
+
+export function openMapList(): void {
+  const [, setListOpen] = useState(worldmapListOpen);
+  playSound(WorldmapSound.CLICK);
+  setListOpen(1);
+}
+
+export function worldmapOpen(): void {
+  const [, setEmbedded] = useState(worldmapEmbedded);
+  const [, setMapChoice] = useState(worldmapMapChoice);
+  const [, setListOpen] = useState(worldmapListOpen);
+  const [, setZoomChoice] = useState(worldmapZoomChoice);
+  const [, setTipText] = useState(worldmapTipText);
+  const [toggles] = useState(worldmapToggles);
+  setEmbedded(WorldmapEmbedded.NONE);
+  setTipText('');
+  setMapChoice(WorldmapChoice.NOT_YET_DERIVED);
+  setListOpen(0);
+  setZoomChoice(WorldmapChoice.NONE);
+  overlayInit(dodgerRef, -1, OverlayDodge.SAFE_AREA, Anchor.CENTRE, Anchor.CENTRE, 0);
+  stopSearching();
+  CS2.key_input_mode_all_set();
+  toggleEffects(toggles);
+
+  const map: Int = initialMap();
+  if (map === WorldmapMap.NONE) {
+    return;
+  }
+
+  if (CS2.worldmap_current_map_get() !== map) {
+    CS2.worldmap_map_set(map);
+  }
+
+  const start: Coord = coordInMap(map, playerSquare() as Coord);
+  if (start !== Missing.COORD) {
+    CS2.worldmap_jumptosourcecoord_instant(start);
+  }
+
+  CS2.worldmap_zoom_set(CS2.worldmap_config_zoom_get(map));
+}
+
+export function worldmapTooltipHide(x: Int, y: Int): void {
+  hideTooltip();
+}
+
+export function worldmapIconTooltip(icon: Int, mouseX: Int, mouseY: Int): void {
+  const [built, setBuilt] = useState(tooltipBuilt);
+  const [, setText] = useState(worldmapTipText);
+  const [, setX] = useState(worldmapTipX);
+  const [, setY] = useState(worldmapTipY);
+  const [, setW] = useState(worldmapTipW);
+  const [, setH] = useState(worldmapTipH);
+  const [toggles] = useState(worldmapToggles);
+  if (toggleOff(toggles, WorldmapToggle.ICON_TOOLTIPS)) {
+    hideTooltip();
+    return;
+  }
+
+  if (built === Tooltip.SHOWN) {
+    return;
+  }
+
+  const text: String = categoryName(CS2.worldmap_icon_category(icon));
+  if (text.length <= 0) {
+    return;
+  }
+
+  const frameW: Int = frameRef.width!;
+  const frameH: Int = frameRef.height!;
+  const wrap: Int = Math.min(WorldmapLayout.TOOLTIP_WRAP, frameW) - WorldmapLayout.TOOLTIP_PAD;
+  const w: Int = WorldmapLayout.TOOLTIP_PAD + CS2.parawidth(text, wrap, WorldmapFont.PLAIN);
+  const h: Int = WorldmapLayout.TOOLTIP_TOP + WorldmapLayout.TOOLTIP_LINE * CS2.paraheight(text, wrap, WorldmapFont.PLAIN);
+  const x: Int = Math.min(mouseX + WorldmapLayout.TOOLTIP_OFFSET_X, frameW - w);
+  let y: Int = mouseY + WorldmapLayout.TOOLTIP_OFFSET_Y;
+  if (y > frameH - h) {
+    y = mouseY - (h + WorldmapLayout.TOOLTIP_GAP);
+  }
+
+  setW(w);
+  setH(h);
+  setX(x);
+  setY(y);
+  setText(text);
+  setBuilt(Tooltip.SHOWN);
+}
+
+export function flashKeyCategory(index: Int): void {
+  const category = KeyCategories.at(index);
+  if (category === null) {
+    return;
+  }
+
+  CS2.worldmap_flashiconcategory(category);
+}
+
+export function categoryName(wanted: Tag): String {
+  let index: Int = 0;
+  while (index < KeyRows.length) {
+    const row = KeyRows.at(index);
+    const category = KeyCategories.at(index);
+    if (row !== null && category !== null && category === wanted) {
+      return row.name;
+    }
+    index = index + 1;
+  }
+
+  return '';
+}
+
+export function stringFindAndReplace(subject: String, search: String, replacement: String): String {
+  if (CS2.compare(search, replacement) === 0) {
+    return subject;
+  }
+
+  const searchLength: Int = search.length;
+  if (searchLength <= 0) {
+    return subject;
+  }
+
+  let out: String = subject;
+  let at: Int = out.indexOf(search, 0);
+  while (at !== -1) {
+    const total: Int = out.length;
+    out = `${out.substring(0, at)}${replacement}${out.substring(at + searchLength, total)}`;
+    at = out.indexOf(search, 0);
+  }
+
+  return out;
+}

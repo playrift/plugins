@@ -1,0 +1,1188 @@
+import { CS2, useInterval, useOnResize, useRef, useState, useUniverse } from 'ts2';
+
+import { keyboardHide, keyboardShow } from 'rift.ui.default/chatbox/meslayer';
+import { keyboardTimeout, tooltipBuilt, worldmapSearching } from 'rift.ui.default/lib/game/varcs';
+import { clientClock, playSound, textWidth } from 'rift.ui.default/lib/lib.engine';
+import { onMobile, opsound } from 'rift.ui.default/lib/lib.helpers';
+import { addToInputString } from 'rift.ui.default/lib/lib.input';
+import { ScrollbarVertical } from 'rift.ui.default/lib/scrollbar-vertical.component';
+import { SteelFrameEntrypoint } from 'rift.ui.default/lib/steel-frame-entrypoint.component';
+import { ThinBoxEntrypoint } from 'rift.ui.default/lib/thin-box-entrypoint.component';
+
+import { StoneButtonOutFilled, StoneButtonPressedFilled } from './stone-button-filled.component';
+import { KeyHeaderRows, KeyRows, ToggleLabels } from './worldmap-key.data';
+import { LinkEnd, LinkRows, linkCount, linkDraws, linkFrom, linkFromMap, linkTo, linkToMap } from './worldmap-links';
+import { MapListRows, WorldmapMap, listedMapAt, listedMapCount } from './worldmap-maps';
+import {
+  Flag, Missing, Shown, TOGGLE_ROWS, Tooltip, WorldmapAngle, WorldmapArt, WorldmapChoice, WorldmapColour, WorldmapEdge,
+  WorldmapEmbedded, WorldmapFont, WorldmapKey, WorldmapLayout, WorldmapLevel, WorldmapModel, WorldmapOption,
+  WorldmapOptionSounds, WorldmapScrollbar, WorldmapSearch, WorldmapSound, WorldmapTiming, WorldmapToggle, WorldmapZoom, WorldmapZoomStep,
+  dodgerRef, frameRef, worldmapRef,
+} from './worldmap.constants';
+import {
+  coordInMap, edgeDragMinus, edgeDragPos, flashKeyCategory, initialMap, keyPanelWidth, mapListFont, mapListSlot, mapListWidth,
+  openMapList, playerSquare, showMapAt, stopSearching, stringFindAndReplace, toggleEffects, toggleOff, worldmapOpen,
+} from './worldmap.helpers';
+import {
+  worldmapEmbedded, worldmapKeyScroll, worldmapListOpen, worldmapMapChoice, worldmapMinusHeight, worldmapMinusWidth,
+  worldmapSearch, worldmapTipH, worldmapTipText, worldmapTipW, worldmapTipX, worldmapTipY, worldmapToggles, worldmapX,
+  worldmapY, worldmapZoomChoice,
+} from './worldmap.state';
+
+export function Worldmap(): Component {
+  const modalSlot = useRef('modal');
+
+  return (
+    <layer ref={dodgerRef} x="center" y="center" w="fill" h="fill" onLoad={() => worldmapOpen()}>
+      <WorldmapFrame />
+      <layer ref={modalSlot} x="center" y="center" w="fill" h="fill" />
+    </layer>
+  );
+}
+
+function IconTooltip(): Component {
+  const [built] = useState(tooltipBuilt);
+  const [text] = useState(worldmapTipText);
+  const [x] = useState(worldmapTipX);
+  const [y] = useState(worldmapTipY);
+  const [w] = useState(worldmapTipW);
+  const [h] = useState(worldmapTipH);
+  return (
+    <layer x={x} y={y} w={w} h={h}>
+      {built === Tooltip.SHOWN && text.length > 0 && (
+        <>
+          <rect x="center" y="center" w="fill" h="fill" color={WorldmapColour.TOOLTIP} fill />
+          <rect x="center" y="center" w="fill" h="fill" color={WorldmapColour.BLACK} />
+          <text
+            x="center" y={{ bottom: 0 }} w={{ fill: 4 }} h={{ fill: 1 }}
+            text={text} align="left" valign="top"
+            font={WorldmapFont.PLAIN} color={WorldmapColour.BLACK}
+          />
+        </>
+      )}
+    </layer>
+  );
+}
+
+function WorldmapFrame(): Component {
+  return (
+    <layer ref={frameRef} x="center" y="center" w="fill" h="fill">
+      <WorldmapWindow />
+    </layer>
+  );
+}
+
+function WorldmapWindow(): Component {
+  const frame = useUniverse();
+  useOnResize(frame);
+  const [seenFrameW, setSeenFrameW] = useState(Missing.SEEN);
+  const [seenFrameH, setSeenFrameH] = useState(Missing.SEEN);
+  const frameW: Int = seenFrameW === frame.width ? seenFrameW : frame.width;
+  const frameH: Int = seenFrameH === frame.height ? seenFrameH : frame.height;
+  const mobile: Boolean = onMobile();
+  const display: Boolean = CS2.if_top_get() === interfaceOf(worldmapRef);
+  const [embedded] = useState(worldmapEmbedded);
+
+  const listW: Int = mapListWidth();
+  const keyW: Int = keyPanelWidth();
+  const [rawW, setRawW] = useState(worldmapMinusWidth);
+  const [rawH, setRawH] = useState(worldmapMinusHeight);
+  const [rawX, setRawX] = useState(worldmapX);
+  const [rawY, setRawY] = useState(worldmapY);
+  const minusW: Int = Math.max(Math.min(rawW, frameW - (WorldmapLayout.WINDOW_RESERVE_W + listW)), 0);
+  const minusH: Int = Math.max(Math.min(rawH, frameH - WorldmapLayout.WINDOW_RESERVE_H), 0);
+  const boxX: Int = Math.max(Math.min(rawX, minusW), 0);
+  const boxY: Int = Math.max(Math.min(rawY, minusH), 0);
+  if (!display) {
+    if (rawW !== minusW) { setRawW(minusW); }
+    if (rawH !== minusH) { setRawH(minusH); }
+    if (rawX !== boxX) { setRawX(boxX); }
+    if (rawY !== boxY) { setRawY(boxY); }
+  }
+  const windowW: Int = display ? frameW : frameW - minusW;
+  const windowH: Int = display ? frameH : frameH - minusH;
+
+  const [dragSide, setDragSide] = useState(Missing.SIDE);
+  const [dragDX, setDragDX] = useState(0);
+  const [dragDY, setDragDY] = useState(0);
+  const [commitAt, setCommitAt] = useState(WorldmapChoice.NONE);
+  const limitW: Int = frameW - (WorldmapLayout.WINDOW_RESERVE_W + listW);
+  const limitH: Int = frameH - WorldmapLayout.WINDOW_RESERVE_H;
+  const growW: Int = dragSide === WorldmapEdge.LEFT || dragSide === WorldmapEdge.TOP_LEFT || dragSide === WorldmapEdge.BOTTOM_LEFT
+    ? dragDX : dragSide === WorldmapEdge.RIGHT || dragSide === WorldmapEdge.TOP_RIGHT || dragSide === WorldmapEdge.BOTTOM_RIGHT ? 0 - dragDX : 0;
+  const moveX: Int = dragSide === WorldmapEdge.TOP || dragSide === WorldmapEdge.LEFT || dragSide === WorldmapEdge.TOP_LEFT || dragSide === WorldmapEdge.BOTTOM_LEFT ? dragDX : 0;
+  const growH: Int = dragSide === WorldmapEdge.TOP_LEFT || dragSide === WorldmapEdge.TOP_RIGHT
+    ? dragDY : dragSide === WorldmapEdge.BOTTOM || dragSide === WorldmapEdge.BOTTOM_LEFT || dragSide === WorldmapEdge.BOTTOM_RIGHT ? 0 - dragDY : 0;
+  const moveY: Int = dragSide === WorldmapEdge.TOP || dragSide === WorldmapEdge.TOP_LEFT || dragSide === WorldmapEdge.TOP_RIGHT ? dragDY : 0;
+  const pendW: Int = edgeDragMinus(minusW + growW, boxX + moveX, limitW);
+  const pendX: Int = edgeDragPos(minusW + growW, boxX + moveX, limitW);
+  const pendH: Int = edgeDragMinus(minusH + growH, boxY + moveY, limitH);
+  const pendY: Int = edgeDragPos(minusH + growH, boxY + moveY, limitH);
+  const windowRef = useRef();
+  const escapeRef = useRef('escape');
+  const closeRef = useRef('close');
+  useInterval(() => {
+    if (commitAt !== WorldmapChoice.NONE && clientClock() >= commitAt) {
+      setRawW(pendW);
+      setRawH(pendH);
+      setRawX(pendX);
+      setRawY(pendY);
+      setCommitAt(WorldmapChoice.NONE);
+      setDragSide(Missing.SIDE);
+    }
+    if (frame.width !== seenFrameW) { setSeenFrameW(frame.width); }
+    if (frame.height !== seenFrameH) { setSeenFrameH(frame.height); }
+  }, windowRef);
+  const edgeRight: Int = frameW - (minusW - boxX) - WorldmapLayout.EDGE;
+  const edgeBottom: Int = frameH - (minusH - boxY) - WorldmapLayout.EDGE;
+
+  const [keyChoice, setKeyChoice] = useState(Shown.SHOWN);
+  const keyHidden: Boolean = keyChoice === Shown.HIDDEN;
+
+  const [overviewShown, setOverviewShown] = useState(Shown.HIDDEN);
+
+  const [mapChoice] = useState(worldmapMapChoice);
+  const map: Int = mapChoice === WorldmapChoice.NOT_YET_DERIVED ? initialMap() : mapChoice;
+  const [mapW, mapH] = CS2.worldmap_config_size_get(map);
+  const sizeW: Int = Math.max(mapW, 1);
+  const sizeH: Int = Math.max(mapH, 1);
+  const overviewW: Int = sizeW > sizeH
+    ? WorldmapLayout.OVERVIEW_MAX
+    : Math.max(CS2.scale(sizeW, sizeH, WorldmapLayout.OVERVIEW_MAX), WorldmapLayout.OVERVIEW_MIN);
+  const overviewH: Int = sizeW > sizeH
+    ? Math.max(CS2.scale(sizeH, sizeW, WorldmapLayout.OVERVIEW_MAX), WorldmapLayout.OVERVIEW_MIN)
+    : WorldmapLayout.OVERVIEW_MAX;
+  const [zoomChoice, setZoomChoice] = useState(worldmapZoomChoice);
+  const zoom: Int = zoomChoice === WorldmapChoice.NONE ? CS2.worldmap_config_zoom_get(map) : zoomChoice;
+
+  const [mapListOpen, setMapListOpen] = useState(worldmapListOpen);
+
+  const searchW: Int = Math.min(WorldmapLayout.SEARCH_MAX, (windowW - listW) / 2 - 54);
+
+  const keyList = useRef();
+  const mapList = useRef();
+
+  const keyRow: Int = mobile ? WorldmapLayout.KEY_ROW_MOBILE : WorldmapLayout.KEY_ROW;
+  const keyExtent: Int = KeyRows.length * keyRow
+    + KeyHeaderRows.length * WorldmapLayout.HEADER_H - WorldmapLayout.HEADER_GAP + 1;
+  const keyPaneH: Int = windowH - 50 - WorldmapLayout.TOGGLES_H - 24;
+  const [keyRemembered, setKeyRemembered] = useState(worldmapKeyScroll);
+  const keyScroll: Int = keyExtent > keyPaneH ? Math.max(Math.min(keyRemembered, keyExtent - keyPaneH), 0) : 0;
+  if (keyRemembered !== keyScroll) {
+    setKeyRemembered(keyScroll);
+  }
+  useInterval(() => {
+    if (keyList.scrollY !== keyRemembered) {
+      setKeyRemembered(keyList.scrollY);
+    }
+  }, keyList);
+
+  const listRow: Int = mobile ? WorldmapLayout.LIST_ROW_MOBILE : WorldmapLayout.LIST_ROW;
+  const listExtent: Int = listedMapCount() * listRow + 2;
+  const listPane: Int = mobile ? WorldmapLayout.LIST_PANE_MOBILE : WorldmapLayout.LIST_PANE;
+
+  return (
+    <>
+      <layer x="center" y="center" w="fill" h="fill" hide noClickThrough />
+      <layer ref={escapeRef} x={0} y={0} w={0} h={0} options={[{ label: 'Close', hotkey: WorldmapKey.ESCAPE }]} />
+
+      <layer
+        ref={windowRef}
+        x={display ? 'center' : boxX} y={display ? 'center' : boxY}
+        w={{ fill: display ? 0 : minusW }} h={{ fill: display ? 0 : minusH }}
+        noClickThrough
+      >
+        <rect x="center" y="center" w="fill" h="fill" fill color={WorldmapColour.BLACK} />
+
+        <layer
+          x={{ right: 6 }} y={mobile ? { bottom: 6 } : 6}
+          w={{ fill: embedded !== WorldmapEmbedded.NONE ? 12 : keyHidden ? 12 : keyW + 12 }}
+          h={{ fill: embedded !== WorldmapEmbedded.NONE ? 12 : 50 }}
+          hide={dragSide !== Missing.SIDE}
+        >
+          <layer x="center" y="center" w="fill" h="fill" contentType="worldMap" />
+          <layer
+            x="center" y="center" w="fill" h="fill"
+            onScrollWheel={(event) => {
+              if (event.mouseY !== 0 && CS2.worldmap_loaded_is()) {
+                playSound(WorldmapSound.CLICK);
+                const next: Int = zoomStepTarget(event.mouseY > 0 ? WorldmapZoomStep.OUT : WorldmapZoomStep.IN, CS2.worldmap_zoom_get());
+                CS2.worldmap_zoom_set(next);
+                setZoomChoice(next);
+              }
+            }}
+          >
+            <MapOverlay
+              mapW={windowW - (embedded !== WorldmapEmbedded.NONE ? 12 : keyHidden ? 12 : keyW + 12)}
+              mapH={windowH - (embedded !== WorldmapEmbedded.NONE ? 12 : 50)}
+            />
+          </layer>
+        </layer>
+
+        <layer
+          x={{ right: 5 }} y={mobile ? 44 : { bottom: 44 }}
+          w={overviewW} h={overviewH}
+          hide={overviewShown === Shown.HIDDEN}
+          noClickThrough
+        >
+          <sprite x="center" y="center" w="fill" h="fill" sprite={WorldmapArt.BACKING} tiling />
+          <layer x="center" y="center" w={{ fill: 4 }} h={{ fill: 4 }} contentType="worldMapOverview" />
+          <OverviewBox
+            overviewW={overviewW} overviewH={overviewH} sizeW={sizeW} sizeH={sizeH}
+            map={map} shown={overviewShown}
+          />
+          <ThinBoxEntrypoint />
+        </layer>
+
+        <layer x={6} y={mobile ? { bottom: 6 } : 6} w={keyW} h={{ fill: 50 }} hide={keyHidden}>
+          <sprite x="center" y="center" w="fill" h="fill" sprite={WorldmapArt.BACKING} tiling />
+          <layer x="center" y={0} w="fill" h={{ fill: WorldmapLayout.TOGGLES_H }}>
+            <layer x="center" y={0} w="fill" h={22}>
+              <text
+                x="center" y="center" w="fill" h="fill" text="Key"
+                font={WorldmapFont.BOLD} color={WorldmapColour.ORANGE} shadow align="center" valign="middle"
+              />
+              <ThinBoxEntrypoint />
+            </layer>
+            <layer
+              ref={keyList} x={2} y={{ bottom: 2 }} w={{ fill: 20 }} h={{ fill: 24 }}
+              scrollHeight={keyExtent > keyPaneH ? keyExtent : 0} scrollY={keyScroll}
+            >
+              <KeyList extent={keyExtent} row={keyRow} mobile={mobile} />
+            </layer>
+            <layer x={{ right: 2 }} y={{ bottom: 2 }} w={16} h={{ fill: 24 }}>
+              <ScrollbarVertical
+                content={keyList}
+                track={WorldmapScrollbar.TRACK} capTopSprite={WorldmapScrollbar.CAP_TOP}
+                thumbSprite={WorldmapScrollbar.THUMB} capBottomSprite={WorldmapScrollbar.CAP_BOTTOM}
+                arrowUp={WorldmapScrollbar.ARROW_UP} arrowDown={WorldmapScrollbar.ARROW_DOWN}
+                rebuilt
+              />
+            </layer>
+            <ThinBoxEntrypoint />
+          </layer>
+          <layer x="center" y={{ bottom: 0 }} w={{ fill: 6 }} h={WorldmapLayout.TOGGLES_H}>
+            <Toggles />
+          </layer>
+          <ThinBoxEntrypoint />
+        </layer>
+
+        <layer
+          x="center" y={mobile ? 6 : { bottom: 6 }} w={{ fill: 12 }} h={33}
+          hide={embedded !== WorldmapEmbedded.NONE}
+        >
+          <sprite x="center" y="center" w="fill" h="fill" sprite={WorldmapArt.BAR} tiling />
+
+          <layer
+            x={3} y="center" w={35} h={{ fill: 4 }}
+            options={[keyHidden ? 'Show' : 'Hide']}
+            optionSubject="<col=ff9040>Menu</col>"
+            onOptionSelect={() => {
+              playSound(WorldmapSound.CLICK);
+              setKeyChoice(keyHidden ? Shown.SHOWN : Shown.HIDDEN);
+            }}
+          >
+            <PanelButtonLook
+              pressed={!keyHidden} model={WorldmapModel.KEY}
+              offsetY={2} yaw={0} zoom={1100}
+              rectW={14} rectH={7} rectY={0} colour={WorldmapColour.KEY_HINT}
+              hotTransparency={240}
+            />
+          </layer>
+
+          <layer x={43} y="center" w={searchW} h={20}>
+            <SearchField width={searchW} />
+          </layer>
+
+          <layer x="center" y="center" w={listW} h={20}>
+            <MapListButton map={map} mobile={mobile} />
+          </layer>
+
+          <layer
+            x={{ right: mobile ? 134 : 84 }} y="center" w={36} h={24}
+            options={zoom <= WorldmapZoom.FURTHEST ? [] : ['Zoom out']}
+            onOptionSelect={() => {
+              if (CS2.worldmap_loaded_is()) {
+                playSound(WorldmapSound.CLICK);
+                const next: Int = zoomStepTarget(WorldmapZoomStep.OUT, CS2.worldmap_zoom_get());
+                CS2.worldmap_zoom_set(next);
+                setZoomChoice(next);
+              }
+            }}
+          >
+            <ZoomLook enabled={zoom > WorldmapZoom.FURTHEST} glyph="-" />
+          </layer>
+
+          <layer
+            x={{ right: mobile ? 93 : 43 }} y="center" w={36} h={24}
+            options={zoom >= WorldmapZoom.NEAREST ? [] : ['Zoom in']}
+            onOptionSelect={() => {
+              if (CS2.worldmap_loaded_is()) {
+                playSound(WorldmapSound.CLICK);
+                const next: Int = zoomStepTarget(WorldmapZoomStep.IN, CS2.worldmap_zoom_get());
+                CS2.worldmap_zoom_set(next);
+                setZoomChoice(next);
+              }
+            }}
+          >
+            <ZoomLook enabled={zoom < WorldmapZoom.NEAREST} glyph="+" />
+          </layer>
+
+          <layer
+            x={{ right: mobile ? 53 : 3 }} y="center" w={35} h={{ fill: 4 }}
+            options={[overviewShown === Shown.SHOWN ? 'Hide' : 'Show']}
+            optionSubject="<col=ff9040>Overview</col>"
+            onOptionSelect={() => {
+              playSound(WorldmapSound.CLICK);
+              setOverviewShown(overviewShown === Shown.SHOWN ? Shown.HIDDEN : Shown.SHOWN);
+            }}
+          >
+            <PanelButtonLook
+              pressed={overviewShown === Shown.SHOWN} model={WorldmapModel.OVERVIEW}
+              offsetY={0} yaw={1536} zoom={950}
+              rectW={8} rectH={15} rectY={1} colour={WorldmapColour.WHITE}
+              hotTransparency={245}
+            />
+          </layer>
+        </layer>
+
+        <sprite
+          x="center" y={mobile ? 24 : { bottom: 24 }} w={{ fill: 2 }} h={36}
+          sprite={WorldmapArt.RULE} tiling vflip hide={embedded !== WorldmapEmbedded.NONE}
+        />
+
+        <layer x="center" y="center" w="fill" h="fill" hide={mapListOpen === Flag.OFF}>
+          <rect
+            x="center" y="center" w="fill" h="fill" fill transparency={255}
+            onClick={() => setMapListOpen(Flag.OFF)}
+          />
+          <layer
+            x="center" y={mobile ? 31 : { bottom: 32 }}
+            w={listW} h={mapListPaneHeight(mobile)}
+            noClickThrough
+          >
+            <sprite x="center" y="center" w="fill" h="fill" sprite={WorldmapArt.BACKING} tiling />
+            <layer
+              ref={mapList} x={2} y="center" w={{ fill: 20 }} h={{ fill: 4 }}
+              scrollHeight={listExtent >= listPane - 4 ? listExtent : 0} scrollY={0}
+            >
+              <MapList mobile={mobile} />
+            </layer>
+            <layer x={{ right: 2 }} y="center" w={16} h={{ fill: 4 }}>
+              <ScrollbarVertical
+                content={mapList}
+                track={WorldmapScrollbar.TRACK} capTopSprite={WorldmapScrollbar.CAP_TOP}
+                thumbSprite={WorldmapScrollbar.THUMB} capBottomSprite={WorldmapScrollbar.CAP_BOTTOM}
+                arrowUp={WorldmapScrollbar.ARROW_UP} arrowDown={WorldmapScrollbar.ARROW_DOWN}
+              />
+            </layer>
+            <ThinBoxEntrypoint />
+          </layer>
+        </layer>
+
+        <layer x="center" y="center" w="fill" h="fill">
+          <SteelFrameEntrypoint />
+        </layer>
+
+        <sprite
+          ref={closeRef}
+          x={{ right: mobile ? 15 : 10 }} y={10} w={26} h={23}
+          sprite={WorldmapArt.CLOSE} hover={{ sprite: WorldmapArt.CLOSE_HOVER }}
+          options={['Close']}
+          onOptionSelect={(event) => opsound(event.option, WorldmapOptionSounds.CLOSE)}
+          hide={embedded === WorldmapEmbedded.WITHOUT_CLOSE}
+        />
+
+        <layer x={{ right: 0 }} y={{ bottom: 0 }} w={8} h={8} hide={mobile}>
+          <sprite x={0} y={0} w={8} h={8} sprite={WorldmapArt.GRIP} />
+        </layer>
+      </layer>
+
+      <IconTooltip />
+
+      <layer
+        x={dragSide === Missing.SIDE ? 'center' : pendX} y={dragSide === Missing.SIDE ? 'center' : pendY}
+        w={{ fill: dragSide === Missing.SIDE ? 50 : pendW }} h={{ fill: dragSide === Missing.SIDE ? 50 : pendH }}
+        hide={dragSide === Missing.SIDE}
+      >
+        {!display && <rect x="center" y="center" w={{ fill: 0 }} h={{ fill: 0 }} color={WorldmapColour.GREY} transparency={100} />}
+        {!display && <rect x="center" y="center" w={{ fill: 2 }} h={{ fill: 2 }} color={WorldmapColour.GREY} transparency={110} />}
+        {!display && <rect x="center" y="center" w={{ fill: 4 }} h={{ fill: 4 }} color={WorldmapColour.GREY} transparency={120} />}
+        {!display && <rect x="center" y="center" w={{ fill: 6 }} h={{ fill: 6 }} color={WorldmapColour.GREY} transparency={130} />}
+      </layer>
+
+      {!display && (
+        <>
+          <sprite
+            x={boxX + 6} y={boxY} w={{ fill: minusW + 12 }} h={6}
+            sprite={dragSide === WorldmapEdge.TOP ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.TOP); setDragDX(event.mouseX - (boxX + 6)); setDragDY(event.mouseY - boxY); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+          <sprite
+            x={boxX + 6} y={{ bottom: minusH - boxY }} w={{ fill: minusW + 12 }} h={6}
+            sprite={dragSide === WorldmapEdge.BOTTOM ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.BOTTOM); setDragDX(event.mouseX - (boxX + 6)); setDragDY(event.mouseY - edgeBottom); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+          <sprite
+            x={boxX} y={boxY + 6} w={6} h={{ fill: minusH + 12 }}
+            sprite={dragSide === WorldmapEdge.LEFT ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.LEFT); setDragDX(event.mouseX - boxX); setDragDY(event.mouseY - (boxY + 6)); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+          <sprite
+            x={{ right: minusW - boxX }} y={boxY + 6} w={6} h={{ fill: minusH + 12 }}
+            sprite={dragSide === WorldmapEdge.RIGHT ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.RIGHT); setDragDX(event.mouseX - edgeRight); setDragDY(event.mouseY - (boxY + 6)); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+          <sprite
+            x={boxX} y={boxY} w={6} h={6}
+            sprite={dragSide === WorldmapEdge.TOP_LEFT ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.TOP_LEFT); setDragDX(event.mouseX - boxX); setDragDY(event.mouseY - boxY); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+          <sprite
+            x={{ right: minusW - boxX }} y={boxY} w={6} h={6}
+            sprite={dragSide === WorldmapEdge.TOP_RIGHT ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.TOP_RIGHT); setDragDX(event.mouseX - edgeRight); setDragDY(event.mouseY - boxY); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+          <sprite
+            x={boxX} y={{ bottom: minusH - boxY }} w={6} h={6}
+            sprite={dragSide === WorldmapEdge.BOTTOM_LEFT ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.BOTTOM_LEFT); setDragDX(event.mouseX - boxX); setDragDY(event.mouseY - edgeBottom); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+          <sprite
+            x={{ right: minusW - boxX }} y={{ bottom: minusH - boxY }} w={6} h={6}
+            sprite={dragSide === WorldmapEdge.BOTTOM_RIGHT ? Missing.SPRITE : WorldmapArt.BAR} tiling transparency={255} hover={{ transparency: 75 }}
+            draggable={frameRef} dragDeadZone={1} dragDeadTime={5}
+            onDrag={(event) => {
+              setDragSide(WorldmapEdge.BOTTOM_RIGHT); setDragDX(event.mouseX - edgeRight); setDragDY(event.mouseY - edgeBottom); setCommitAt(clientClock() + WorldmapTiming.DRAG_COMMIT);
+            }}
+          />
+        </>
+      )}
+    </>
+  );
+}
+
+function mapOffsetX(at: Coord, mapW: Int, right: Int, left: Int): Int {
+  const [displayX, displayY] = CS2.worldmap_display_coord_get(at);
+  return CS2.scale(mapW, right - left, displayX - left) - mapW / 2;
+}
+
+function mapOffsetY(at: Coord, mapH: Int, top: Int, bottom: Int): Int {
+  const [displayX, displayY] = CS2.worldmap_display_coord_get(at);
+  return mapH / 2 - CS2.scale(mapH, top - bottom, displayY - bottom);
+}
+
+function scrollMapTo(option: Int, to: Coord): void {
+  if (option === WorldmapOption.FIRST && to !== Missing.COORD) {
+    playSound(WorldmapSound.CLICK);
+    CS2.worldmap_jumptosourcecoord(to);
+  }
+}
+
+function spinAngle(turn: Int): Int {
+  const half: Int = WorldmapTiming.SPIN / 2;
+  if (turn < half) {
+    return CS2.scale(turn * turn, half * half, WorldmapAngle.HALF_TURN);
+  }
+
+  const left: Int = WorldmapTiming.SPIN - turn;
+  return WorldmapAngle.UP - CS2.scale(left * left, half * half, WorldmapAngle.HALF_TURN);
+}
+
+function MapOverlay({ mapW, mapH }: { mapW: Int; mapH: Int }): Component {
+  const [seenX, setSeenX] = useState(Missing.SEEN);
+  const [seenY, setSeenY] = useState(Missing.SEEN);
+  const [seenW, setSeenW] = useState(Missing.SEEN);
+  const [seenH, setSeenH] = useState(Missing.SEEN);
+  const [seenPlayer, setSeenPlayer] = useState(Missing.SEEN);
+  const [turn, setTurn] = useState(0);
+  const overlay = useRef();
+  const links = useRef('links');
+  const [seenLayerW, setSeenLayerW] = useState(Missing.SEEN);
+  const [seenLayerH, setSeenLayerH] = useState(Missing.SEEN);
+  const [toggles] = useState(worldmapToggles);
+  const player: Int = seenPlayer === playerSquare() ? seenPlayer : playerSquare();
+  useInterval(() => {
+    if (overlay.width !== seenLayerW) { setSeenLayerW(overlay.width); }
+    if (overlay.height !== seenLayerH) { setSeenLayerH(overlay.height); }
+    const polled: Int = CS2.worldmap_current_map_get() as Int;
+    if (!CS2.worldmap_loaded_is() || polled === WorldmapMap.NONE) {
+      return;
+    }
+    const [pollW, pollH] = CS2.worldmap_size_get();
+    if (pollW <= 0) {
+      return;
+    }
+    const [pollX, pollY] = CS2.worldmap_display_position_get();
+    const square: Int = playerSquare();
+    const playerHere: Coord = coordInMap(polled, square as Coord);
+    if (square !== seenPlayer && square !== Missing.COORD && playerHere !== Missing.COORD) {
+      const [lastX, lastY] = CS2.worldmap_display_coord_get(seenPlayer as Coord);
+      if (lastX >= pollX - WorldmapLayout.FOLLOW_RANGE && lastX <= pollX + WorldmapLayout.FOLLOW_RANGE
+        && lastY >= pollY - WorldmapLayout.FOLLOW_RANGE && lastY <= pollY + WorldmapLayout.FOLLOW_RANGE) {
+        CS2.worldmap_jumptosourcecoord(playerHere);
+      }
+    }
+    if (pollX !== seenX) { setSeenX(pollX); }
+    if (pollY !== seenY) { setSeenY(pollY); }
+    if (pollW !== seenW) { setSeenW(pollW); }
+    if (pollH !== seenH) { setSeenH(pollH); }
+    if (square !== seenPlayer) { setSeenPlayer(square); }
+    if (playerHere !== Missing.COORD && !toggleOff(toggles, WorldmapToggle.YOU_ARE_HERE) && !toggleOff(toggles, WorldmapToggle.EFFECTS)) {
+      const nextTurn: Int = clientClock() % WorldmapTiming.SPIN;
+      if (nextTurn !== turn) { setTurn(nextTurn); }
+    }
+  });
+
+  const current: Int = CS2.worldmap_current_map_get() as Int;
+  const [engineW, engineH] = CS2.worldmap_size_get();
+  const [engineX, engineY] = CS2.worldmap_display_position_get();
+  const viewW: Int = seenW === engineW ? seenW : engineW;
+  const viewH: Int = seenH === engineH ? seenH : engineH;
+  const viewX: Int = seenX === engineX ? seenX : engineX;
+  const viewY: Int = seenY === engineY ? seenY : engineY;
+  const live: Boolean = CS2.worldmap_loaded_is() && current !== WorldmapMap.NONE && viewW > 0 && viewH > 0;
+  const top: Int = viewY + viewH / 2;
+  const bottom: Int = viewY - viewH / 2;
+  const right: Int = viewX + viewW / 2;
+  const left: Int = viewX - viewW / 2;
+  const drawnW: Int = seenLayerW > 0 ? seenLayerW : mapW;
+  const drawnH: Int = seenLayerH > 0 ? seenLayerH : mapH;
+  const linksOff: Boolean = toggleOff(toggles, WorldmapToggle.LINKS);
+  return (
+    <layer ref={overlay} x={0} y={0} w="fill" h="fill">
+      <layer ref={links} x={0} y={0} w="fill" h="fill">
+        {LinkRows.map((index) => (
+          <LinkMarks
+            index={index} shown={live && index < linkCount()} hidden={linksOff}
+            map={current} top={top} bottom={bottom} right={right} left={left} mapW={drawnW} mapH={drawnH}
+          />
+        ))}
+      </layer>
+      <MapMarker
+        shown={live && !toggleOff(toggles, WorldmapToggle.YOU_ARE_HERE)}
+        at={player}
+        sprite={WorldmapArt.YOU_ARE_HERE}
+        edgeSprite={WorldmapArt.MARKER_EDGE}
+        cornerSprite={WorldmapArt.MARKER_CORNER}
+        name="Your position"
+        turn={!toggleOff(toggles, WorldmapToggle.EFFECTS) ? turn : Missing.TURN}
+        map={current} top={top} bottom={bottom} right={right} left={left} mapW={drawnW} mapH={drawnH}
+      />
+    </layer>
+  );
+}
+
+function LinkMarks({ index, shown, hidden, map, top, bottom, right, left, mapW, mapH }: {
+  index: Int; shown: Boolean; hidden: Boolean; map: Int; top: Int; bottom: Int; right: Int; left: Int; mapW: Int; mapH: Int;
+}): Component {
+  const [hot, setHot] = useState(Flag.OFF);
+  const from: Coord = linkFrom(index);
+  const to: Coord = linkTo(index);
+  const fromMap: Int = linkFromMap(index);
+  const toMap: Int = linkToMap(index);
+  const fromDrawn: Boolean = shown && linkDraws(index, LinkEnd.FIRST) && fromMap === map;
+  const toDrawn: Boolean = shown && linkDraws(index, LinkEnd.OTHER) && toMap === map;
+  const lineDrawn: Boolean = shown && fromMap === map && toMap === map;
+  const fromPlaced: Boolean = fromDrawn || lineDrawn;
+  const toPlaced: Boolean = toDrawn || lineDrawn;
+  const fromX: Int = fromPlaced ? mapOffsetX(from, mapW, right, left) : 0;
+  const fromY: Int = fromPlaced ? mapOffsetY(from, mapH, top, bottom) : 0;
+  const toX: Int = toPlaced ? mapOffsetX(to, mapW, right, left) : 0;
+  const toY: Int = toPlaced ? mapOffsetY(to, mapH, top, bottom) : 0;
+  const spanX: Int = toX - fromX < 0 ? fromX - toX : toX - fromX;
+  const spanY: Int = toY - fromY < 0 ? fromY - toY : toY - fromY;
+  const rising: Boolean = (toX - fromX < 0) !== (toY - fromY < 0);
+  const end: Int = WorldmapLayout.LINK_END;
+  const shadow: Int = WorldmapLayout.LINK_SHADOW;
+  const colour: Int = hot === Flag.ON ? WorldmapColour.YELLOW : WorldmapColour.LINK;
+  return (
+    <>
+      {fromDrawn && (
+        <rect x={{ center: fromX + shadow }} y={{ center: fromY + shadow }} w={end} h={end} fill color={WorldmapColour.BLACK} hide={hidden} />
+      )}
+      {toDrawn && (
+        <rect x={{ center: toX + shadow }} y={{ center: toY + shadow }} w={end} h={end} fill color={WorldmapColour.BLACK} hide={hidden} />
+      )}
+      {fromDrawn && (
+        <rect
+          x={{ center: fromX }} y={{ center: fromY }} w={end} h={end} fill color={colour} hide={hidden}
+          options={['Scroll map']}
+          onOptionSelect={(event) => {
+            if (event.option !== WorldmapOption.FIRST) {
+              return;
+            }
+
+            setHot(Flag.OFF);
+            showMapAt(toMap, to);
+          }}
+          onMouseEnter={() => setHot(Flag.ON)}
+          onMouseLeave={() => setHot(Flag.OFF)}
+        />
+      )}
+      {toDrawn && (
+        <rect
+          x={{ center: toX }} y={{ center: toY }} w={end} h={end} fill color={colour} hide={hidden}
+          options={['Scroll map']}
+          onOptionSelect={(event) => {
+            if (event.option !== WorldmapOption.FIRST) {
+              return;
+            }
+
+            setHot(Flag.OFF);
+            showMapAt(fromMap, from);
+          }}
+          onMouseEnter={() => setHot(Flag.ON)}
+          onMouseLeave={() => setHot(Flag.OFF)}
+        />
+      )}
+      {lineDrawn && (
+        <line
+          x={{ center: fromX + (toX - fromX) / 2 }} y={{ center: fromY + (toY - fromY) / 2 }} w={spanX} h={spanY}
+          color={WorldmapColour.YELLOW} lineWidth={WorldmapLayout.LINK_LINE} lineDirection={rising}
+          hide={hidden || hot === Flag.OFF}
+        />
+      )}
+    </>
+  );
+}
+
+function MapMarker({
+  shown, at, sprite, edgeSprite, cornerSprite, name, turn, map, top, bottom, right, left, mapW, mapH,
+}: {
+  shown: Boolean; at: Int; sprite: Sprite; edgeSprite: Sprite; cornerSprite: Sprite; name: String; turn: Int;
+  map: Int; top: Int; bottom: Int; right: Int; left: Int; mapW: Int; mapH: Int;
+}): Component {
+  const here: Coord = shown ? coordInMap(map, at as Coord) : (Missing.COORD as Coord);
+  const onMap: Boolean = here !== Missing.COORD;
+  const rawX: Int = onMap ? mapOffsetX(here, mapW, right, left) : 0;
+  const rawY: Int = onMap ? mapOffsetY(here, mapH, top, bottom) : 0;
+  const half: Int = WorldmapLayout.MARKER_SIZE / 2;
+  const halfW: Int = mapW / 2;
+  const halfH: Int = mapH / 2;
+  const offLeft: Boolean = rawX < 0 - halfW;
+  const offRight: Boolean = !offLeft && rawX > halfW;
+  const offTop: Boolean = rawY < 0 - halfH;
+  const offBottom: Boolean = !offTop && rawY > halfH;
+  const pastX: Boolean = offLeft || offRight;
+  const pastY: Boolean = offTop || offBottom;
+  const markX: Int = offLeft ? half - halfW : offRight ? halfW - half : rawX;
+  const markY: Int = offTop ? half - halfH : offBottom ? halfH - half : rawY;
+  const angle: Int = offLeft ? (offTop ? WorldmapAngle.UP : WorldmapAngle.LEFT)
+    : offRight ? (offBottom ? WorldmapAngle.DOWN : WorldmapAngle.RIGHT)
+    : offTop ? WorldmapAngle.UP : offBottom ? WorldmapAngle.DOWN : turn === Missing.TURN ? WorldmapAngle.RIGHT : spinAngle(turn);
+  return (
+    <>
+      {shown && (
+        <sprite
+          x={{ center: markX }} y={{ center: markY }} w={WorldmapLayout.MARKER_SIZE} h={WorldmapLayout.MARKER_SIZE}
+          sprite={pastX && pastY ? cornerSprite : pastX || pastY ? edgeSprite : sprite}
+          angle2d={angle}
+          hide={!onMap}
+          options={['Focus on']}
+          optionSubject={`<col=ff9040>${name}</col>`}
+          onOptionSelect={(event) => scrollMapTo(event.option, here)}
+        />
+      )}
+    </>
+  );
+}
+
+function OverviewBox({ overviewW, overviewH, sizeW, sizeH, map, shown }: {
+  overviewW: Int; overviewH: Int; sizeW: Int; sizeH: Int; map: Int; shown: Int;
+}): Component {
+  const [seenX, setSeenX] = useState(Missing.SEEN);
+  const [seenY, setSeenY] = useState(Missing.SEEN);
+  const [seenW, setSeenW] = useState(Missing.SEEN);
+  const [seenH, setSeenH] = useState(Missing.SEEN);
+  const [jumpAt, setJumpAt] = useState(WorldmapChoice.NONE);
+  useInterval(() => {
+    if (!CS2.worldmap_loaded_is() || CS2.worldmap_current_map_get() === WorldmapMap.NONE) {
+      return;
+    }
+    const [pollW, pollH] = CS2.worldmap_size_get();
+    if (pollW <= 0) {
+      return;
+    }
+    const [pollX, pollY] = CS2.worldmap_display_position_get();
+    if (pollX !== seenX) { setSeenX(pollX); }
+    if (pollY !== seenY) { setSeenY(pollY); }
+    if (pollW !== seenW) { setSeenW(pollW); }
+    if (pollH !== seenH) { setSeenH(pollH); }
+  });
+
+  const current: Int = CS2.worldmap_current_map_get() as Int;
+  const live: Boolean = shown >= 0 && CS2.worldmap_loaded_is() && current !== WorldmapMap.NONE;
+  const [engineW, engineH] = CS2.worldmap_size_get();
+  const [engineX, engineY] = CS2.worldmap_display_position_get();
+  const viewW: Int = seenW === engineW ? seenW : engineW;
+  const viewH: Int = seenH === engineH ? seenH : engineH;
+  const viewX: Int = seenX === engineX ? seenX : engineX;
+  const viewY: Int = seenY === engineY ? seenY : engineY;
+  const [boundMinX, boundMinY, boundMaxX, boundMaxY] = CS2.worldmap_config_bounds_get(current);
+  const [currentW, currentH] = CS2.worldmap_config_size_get(current);
+  const spanW: Int = Math.max(currentW, 1);
+  const spanH: Int = Math.max(currentH, 1);
+  const innerW: Int = overviewW - 4;
+  const innerH: Int = overviewH - 4;
+  const top: Int = viewY + viewH / 2;
+  const bottom: Int = viewY - viewH / 2;
+  const right: Int = viewX + viewW / 2;
+  const left: Int = viewX - viewW / 2;
+  const boxX: Int = CS2.scale(left - boundMinX, spanW, innerW);
+  const boxY: Int = CS2.scale(boundMaxY - top, spanH, innerH);
+  const boxW: Int = CS2.scale(right - left, spanW, innerW);
+  const boxH: Int = CS2.scale(top - bottom, spanH, innerH);
+  const drawn: Boolean = live && viewW > 0;
+  const [jumpMinX, jumpMinY, jumpMaxX, jumpMaxY] = CS2.worldmap_config_bounds_get(map);
+
+  return (
+    <layer
+      x="center" y="center" w={{ fill: 4 }} h={{ fill: 4 }}
+      onClickRepeat={(event) => {
+        if (!CS2.worldmap_loaded_is() || clientClock() < jumpAt) {
+          return;
+        }
+        const tileX: Int = jumpMinX + CS2.scale(event.mouseX, overviewW, sizeW);
+        const tileZ: Int = jumpMaxY - CS2.scale(event.mouseY, overviewH, sizeH);
+        CS2.worldmap_jumptodisplaycoord(tileOf(tileX, tileZ, WorldmapLevel.LOWEST));
+        setJumpAt(clientClock() + WorldmapTiming.OVERVIEW_JUMP);
+      }}
+    >
+      {drawn && <rect x={boxX} y={boxY} w={boxW} h={boxH} color={WorldmapColour.VIEWPORT} transparency={100} />}
+      {drawn && <rect x={boxX} y={boxY} w={boxW} h={boxH} fill color={WorldmapColour.VIEWPORT} transparency={200} />}
+    </layer>
+  );
+}
+
+function zoomStepTarget(step: Int, now: Int): Int {
+  if (step === WorldmapZoomStep.IN) {
+    return now < WorldmapZoom.FAR ? WorldmapZoom.FAR
+      : now < WorldmapZoom.NEAR ? WorldmapZoom.NEAR
+      : now < WorldmapZoom.NORMAL ? WorldmapZoom.NORMAL
+      : WorldmapZoom.NEAREST;
+  }
+
+  return now > WorldmapZoom.NORMAL ? WorldmapZoom.NORMAL
+    : now > WorldmapZoom.NEAR ? WorldmapZoom.NEAR
+    : now > WorldmapZoom.FAR ? WorldmapZoom.FAR
+    : WorldmapZoom.FURTHEST;
+}
+
+function mapListPaneHeight(mobile: Boolean): Int {
+  const row: Int = mobile ? WorldmapLayout.LIST_ROW_MOBILE : WorldmapLayout.LIST_ROW;
+  const extent: Int = listedMapCount() * row + 2;
+  const pane: Int = mobile ? WorldmapLayout.LIST_PANE_MOBILE : WorldmapLayout.LIST_PANE;
+  if (extent >= pane - 4) {
+    return pane;
+  }
+  return extent + 4;
+}
+
+function PanelButtonLook({
+  pressed, model, offsetY, yaw, zoom, rectW, rectH, rectY, colour, hotTransparency,
+}: {
+  pressed: Boolean; model: Model; offsetY: Int; yaw: Int; zoom: Int;
+  rectW: Int; rectH: Int; rectY: Int; colour: Int; hotTransparency: Int;
+}): Component {
+  const [hot, setHot] = useState(0);
+  return (
+    <layer
+      x="center" y="center" w="fill" h="fill"
+      onMouseRepeat={() => setHot(1)} onMouseLeave={() => setHot(0)}
+    >
+      {pressed ? <StoneButtonPressedFilled /> : <StoneButtonOutFilled />}
+      <model
+        x="center" y="center" w="fill" h="fill" model={model}
+        offsetX={0} offsetY={offsetY} pitch={512} yaw={yaw} roll={0} zoom={zoom}
+      />
+      <rect
+        x="center" y={{ center: rectY }} w={rectW} h={rectH} fill color={colour}
+        transparency={hot === 1 ? hotTransparency : 255}
+      />
+      <rect
+        x="center" y={{ center: rectY }} w={rectW - 2} h={rectH - 2} fill color={colour}
+        transparency={255}
+      />
+    </layer>
+  );
+}
+
+function ZoomLook({ enabled, glyph }: { enabled: Boolean; glyph: String }): Component {
+  const [hot, setHot] = useState(0);
+  const pressed: Boolean = !enabled || hot === 1;
+  const colour: Int = enabled ? WorldmapColour.BLACK : WorldmapColour.RED;
+  return (
+    <layer
+      x="center" y="center" w="fill" h="fill"
+      onMouseRepeat={enabled ? () => setHot(1) : null}
+      onMouseLeave={enabled ? () => setHot(0) : null}
+    >
+      {pressed ? <StoneButtonPressedFilled /> : <StoneButtonOutFilled />}
+      <sprite x="center" y="center" w={29} h={22} sprite={WorldmapArt.MAGNIFIER} />
+      <text
+        x={{ center: -2 }} y={{ center: -1 }} w="fill" h="fill" text={glyph}
+        color={colour} font={WorldmapFont.PLAIN} align="center" valign="middle"
+      />
+    </layer>
+  );
+}
+
+function MapListButton({ map, mobile }: { map: Int; mobile: Boolean }): Component {
+  const [open, setOpen] = useState(worldmapListOpen);
+  const [, setMapChoice] = useState(worldmapMapChoice);
+  const [, setZoomChoice] = useState(worldmapZoomChoice);
+  const [hot, setHot] = useState(Flag.OFF);
+  const host = useRef();
+  const button = useRef('map_list_button');
+  const name = useRef('map_list_name');
+  useInterval(() => {
+    if (CS2.worldmap_current_map_get() === map) {
+      return;
+    }
+
+    setOpen(Flag.OFF);
+    setHot(Flag.OFF);
+    if (!CS2.worldmap_loaded_is()) {
+      return;
+    }
+
+    setMapChoice(CS2.worldmap_current_map_get() as Int);
+    setZoomChoice(WorldmapChoice.NONE);
+  }, host);
+  return (
+    <layer ref={host} x={0} y={0} w="fill" h="fill">
+      <sprite
+        ref={button}
+        x="center" y="center" w="fill" h="fill" sprite={WorldmapArt.BACKING} tiling
+        transparency={hot === Flag.ON ? 100 : open === Flag.ON ? 255 : 0}
+        onClick={() => {
+          setHot(Flag.OFF);
+          openMapList();
+        }}
+        onMouseEnter={open === Flag.OFF && !mobile ? () => setHot(Flag.ON) : null}
+        onMouseLeave={open === Flag.OFF && !mobile ? () => setHot(Flag.OFF) : null}
+      />
+      <rect x="center" y="center" w="fill" h="fill" color={WorldmapColour.DROPDOWN_EDGE} />
+      <rect x="center" y="center" w={{ fill: 2 }} h={{ fill: 2 }} color={WorldmapColour.DROPDOWN_INNER} />
+      <sprite
+        x={{ right: 2 }} y="center" w={16} h={16}
+        sprite={hot === Flag.OFF && open === Flag.ON ? WorldmapArt.CHEVRON_OPEN : WorldmapArt.CHEVRON}
+        transparency={hot === Flag.ON ? 125 : 0}
+      />
+      <text
+        ref={name}
+        x={2} y="center" w={{ fill: 20 }} h="fill"
+        text={CS2.worldmap_map_name_get(map)}
+        font={WorldmapFont.SMALL} shadow align="center" valign="middle"
+        color={open === Flag.ON || hot === Flag.ON ? WorldmapColour.DROPDOWN_HOT : WorldmapColour.ORANGE}
+      />
+    </layer>
+  );
+}
+
+function KeyList({ extent, row, mobile }: { extent: Int; row: Int; mobile: Boolean }): Component {
+  return (
+    <layer x={0} y={0} w="fill" h={extent}>
+      {KeyRows.map((key, index) => (
+        <KeyRow
+          index={index} name={key.name} sprite={key.sprite}
+          y={key.order * row + key.band * WorldmapLayout.HEADER_STEP + (key.band - 1) * WorldmapLayout.HEADER_GAP}
+          height={row} mobile={mobile}
+        />
+      ))}
+      {KeyHeaderRows.map((header) => (
+        <text
+          x="center" y={header.order * row + (header.band - 1) * WorldmapLayout.HEADER_H}
+          w="fill" h={WorldmapLayout.HEADER_H} text={header.title}
+          color={WorldmapColour.WHITE} font={WorldmapFont.PLAIN} shadow align="center" valign="middle"
+        />
+      ))}
+    </layer>
+  );
+}
+
+function KeyRow({ index, name, sprite, y, height, mobile }: {
+  index: Int; name: String; sprite: Sprite; y: Int; height: Int; mobile: Boolean;
+}): Component {
+  const wash = useRef();
+  const [until, setUntil] = useState(WorldmapChoice.NONE);
+  const [hot, setHot] = useState(Flag.OFF);
+  useInterval(until !== WorldmapChoice.NONE ? () => {
+    if (clientClock() >= until) {
+      setUntil(WorldmapChoice.NONE);
+      setHot(Flag.OFF);
+    }
+  } : undefined, wash);
+  return (
+    <>
+      <rect
+        ref={wash} x="center" y={y} w="fill" h={height} fill color={WorldmapColour.WHITE}
+        transparency={until !== WorldmapChoice.NONE ? 200 : hot === Flag.ON ? 220 : 255}
+        options={['Flash icons']} optionSubject={`<col=ff9040>${name}</col>`}
+        onOptionSelect={(event) => {
+          if (event.option !== WorldmapOption.FIRST || until !== WorldmapChoice.NONE) {
+            return;
+          }
+
+          playSound(WorldmapSound.CLICK);
+          setUntil(clientClock() + WorldmapTiming.KEY_FLASH);
+          flashKeyCategory(index);
+        }}
+        onMouseRepeat={until === WorldmapChoice.NONE ? () => setHot(Flag.ON) : null}
+        onMouseLeave={until === WorldmapChoice.NONE ? () => setHot(Flag.OFF) : null}
+      />
+      <sprite x={1} y={mobile ? y + 1 : y} w={15} h={15} sprite={sprite} />
+      <text
+        x={{ right: 0 }} y={y} w={{ fill: 18 }} h={height} text={name}
+        color={WorldmapColour.ORANGE} font={WorldmapFont.PLAIN} shadow align="left" valign="middle"
+      />
+    </>
+  );
+}
+
+function Toggles(): Component {
+  const [bits, setBits] = useState(worldmapToggles);
+  return (
+    <layer x={0} y={0} w="fill" h="fill">
+      {TOGGLE_ROWS.map((row) => (
+        <rect
+          x="center" y={row * WorldmapLayout.TOGGLE_ROW} w="fill" h={WorldmapLayout.TOGGLE_ROW}
+          fill color={WorldmapColour.WHITE} transparency={255} hover={{ transparency: 220 }}
+          options={[toggleOff(bits, row) ? 'Enable' : 'Disable']}
+          optionSubject={`<col=ff9040>${ToggleLabels.at(row) ?? ''}</col>`}
+          onOptionSelect={(event) => {
+            if (event.option !== WorldmapOption.FIRST) {
+              return;
+            }
+
+            playSound(WorldmapSound.CLICK);
+            const next: Int = toggleOff(bits, row) ? CS2.bit_clear(bits, row) : CS2.bit_set(bits, row);
+            setBits(next);
+            toggleEffects(next);
+          }}
+        />
+      ))}
+      <sprite x={-2} y={-2} w={23} h={23} sprite={WorldmapArt.YOU_ARE_HERE} />
+      <rect x={1} y={29} w={6} h={6} fill color={WorldmapColour.BLACK} />
+      <rect x={0} y={28} w={6} h={6} fill color={WorldmapColour.YELLOW} />
+      <rect x={12} y={29} w={6} h={6} fill color={WorldmapColour.BLACK} />
+      <rect x={11} y={28} w={6} h={6} fill color={WorldmapColour.YELLOW} />
+      <line x={6} y={31} w={9} h={0} lineWidth={2} color={WorldmapColour.YELLOW} />
+      <text
+        x={0} y={42} w={21} h={21} text="AB<br>YZ"
+        color={WorldmapColour.WHITE} font={WorldmapFont.SMALL} shadow align="center" valign="middle"
+      />
+      <rect x={0} y={66} w={20} h={15} fill color={WorldmapColour.TOOLTIP} />
+      <rect x={0} y={66} w={20} h={15} color={WorldmapColour.BLACK} />
+      <sprite x={2} y={85} w={17} h={18} sprite={WorldmapArt.EFFECTS} />
+      {TOGGLE_ROWS.map((row) => (
+        <>
+          <text
+            x={{ right: 0 }} y={row * WorldmapLayout.TOGGLE_ROW} w={{ fill: 25 }} h={WorldmapLayout.TOGGLE_ROW}
+            text={ToggleLabels.at(row) ?? ''}
+            color={WorldmapColour.ORANGE} font={WorldmapFont.PLAIN} shadow align="left" valign="middle"
+          />
+          <sprite
+            x={1} y={row * WorldmapLayout.TOGGLE_ROW + 2} w={17} h={17}
+            sprite={WorldmapArt.TOGGLE_OFF} hide={!toggleOff(bits, row)}
+          />
+        </>
+      ))}
+    </layer>
+  );
+}
+
+function SearchField({ width }: { width: Int }): Component {
+  const [searching, setSearching] = useState(worldmapSearching);
+  const [query, setQuery] = useState(worldmapSearch);
+  const [keyTimeout] = useState(keyboardTimeout);
+  const [typed, setTyped] = useState(0);
+  const on: Boolean = searching === Flag.ON;
+  const label: String = on ? searchText(query) : 'Search';
+  const tooWide: Boolean = textWidth(label, WorldmapSearch.TEXT_WIDTH, WorldmapFont.SMALL) > width - 4;
+
+  return (
+    <>
+      <sprite
+        x="center" y="center" w="fill" h="fill" tiling
+        sprite={on ? WorldmapArt.BACKING : WorldmapArt.SEARCH_REST}
+        hover={{ sprite: WorldmapArt.BACKING }}
+        options={[on ? 'Quit' : 'Search']}
+        onOptionSelect={(event) => {
+          playSound(WorldmapSound.CLICK);
+          if (on) {
+            stopSearching();
+            return;
+          }
+
+          setQuery('');
+          setSearching(Flag.ON);
+          keyboardShow(WorldmapSearch.KEYBOARD_MODE, WorldmapSearch.KEYBOARD_LIMIT);
+          CS2.cc_find(event.component, event.subId);
+          CS2.key_input_mode_active_component_set();
+        }}
+        onKey={on ? (event) => {
+          if (keyTimeout > clientClock()) {
+            return;
+          }
+
+          if (event.keyCode === WorldmapKey.ENTER) {
+            const target: Coord = searchCoord(query);
+            if (target !== Missing.COORD) {
+              playSound(WorldmapSound.CLICK);
+              CS2.worldmap_jumptodisplaycoord(target);
+              stopSearching();
+            }
+            keyboardHide();
+            setTyped(typed + 1);
+            return;
+          }
+
+          if (event.keyCode === WorldmapKey.ESCAPE) {
+            playSound(WorldmapSound.CLICK);
+            stopSearching();
+            keyboardHide();
+            setTyped(typed + 1);
+            return;
+          }
+
+          setQuery(addToInputString(query, WorldmapSearch.INPUT_MODE, event.keyCode, event.keyChar));
+          setTyped(typed + 1);
+        } : undefined}
+      />
+      <text
+        x="center" y="center" w={{ fill: 4 }} h={12} text={label}
+        color={WorldmapColour.GREY} font={WorldmapFont.SMALL} shadow
+        align={tooWide ? 'right' : 'center'} valign="middle"
+        hide={typed < 0}
+      />
+      <ThinBoxEntrypoint />
+    </>
+  );
+}
+
+function searchText(query: String): String {
+  const length: Int = query.length;
+  if (length <= 0) {
+    return '<col=ff0000>*</col>';
+  }
+  if (length > 1) {
+    const [firstIcon, firstAt] = CS2.worldmap_listicon_start();
+    let icon: MapIcon = firstIcon;
+    while (icon !== Missing.ICON) {
+      const name: String = CS2.worldmap_icon_text(icon);
+      if (name.length > 0) {
+        const plain: String = stringFindAndReplace(name, '<br>', ' ');
+        const found: Int = CS2.string_indexof_string(CS2.lowercase(plain), CS2.lowercase(query), 0);
+        if (found !== Missing.FOUND) {
+          let lit: String = '';
+          if (found > 0) {
+            lit = `<col=ff0000>${plain.substring(0, found)}`;
+          }
+          lit = `${lit}<col=ffffff>${plain.substring(found, found + length)}`;
+          if (found + length < plain.length) {
+            lit = `${lit}<col=ff0000>${plain.substring(found + length, plain.length)}`;
+          }
+          return lit;
+        }
+      }
+      const [nextIcon, nextAt] = CS2.worldmap_listicon_next();
+      icon = nextIcon;
+    }
+  }
+  return `<col=ffffff>${query}<col=ff0000>*</col>`;
+}
+
+function searchCoord(query: String): Coord {
+  if (query.length <= 1) {
+    return Missing.COORD as Coord;
+  }
+  const [firstIcon, firstAt] = CS2.worldmap_listicon_start();
+  let icon: MapIcon = firstIcon;
+  let at: Coord = firstAt;
+  while (icon !== Missing.ICON) {
+    const name: String = CS2.worldmap_icon_text(icon);
+    if (name.length > 0) {
+      if (CS2.string_indexof_string(CS2.lowercase(stringFindAndReplace(name, '<br>', ' ')), CS2.lowercase(query), 0) !== Missing.FOUND) {
+        return at;
+      }
+    }
+    const [nextIcon, nextAt] = CS2.worldmap_listicon_next();
+    icon = nextIcon;
+    at = nextAt;
+  }
+  return Missing.COORD as Coord;
+}
+
+function MapList({ mobile }: { mobile: Boolean }): Component {
+  const [, setOpen] = useState(worldmapListOpen);
+  const [, setMapChoice] = useState(worldmapMapChoice);
+  const [, setZoomChoice] = useState(worldmapZoomChoice);
+  const row: Int = mobile ? WorldmapLayout.LIST_ROW_MOBILE : WorldmapLayout.LIST_ROW;
+  const [hot, setHot] = useState(Missing.HOVER);
+  const extent: Int = listedMapCount() * row + 2;
+  return (
+    <layer x={0} y={0} w="fill" h={extent}>
+      <rect
+        x={0} y={hot === Missing.HOVER ? 0 : mapListSlot(listedMapAt(hot), hot) * row}
+        w="fill" h={row + 2} fill color={WorldmapColour.WHITE} transparency={200}
+        hide={hot === Missing.HOVER}
+      />
+      {MapListRows.map((index) => (
+        <text
+          x="center" y={mapListSlot(listedMapAt(index), index) * row} w="fill" h={row}
+          text={CS2.worldmap_map_name_get(listedMapAt(index))}
+          font={mapListFont(index)} shadow align="center" valign="middle"
+          color={hot === index ? WorldmapColour.DROPDOWN_HOT : WorldmapColour.ORANGE}
+          options={['Select']}
+          optionSubject={`<col=ff9040>${CS2.worldmap_map_name_get(listedMapAt(index))}</col>`}
+          hide={index >= listedMapCount()}
+          onOptionSelect={(event) => {
+            if (event.option !== WorldmapOption.FIRST) {
+              return;
+            }
+
+            const map: Int = listedMapAt(index);
+            playSound(WorldmapSound.CLICK);
+            setOpen(Flag.OFF);
+            if (CS2.worldmap_current_map_get() !== map) {
+              setMapChoice(map);
+              setZoomChoice(WorldmapChoice.NONE);
+              CS2.worldmap_map_set(map);
+              const start: Coord = coordInMap(map, playerSquare() as Coord);
+              if (start !== Missing.COORD) {
+                CS2.worldmap_jumptosourcecoord_instant(start);
+              }
+              CS2.worldmap_zoom_set(CS2.worldmap_config_zoom_get(map));
+            }
+          }}
+          onMouseEnter={() => setHot(index)}
+          onMouseLeave={() => setHot(Missing.HOVER)}
+        />
+      ))}
+      <sprite x={1} y={0} w={17} h={17} sprite={WorldmapArt.MARKER_PLAYER} hide />
+    </layer>
+  );
+}

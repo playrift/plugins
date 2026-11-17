@@ -1,0 +1,58 @@
+import { CORNER } from 'rift.ui.default/lib/lib.constants';
+
+import { WorldmapStoneButtonIn, WorldmapStoneButtonOut } from './worldmap.constants';
+
+function StoneButtonFrame({
+  backdrop, topLeft, topRight, bottomLeft, bottomRight, leftEdge, topEdge, rightEdge, bottomEdge,
+}: {
+  backdrop: Sprite; topLeft: Sprite; topRight: Sprite; bottomLeft: Sprite; bottomRight: Sprite;
+  leftEdge: Sprite; topEdge: Sprite; rightEdge: Sprite; bottomEdge: Sprite;
+}): Component {
+  return (
+    <layer w="fill" h="fill">
+      <sprite x="center" y="center" w={{ fill: 2 }} h={{ fill: 2 }} sprite={backdrop} tiling />
+
+      <sprite x="left" y="top" w={CORNER} h={CORNER} sprite={topLeft} tiling />
+      <sprite x="right" y="top" w={CORNER} h={CORNER} sprite={topRight} tiling />
+      <sprite x="left" y="bottom" w={CORNER} h={CORNER} sprite={bottomLeft} tiling />
+      <sprite x="right" y="bottom" w={CORNER} h={CORNER} sprite={bottomRight} tiling />
+
+      <sprite x="left" y={CORNER} w={CORNER} h={{ fill: CORNER * 2 }} sprite={leftEdge} tiling />
+      <sprite x={CORNER} y="top" w={{ fill: CORNER * 2 }} h={CORNER} sprite={topEdge} tiling />
+      <sprite x="right" y={CORNER} w={CORNER} h={{ fill: CORNER * 2 }} sprite={rightEdge} tiling />
+      <sprite x={CORNER} y="bottom" w={{ fill: CORNER * 2 }} h={CORNER} sprite={bottomEdge} tiling />
+    </layer>
+  );
+}
+
+export function StoneButtonOutFilled(): Component {
+  return (
+    <StoneButtonFrame
+      backdrop={WorldmapStoneButtonOut.BACKDROP}
+      topLeft={WorldmapStoneButtonOut.TOP_LEFT}
+      topRight={WorldmapStoneButtonOut.TOP_RIGHT}
+      bottomLeft={WorldmapStoneButtonOut.BOTTOM_LEFT}
+      bottomRight={WorldmapStoneButtonOut.BOTTOM_RIGHT}
+      leftEdge={WorldmapStoneButtonOut.LEFT}
+      topEdge={WorldmapStoneButtonOut.TOP}
+      rightEdge={WorldmapStoneButtonOut.RIGHT}
+      bottomEdge={WorldmapStoneButtonOut.BOTTOM}
+    />
+  );
+}
+
+export function StoneButtonPressedFilled(): Component {
+  return (
+    <StoneButtonFrame
+      backdrop={WorldmapStoneButtonIn.BACKDROP}
+      topLeft={WorldmapStoneButtonIn.TOP_LEFT}
+      topRight={WorldmapStoneButtonIn.TOP_RIGHT}
+      bottomLeft={WorldmapStoneButtonIn.BOTTOM_LEFT}
+      bottomRight={WorldmapStoneButtonIn.BOTTOM_RIGHT}
+      leftEdge={WorldmapStoneButtonIn.LEFT}
+      topEdge={WorldmapStoneButtonIn.TOP}
+      rightEdge={WorldmapStoneButtonIn.RIGHT}
+      bottomEdge={WorldmapStoneButtonIn.BOTTOM}
+    />
+  );
+}

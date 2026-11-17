@@ -1,0 +1,5 @@
+name = "worldmap-fullscreen"
+ui = "worldmap"
+
+[slots]
+modal = "worldmap_modal"

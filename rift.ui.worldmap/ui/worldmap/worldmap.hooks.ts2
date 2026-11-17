@@ -1,0 +1,9 @@
+import { defineEngineHooks } from 'ts2';
+
+import { followMapLink, worldmapIconTooltip, worldmapTooltipHide } from './worldmap.helpers';
+
+export default defineEngineHooks({
+  worldmapElementOp1: (e: WorldMapElementEvent) => followMapLink(e.coord),
+  worldmapElementHover: (e: WorldMapElementEvent) => worldmapIconTooltip(e.element, e.x, e.y),
+  worldmapElementLeave: (e: WorldMapElementEvent) => worldmapTooltipHide(e.x, e.y),
+});

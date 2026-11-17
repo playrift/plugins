@@ -1,0 +1,8 @@
+import { Worldmap } from './worldmap.component';
+import { worldmapRef } from './worldmap.constants';
+
+export const worldmapUi = (): UI => (
+  <ui ref={worldmapRef}>
+    <Worldmap />
+  </ui>
+);

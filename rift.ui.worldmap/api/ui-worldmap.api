@@ -1,0 +1,15 @@
+public final class co/playrift/ui/worldmap/WorldMapPackage : rift/packages/RiftPackage {
+	public static final field FLOATING_SLOT Ljava/lang/String;
+	public static final field FULLSCREEN_TOPLEVEL Ljava/lang/String;
+	public static final field INSTANCE Lco/playrift/ui/worldmap/WorldMapPackage;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+
+public final class co/playrift/ui/worldmap/WorldMapPackageKt {
+	public static final fun closeWorldMap (Lrift/entities/Entity;)V
+	public static final fun openWorldMap (Lrift/entities/Entity;)V
+	public static final fun openWorldMapFullscreen (Lrift/entities/Entity;)V
+}
+

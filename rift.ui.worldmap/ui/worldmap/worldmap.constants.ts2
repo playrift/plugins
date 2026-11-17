@@ -1,0 +1,259 @@
+import { createRef } from 'ts2';
+
+import { GameFonts, GameModels, GameSounds, GameSprites, GameTags } from './worldmap.assets';
+
+export const worldmapRef = createRef('worldmap');
+
+export const dodgerRef = createRef();
+
+export const frameRef = createRef();
+
+export const WorldmapArt = {
+  BACKING: GameSprites.tradebacking,
+  SEARCH_REST: GameSprites.tradebacking_dark,
+  BAR: GameSprites.tradebacking_light,
+  RULE: GameSprites.miscgraphics_3,
+  CLOSE: GameSprites.close_buttons_4,
+  CLOSE_HOVER: GameSprites.close_buttons_5,
+  GRIP: GameSprites.map_resize,
+  MAGNIFIER: GameSprites.bankbuttons_2,
+  TOGGLE_OFF: GameSprites.clickcross_5,
+  EFFECTS: GameSprites.options_icons_small_1,
+  YOU_ARE_HERE: GameSprites.worldmap_marker_0,
+  MARKER_EDGE: GameSprites.worldmap_marker_1,
+  MARKER_CORNER: GameSprites.worldmap_marker_2,
+  MARKER_PLAYER: GameSprites.worldmap_marker_mini_0,
+  CHEVRON: GameSprites.scrollbar_v2_1,
+  CHEVRON_OPEN: GameSprites.scrollbar_v2_0,
+} as const;
+
+export const WorldmapScrollbar = {
+  TRACK: GameSprites.scrollbar_dragger_v2_3,
+  CAP_TOP: GameSprites.scrollbar_dragger_v2_0,
+  THUMB: GameSprites.scrollbar_dragger_v2_1,
+  CAP_BOTTOM: GameSprites.scrollbar_dragger_v2_2,
+  ARROW_UP: GameSprites.scrollbar_v2_0,
+  ARROW_DOWN: GameSprites.scrollbar_v2_1,
+} as const;
+
+export const WorldmapStoneButtonOut = {
+  BACKDROP: GameSprites.tradebacking_light,
+  TOP_LEFT: GameSprites.v2_stone_button_out_0,
+  TOP_RIGHT: GameSprites.v2_stone_button_out_1,
+  BOTTOM_LEFT: GameSprites.v2_stone_button_out_2,
+  BOTTOM_RIGHT: GameSprites.v2_stone_button_out_3,
+  LEFT: GameSprites.v2_stone_button_out_4,
+  TOP: GameSprites.v2_stone_button_out_5,
+  RIGHT: GameSprites.v2_stone_button_out_6,
+  BOTTOM: GameSprites.v2_stone_button_out_7,
+} as const;
+
+export const WorldmapStoneButtonIn = {
+  BACKDROP: GameSprites.tradebacking_dark,
+  TOP_LEFT: GameSprites.v2_stone_button_in_0,
+  TOP_RIGHT: GameSprites.v2_stone_button_in_1,
+  BOTTOM_LEFT: GameSprites.v2_stone_button_in_2,
+  BOTTOM_RIGHT: GameSprites.v2_stone_button_in_3,
+  LEFT: GameSprites.v2_stone_button_in_4,
+  TOP: GameSprites.v2_stone_button_in_5,
+  RIGHT: GameSprites.v2_stone_button_in_6,
+  BOTTOM: GameSprites.v2_stone_button_in_7,
+} as const;
+
+export const WorldmapModel = {
+  KEY: GameModels.model_2600,
+  OVERVIEW: GameModels.model_3374,
+} as const;
+
+export const WorldmapFont = {
+  SMALL: GameFonts.font_494,
+  PLAIN: GameFonts.font_495,
+  BOLD: GameFonts.font_496,
+} as const;
+
+export const WorldmapSound = {
+  CLICK: GameSounds.interface_select1,
+} as const;
+
+export const WorldmapCategory = {
+  MAP_LABELS: GameTags.tag_1129,
+} as const;
+
+export enum WorldmapColour {
+  ORANGE = 0xFF981F,
+  WHITE = 0xFFFFFF,
+  BLACK = 0x000000,
+  GREY = 0x9F9F9F,
+  YELLOW = 0xFFFF00,
+  LINK = 0xCFCF00,
+  TOOLTIP = 0xFFFFA0,
+  KEY_HINT = 0xFFFF7F,
+  RED = 0xFF0000,
+  DROPDOWN_HOT = 0xFFB83F,
+  DROPDOWN_EDGE = 0x0E0E0C,
+  DROPDOWN_INNER = 0x474745,
+  VIEWPORT = 0xFF3F3F,
+}
+
+export enum WorldmapToggle {
+  YOU_ARE_HERE = 0,
+  LINKS = 1,
+  MAP_LABELS = 2,
+  ICON_TOOLTIPS = 3,
+  EFFECTS = 4,
+}
+
+export const TOGGLE_ROWS = [
+  WorldmapToggle.YOU_ARE_HERE,
+  WorldmapToggle.LINKS,
+  WorldmapToggle.MAP_LABELS,
+  WorldmapToggle.ICON_TOOLTIPS,
+  WorldmapToggle.EFFECTS,
+] as const;
+
+export enum WorldmapKey {
+  ENTER = 84,
+  ESCAPE = 13,
+}
+
+export enum WorldmapOption {
+  FIRST = 1,
+}
+
+export enum WorldmapOptionSounds {
+  CLOSE = 2,
+}
+
+export enum WorldmapZoom {
+  FURTHEST = 25,
+  FAR = 50,
+  NEAR = 75,
+  NORMAL = 100,
+  NEAREST = 200,
+}
+
+export enum WorldmapZoomStep {
+  OUT = 0,
+  IN = 1,
+}
+
+export enum WorldmapTiming {
+  DRAG_COMMIT = 3,
+  KEY_FLASH = 50,
+  OVERVIEW_JUMP = 10,
+  SEARCH_KEYBOARD = 2,
+  SPIN = 40,
+}
+
+export enum WorldmapAngle {
+  RIGHT = 0,
+  UP = 16384,
+  LEFT = 32768,
+  DOWN = 49152,
+  HALF_TURN = 8192,
+}
+
+export enum WorldmapSearch {
+  KEYBOARD_MODE = 0,
+  KEYBOARD_LIMIT = 25,
+  INPUT_MODE = 4,
+  TEXT_WIDTH = 4000,
+}
+
+export enum WorldmapLayout {
+  TOGGLES_H = 105,
+  TOGGLE_ROW = 21,
+  KEY_ROW = 16,
+  KEY_ROW_MOBILE = 19,
+  HEADER_H = 25,
+  HEADER_STEP = 20,
+  HEADER_GAP = 5,
+  KEY_PAD_TEXT = 18,
+  KEY_PAD_BAR = 22,
+  TOGGLE_CAPTION_PAD = 25,
+  TOGGLE_PAD = 6,
+  TEXT_WIDTH = 512,
+  LIST_PAD = 52,
+  WINDOW_RESERVE_W = 262,
+  WINDOW_RESERVE_H = 280,
+  EDGE = 6,
+  LIST_ROW = 15,
+  LIST_ROW_MOBILE = 24,
+  LIST_PANE = 124,
+  LIST_PANE_MOBILE = 196,
+  MARKER_SIZE = 52,
+  FOLLOW_RANGE = 25,
+  OVERVIEW_MAX = 200,
+  OVERVIEW_MIN = 50,
+  SEARCH_MAX = 200,
+  DRAG_SNAP = 10,
+  TOOLTIP_WRAP = 150,
+  TOOLTIP_PAD = 4,
+  TOOLTIP_LINE = 12,
+  TOOLTIP_TOP = 7,
+  TOOLTIP_OFFSET_X = 5,
+  TOOLTIP_OFFSET_Y = 20,
+  TOOLTIP_GAP = 5,
+  LINK_END = 6,
+  LINK_SHADOW = 1,
+  LINK_LINE = 2,
+}
+
+export enum WorldmapEdge {
+  TOP = 0,
+  BOTTOM = 1,
+  LEFT = 2,
+  RIGHT = 3,
+  TOP_LEFT = 4,
+  TOP_RIGHT = 5,
+  BOTTOM_LEFT = 6,
+  BOTTOM_RIGHT = 7,
+}
+
+export enum WorldmapEmbedded {
+  NONE = 0,
+  WITH_CLOSE = 1,
+  WITHOUT_CLOSE = 2,
+}
+
+export enum Missing {
+  COORD = -1,
+  ICON = -1,
+  SIDE = -1,
+  SPRITE = -1,
+  TURN = -1,
+  HOVER = -1,
+  SEEN = -1,
+  FOUND = -1,
+  TIME = -1,
+}
+
+export enum WorldmapChoice {
+  NONE = -1,
+  NOT_YET_DERIVED = -2,
+}
+
+export enum WorldmapLevel {
+  LOWEST = 0,
+  HIGHEST = 3,
+}
+
+export enum Flag {
+  OFF = 0,
+  ON = 1,
+}
+
+export enum Shown {
+  HIDDEN = 0,
+  SHOWN = 1,
+}
+
+export enum Tooltip {
+  NONE = 0,
+  SHOWN = 1,
+}
+
+export enum EmbedClose {
+  KEEP = 0,
+  HIDE = 1,
+}
