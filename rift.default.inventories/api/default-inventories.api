@@ -1,0 +1,7 @@
+public final class co/playrift/default/inventories/DefaultInventoriesPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/default/inventories/DefaultInventoriesPackage;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+

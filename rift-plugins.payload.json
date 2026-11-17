@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 3,
+  "seq": 4,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -65,6 +65,26 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.default.sprites-1.0.0/rift.default.sprites-1.0.0.jar",
           "sha256": "ca3e58ec4b98f534be262d4bffc7a6abf990d4edc2f6dda915d5fa8d86c1f432",
           "size": 7420
+        }
+      ]
+    },
+    {
+      "id": "rift.default.inventories",
+      "name": "Default inventories",
+      "author": "Rift",
+      "description": "Provides inventories for the players bag, worn equipment and bank.",
+      "licence": "MIT",
+      "source": "https://github.com/playrift/plugins/tree/rift.default.inventories-1.0.0/rift.default.inventories",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.default.inventories-1.0.0/rift.default.inventories-1.0.0.jar",
+          "sha256": "c4862cb193bfbecea3d02b0a5511cda6e14880e8547cc92bcd1a19d37e3d8a11",
+          "size": 3521
         }
       ]
     }

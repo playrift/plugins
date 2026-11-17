@@ -1,0 +1,9 @@
+id      = rift.default.inventories
+name    = Default inventories
+author  = Rift
+description = Provides inventories for the players bag, worn equipment and bank.
+version = 1.0.0
+engine  = "^1.0.0"
+entry   = co.playrift.default.inventories.DefaultInventoriesPackage
+
+persisted =
