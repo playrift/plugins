@@ -1,0 +1,7 @@
+public final class co/playrift/default/bodyparts/DefaultBodyPartsPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/default/bodyparts/DefaultBodyPartsPackage;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+
