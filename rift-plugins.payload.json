@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 11,
+  "seq": 12,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -226,6 +226,28 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.actions.movement-1.0.0/rift.actions.movement-1.0.0.jar",
           "sha256": "5faedac3d40ec0febe2a9a06ef1f1345e5372bec92a8f202d7e2ffc2c9aec8a4",
           "size": 39950
+        }
+      ]
+    },
+    {
+      "id": "rift.actions.following",
+      "name": "Actions: Follow",
+      "author": "Rift",
+      "description": "Lets players follow each other. Choosing \"Follow\" on another player walks a step behind them wherever they go, until something else is clicked.",
+      "licence": "Free to use in Rift games; no redistribution.",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "engine": "^1.0.0",
+          "depends": {
+            "rift.actions.queue": "^1.0.0",
+            "rift.actions.movement": "^1.0.0"
+          },
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.actions.following-1.0.0/rift.actions.following-1.0.0.jar",
+          "sha256": "f8a6602dc220a309863090c716d03633a2ddb72e9e5536dce957d8c4b4582bdc",
+          "size": 9882
         }
       ]
     }
