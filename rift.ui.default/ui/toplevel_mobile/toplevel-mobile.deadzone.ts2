@@ -1,0 +1,20 @@
+import { CS2 } from 'ts2';
+
+import { toplevelComponents } from '../lib/lib.helpers';
+import { mobileGameframe } from '../lib/lib.overlay';
+import { controlRef } from './toplevel-mobile.constants';
+
+const DEADZONE_WIDTH_LIMIT = 2200;
+const DEADZONE_UNITS = 16384;
+
+export function deadzoneReachesPastSafeArea(): Boolean {
+  if (!mobileGameframe(toplevelComponents())) {
+    return false;
+  }
+  const frameW: Int = controlRef.width!;
+  const widest: Int = CS2.scale(DEADZONE_WIDTH_LIMIT, DEADZONE_UNITS, frameW);
+  if (widest <= CS2.safearea_minx_get() && widest <= CS2.safearea_maxx_get()) {
+    return false;
+  }
+  return true;
+}

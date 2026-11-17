@@ -1,0 +1,93 @@
+import { CS2, useServerState } from 'ts2';
+import { ARROW, CAP, ClientVarbits, ToplevelComponents } from './lib.constants';
+import { controlRef } from '../toplevel_mobile/toplevel-mobile.constants';
+import { controlRef as classicFrameRef } from '../toplevel_classic/toplevel-classic.constants';
+import { controlRef as resizableFrameRef } from '../toplevel_resizable/toplevel-resizable.constants';
+import { GameSounds } from '../game-assets';
+
+/** Whether the game runs on mobile. */
+export function onMobile(): Boolean {
+  if (useServerState(ClientVarbits.SIMULATE_MOBILE) === 1) {
+    return true;
+  }
+  return CS2.on_mobile();
+}
+
+export function textDevice(desktop: String, mobile: String): String {
+  if (onMobile()) {
+    return mobile;
+  }
+  return desktop;
+}
+
+export function settingsClientMode(mode: Int): void {
+  if (onMobile() && mode === 0) {
+    return;
+  }
+  const current: Int = CS2.window_mode_get();
+  let target: Int = 2;
+  if (mode === 0) {
+    target = 1;
+  }
+  let change: Boolean = true;
+  if ((mode === 1 || mode === 2) && current === 2) {
+    change = false;
+  } else if (mode === 0 && current === 1) {
+    change = false;
+  }
+  if (change) {
+    CS2.window_mode_set(target);
+    if (CS2.default_window_mode_get() !== target) {
+      CS2.default_window_mode_set(target);
+    }
+  }
+}
+
+/** Returns the current gameframe layout. */
+export function toplevelComponents(): Int {
+  if (CS2.if_top_get() === interfaceOf(controlRef)) {
+    return ToplevelComponents.MOBILE;
+  }
+  if (CS2.if_top_get() === interfaceOf(resizableFrameRef)) {
+    return ToplevelComponents.RESIZABLE;
+  }
+  if (CS2.if_top_get() === interfaceOf(classicFrameRef)) {
+    return ToplevelComponents.CLASSIC;
+  }
+  return ToplevelComponents.NONE;
+}
+
+export function graphicSwapper(component: ComponentId, sprite: Sprite): void {
+  component.sprite = sprite;
+}
+
+export function graphicSwapperUnlessMobile(component: ComponentId, sprite: Sprite): void {
+  if (!onMobile()) {
+    component.sprite = sprite;
+  }
+}
+
+export function closeInterface(): void {
+  CS2.if_close();
+}
+
+export function trackScroll(gutter: Ref, thumb: Ref, capTop: Ref, capBottom: Ref, content: ComponentId): void {
+  const range: Int = Math.max(1, content.scrollHeight! - content.height!);
+  const travel: Int = gutter.height - thumb.height;
+  const y: Int = ARROW + travel * content.scrollY! / range;
+
+  thumb.y = y;
+  capTop.y = y;
+  capBottom.y = y + thumb.height - CAP;
+}
+
+/** Plays the select sound when an option's bit is set. */
+export function opsound(bit: Int, mask: Int): void {
+  if (CS2.testbit(mask, bit)) {
+    CS2.sound_effect(GameSounds.interface_select1, 1, 0);
+  }
+}
+
+export function setNoClickThrough(component: ComponentId, on: Boolean): void {
+  component.noClickThrough = on;
+}

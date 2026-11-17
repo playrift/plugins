@@ -1,0 +1,9 @@
+import { CS2 } from 'ts2';
+
+import { popoutRef } from './toplevel-classic.constants';
+
+export const POPOUT_SLOT_W = 300;
+
+export function popoutDocked(): Boolean {
+  return CS2.if_sub_has(popoutRef);
+}

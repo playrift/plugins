@@ -1,0 +1,141 @@
+import { onMounted, onUpdated, useServerStateOnce, useState } from 'ts2';
+
+import { onMobile } from '../lib/lib.helpers';
+import { titleWithWorld } from '../lib/lib.world';
+import { SteelFrameEntrypoint } from '../lib/steel-frame-entrypoint.component';
+import { meslayerMode2, meslayerMode3 } from '../chatbox/meslayer';
+import { GameFonts, GameSprites } from '../game-assets';
+import { FriendList } from './friend-list.component';
+import {
+  ADD_FRIEND,
+  DEL_FRIEND,
+  FriendsColor,
+  HEADER,
+  Layout,
+  ignoreRef,
+} from './friends.constants';
+
+export function Friends(): Component {
+  return (
+    <>
+      <layer
+        static
+        ref={ignoreRef}
+        x={{ right: 0 }}
+        y={0}
+        w={Layout.IGNORE}
+        h={Layout.IGNORE}
+        options={['View Ignore List']}
+      >
+        <IgnoreFace />
+      </layer>
+
+      <layer x={0} y={Layout.HEADER_Y} w={{ fill: Layout.HEADER_W_INSET }} h={Layout.HEADER_H}>
+        <FriendsHeader />
+      </layer>
+
+      <layer x="center" y={Layout.BOX_Y} w={{ fill: Layout.BOX_W_INSET }} h={{ fill: Layout.BOX_H_INSET }}>
+        <layer w="fill" h="fill">
+          <FriendList />
+        </layer>
+
+        <SteelFrameEntrypoint />
+      </layer>
+
+      <sprite
+        x={Layout.BUTTON_X}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        sprite={GameSprites.combatboxes_0}
+        options={['Add Friend']}
+        onOptionSelect={meslayerMode2}
+      />
+      <text
+        x={Layout.BUTTON_X}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        text={ADD_FRIEND}
+        font={GameFonts.font_494}
+        color={FriendsColor.LABEL}
+        align="center"
+        valign="middle"
+        shadow
+      />
+      <sprite
+        x={{ right: Layout.BUTTON_X }}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        sprite={GameSprites.combatboxes_0}
+        options={['Delete Friend']}
+        onOptionSelect={meslayerMode3}
+      />
+      <text
+        x={{ right: Layout.BUTTON_X }}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        text={DEL_FRIEND}
+        font={GameFonts.font_494}
+        color={FriendsColor.LABEL}
+        align="center"
+        valign="middle"
+        shadow
+      />
+
+      <layer w={1} h={1} />
+    </>
+  );
+}
+
+function IgnoreFace(): Component {
+  const [hovered, setHovered] = useState(0);
+  const mobile: Boolean = useServerStateOnce(() => onMobile());
+  const size: Int = mobile ? Layout.IGNORE_MOBILE : Layout.IGNORE;
+
+  onMounted(() => sizeIgnore(size));
+  onUpdated(() => sizeIgnore(size));
+
+  return (
+    <layer
+      x={{ right: 0 }}
+      y={0}
+      w={size}
+      h={size}
+      onMouseEnter={() => setHovered(1)}
+      onMouseLeave={() => setHovered(0)}
+    >
+      <sprite
+        x={{ right: Layout.IGNORE_ICON_X }}
+        y={Layout.IGNORE_ICON_Y}
+        w={Layout.IGNORE_ICON_W}
+        h={Layout.IGNORE_ICON_H}
+        sprite={GameSprites.options_icons_small_5}
+        transparency={hovered === 1 ? Layout.IGNORE_HOVER : 0}
+      />
+    </layer>
+  );
+}
+
+function sizeIgnore(size: Int): void {
+  ignoreRef.props = { w: size, h: size };
+}
+
+function FriendsHeader(): Component {
+  return (
+    <text
+      x={0}
+      y={0}
+      w="fill"
+      h="fill"
+      text={titleWithWorld(HEADER, ' - World ')}
+      font={GameFonts.font_496}
+      color={FriendsColor.LABEL}
+      align="center"
+      valign="middle"
+      shadow
+    />
+  );
+}

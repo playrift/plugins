@@ -1,0 +1,22 @@
+import { Frame } from './frame.component';
+import { GameSprites } from '../game-assets';
+
+export function StoneButtonPressed({ children }: { children?: Children }): Component {
+  return (
+    <layer w="fill" h="fill">
+      <rect x="center" y="center" w={{ fill: 2 }} h={{ fill: 2 }} color={0x30201c} fill transparency={200} />
+      <Frame
+        topLeft={GameSprites.v2_stone_button_in_0}
+        topRight={GameSprites.v2_stone_button_in_1}
+        bottomLeft={GameSprites.v2_stone_button_in_2}
+        bottomRight={GameSprites.v2_stone_button_in_3}
+        left={GameSprites.v2_stone_button_in_4}
+        top={GameSprites.v2_stone_button_in_5}
+        right={927}
+        bottom={928}
+      >
+        {children}
+      </Frame>
+    </layer>
+  );
+}

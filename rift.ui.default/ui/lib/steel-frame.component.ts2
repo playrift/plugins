@@ -1,0 +1,26 @@
+import { SteelborderSprite } from './lib.constants';
+import { GameSprites } from '../game-assets';
+
+export function SteelFrame({ backdrop, children }: { backdrop: Boolean; children?: Children }): Component {
+  return (
+    <layer w="fill" h="fill">
+      {backdrop && (
+        <sprite x="center" y="center" w={{ fill: 2 }} h={{ fill: 2 }} sprite={GameSprites.tradebacking} tiling />
+      )}
+
+      <sprite x="left" y="top" w={25} h={30} sprite={GameSprites.steelborder_0} tiling />
+      <sprite x="right" y="top" w={25} h={30} sprite={GameSprites.steelborder_1} tiling />
+      <sprite x="left" y="bottom" w={25} h={30} sprite={GameSprites.steelborder_2} tiling />
+      <sprite x="right" y="bottom" w={25} h={30} sprite={GameSprites.steelborder_3} tiling />
+
+      <sprite x={{ left: -15 }} y="center" w={36} h={{ fill: 60 }} sprite={GameSprites.miscgraphics_2} tiling />
+      <sprite x={{ right: -15 }} y="center" w={36} h={{ fill: 60 }} sprite={GameSprites.steelborder2_1} tiling />
+      <sprite x="center" y={{ top: -15 }} w={{ fill: 50 }} h={36} sprite={GameSprites.steelborder2_0} tiling />
+      <sprite x="center" y={{ bottom: -15 }} w={{ fill: 50 }} h={36} sprite={GameSprites.miscgraphics_3} tiling />
+
+      <layer w="fill" h="fill">
+        {children}
+      </layer>
+    </layer>
+  );
+}

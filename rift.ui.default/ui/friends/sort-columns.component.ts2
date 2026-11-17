@@ -1,0 +1,155 @@
+import { useServerStateOnce, useState } from 'ts2';
+
+import { GameSprites } from '../game-assets';
+import { FriendsSort, Layout, SortArrow } from './friends.constants';
+import { chooseSort, currentSort } from './friends.state';
+
+export function SortColumns(): Component {
+  const [shown, setShown] = useState(useServerStateOnce(() => currentSort()));
+  const [nameLit, setNameLit] = useState(0);
+  const [recentLit, setRecentLit] = useState(0);
+  const [worldLit, setWorldLit] = useState(0);
+  const [legacyLit, setLegacyLit] = useState(0);
+
+  const nameNext: Int = columnNext(shown, FriendsSort.NAME_ASC, FriendsSort.NAME_DESC, FriendsSort.NAME_ASC);
+  const recentNext: Int = columnNext(shown, FriendsSort.RECENT_ASC, FriendsSort.RECENT_DESC, FriendsSort.RECENT_DESC);
+  const worldNext: Int = columnNext(shown, FriendsSort.WORLD_ASC, FriendsSort.WORLD_DESC, FriendsSort.WORLD_ASC);
+  const legacyNext: Int = columnNext(shown, FriendsSort.LEGACY, FriendsSort.LEGACY_REVERSED, FriendsSort.LEGACY);
+
+  return (
+    <>
+      <layer x={Layout.SORT_NAME_X} y="center" w={Layout.SORT_W} h={{ fill: Layout.SORT_INSET }}>
+        <layer
+          w="fill"
+          h="fill"
+          onMouseRepeat={() => setNameLit(1)}
+          onMouseLeave={() => setNameLit(0)}
+          onClick={() => {
+            setShown(nameNext);
+            setNameLit(0);
+            setRecentLit(0);
+            setWorldLit(0);
+            setLegacyLit(0);
+            chooseSort(nameNext);
+          }}
+        >
+          <sprite
+            x="center"
+            y="center"
+            w={SortArrow.SIZE_W}
+            h={SortArrow.SIZE_H}
+            sprite={columnSprite(shown, FriendsSort.NAME_DESC)}
+            transparency={columnFace(shown, FriendsSort.NAME_ASC, FriendsSort.NAME_DESC, nameLit)}
+          />
+        </layer>
+      </layer>
+
+      <layer x={Layout.SORT_RECENT_X} y="center" w={Layout.SORT_W} h={{ fill: Layout.SORT_INSET }}>
+        <layer
+          w="fill"
+          h="fill"
+          onMouseRepeat={() => setRecentLit(1)}
+          onMouseLeave={() => setRecentLit(0)}
+          onClick={() => {
+            setShown(recentNext);
+            setNameLit(0);
+            setRecentLit(0);
+            setWorldLit(0);
+            setLegacyLit(0);
+            chooseSort(recentNext);
+          }}
+        >
+          <sprite
+            x="center"
+            y="center"
+            w={SortArrow.SIZE_W}
+            h={SortArrow.SIZE_H}
+            sprite={columnSprite(shown, FriendsSort.RECENT_DESC)}
+            transparency={columnFace(shown, FriendsSort.RECENT_ASC, FriendsSort.RECENT_DESC, recentLit)}
+          />
+        </layer>
+      </layer>
+
+      <layer x={Layout.SORT_WORLD_X} y="center" w={Layout.SORT_W} h={{ fill: Layout.SORT_INSET }}>
+        <layer
+          w="fill"
+          h="fill"
+          onMouseRepeat={() => setWorldLit(1)}
+          onMouseLeave={() => setWorldLit(0)}
+          onClick={() => {
+            setShown(worldNext);
+            setNameLit(0);
+            setRecentLit(0);
+            setWorldLit(0);
+            setLegacyLit(0);
+            chooseSort(worldNext);
+          }}
+        >
+          <sprite
+            x="center"
+            y="center"
+            w={SortArrow.SIZE_W}
+            h={SortArrow.SIZE_H}
+            sprite={columnSprite(shown, FriendsSort.WORLD_DESC)}
+            transparency={columnFace(shown, FriendsSort.WORLD_ASC, FriendsSort.WORLD_DESC, worldLit)}
+          />
+        </layer>
+      </layer>
+
+      <layer
+        x={{ right: Layout.SORT_LEGACY_RIGHT }}
+        y="center"
+        w={Layout.SORT_LEGACY_W}
+        h={{ fill: Layout.SORT_INSET }}
+      >
+        <layer
+          w="fill"
+          h="fill"
+          onMouseRepeat={() => setLegacyLit(1)}
+          onMouseLeave={() => setLegacyLit(0)}
+          onClick={() => {
+            setShown(legacyNext);
+            setNameLit(0);
+            setRecentLit(0);
+            setWorldLit(0);
+            setLegacyLit(0);
+            chooseSort(legacyNext);
+          }}
+        >
+          <sprite
+            x="center"
+            y="center"
+            w={SortArrow.SIZE_W}
+            h={SortArrow.SIZE_H}
+            sprite={columnSprite(shown, FriendsSort.LEGACY_REVERSED)}
+            transparency={columnFace(shown, FriendsSort.LEGACY, FriendsSort.LEGACY_REVERSED, legacyLit)}
+          />
+        </layer>
+      </layer>
+    </>
+  );
+}
+
+function columnSprite(sort: Int, second: Int): Sprite {
+  if (sort === second) {
+    return GameSprites.sortarrows_1;
+  }
+  return GameSprites.sortarrows_0;
+}
+
+function columnFace(sort: Int, first: Int, second: Int, lit: Int): Int {
+  if (sort === first || sort === second) {
+    return lit === 1 ? SortArrow.OWNED_HOVER : SortArrow.OWNED;
+  }
+  return lit === 1 ? SortArrow.IDLE_HOVER : SortArrow.IDLE;
+}
+
+function columnNext(sort: Int, first: Int, second: Int, idle: Int): Int {
+  if (sort === second) {
+    return first;
+  }
+  if (sort === first) {
+    return second;
+  }
+  return idle;
+}

@@ -1,0 +1,18 @@
+import { GameSprites } from '../game-assets';
+export const SideChannelIcons = mapOf<Int, Sprite>([
+  [1, GameSprites.sideicons_interface_28],
+  [2, GameSprites.sideicons_interface_29],
+  [3, GameSprites.sideicons_interface_34],
+  [4, GameSprites.sideicons_interface_32],
+  [5, GameSprites.sideicons_interface_33],
+  [6, GameSprites.sideicons_interface_36],
+]);
+
+export const SideChannelLabels = mapOf<Int, String>([
+  [1, 'Your Clan'],
+  [2, 'View another clan'],
+  [3, 'Grouping'],
+  [4, 'Ironman Group'],
+  [5, 'Hardcore Ironman Group'],
+  [6, 'Unranked Ironman Group'],
+]);

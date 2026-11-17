@@ -1,0 +1,352 @@
+import { CS2, intArray, onMounted, onUpdated, useState, useUniverse } from 'ts2';
+
+import { chatLastscrollpos, chatLastscrollsize, chatView } from '../lib/game/varcs';
+import { affixTimestamp, timestampsShown } from '../pm_chat/pm-chat.helpers';
+import { settlePaneExtent } from './chatbox-chrome';
+import { line0Ref } from './chatbox.constants';
+import { chatPaneTransparent, chatboxRebuild } from './chatbox.state';
+import {
+  LINE_HEIGHT,
+  LINE_X,
+  MAX_ROWS,
+  Palette,
+  Part,
+  RowShape,
+  chatFilterTest,
+  chatRowOp,
+  rowHoverInk,
+  chatViewTest,
+  newestUid,
+  paletteTag,
+  quadBodyX,
+  quadNameX,
+  quadRowHeight,
+  rowOption,
+  rowOptionSubject,
+  rowPart,
+  rowShape,
+  singleRowHeight,
+  splitInset,
+  splitRowHeight,
+} from './chat-messages.helpers';
+import { GameFonts } from '../game-assets';
+
+const FILTER_ROW = -2;
+const BOTTOM_GAP = 2;
+
+export function ChatMessages(): Component {
+  const pane = useUniverse();
+  const [rebuild] = useState(chatboxRebuild);
+  const [view] = useState(chatView);
+
+  const newest: Int = newestUid();
+  const [paneTransparent] = useState(chatPaneTransparent);
+  const transparent: Boolean = paneTransparent === 1;
+  const ink: Int = transparent ? 0xffffff : 0;
+  const timestamped: Boolean = timestampsShown();
+  const me: String = CS2.tags_remove(CS2.chat_playername());
+  const privateTab: Int = view === 3 ? 1 : 0;
+  const width: Int = pane.width - LINE_X;
+
+  const uids = intArray(MAX_ROWS);
+  const heights = intArray(MAX_ROWS);
+  let rows: Int = 0;
+  let filterLine: String = '';
+  const messageFilter: String = CS2.chat_message_filter_get();
+  if ((view === 0 || view === 2) && CS2.string_length(messageFilter) > 0) {
+    filterLine = `${paletteTag(Palette.PUBLIC, transparent)}Public chat filtering:</col> <lt>${CS2.lowercase(CS2.escape(messageFilter))}<gt>`;
+    uids[0] = FILTER_ROW;
+    heights[0] = singleRowHeight(filterLine, width);
+    rows = 1;
+  }
+
+  let uid: Int = newest;
+  while (uid !== -1 && rows < MAX_ROWS) {
+    const [type, cycle, sender, _clan, text, friend, stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+    if (
+      chatViewTest(type, sender, friend, text) &&
+      chatFilterTest(
+        type,
+        sender,
+        affixTimestamp(timestamped, stamp, text, 'null'),
+        text,
+        cycle,
+        privateTab,
+        me,
+        friend,
+      )
+    ) {
+      uids[rows] = uid;
+      heights[rows] = rowHeight(uid, width, transparent, timestamped);
+      rows = rows + 1;
+    }
+    uid = CS2.chat_prev_uid_get(uid);
+  }
+
+  let total: Int = 0;
+  let index: Int = 0;
+  while (index < rows) {
+    total = total + heights[index];
+    index = index + 1;
+  }
+  const paneHeight: Int = line0Ref.height!;
+  const extent: Int = Math.max(paneHeight, total + BOTTOM_GAP);
+
+  const tops = intArray(MAX_ROWS);
+  let bottom: Int = extent - BOTTOM_GAP;
+  index = 0;
+  while (index < rows) {
+    bottom = bottom - heights[index];
+    tops[index] = bottom;
+    index = index + 1;
+  }
+
+  onMounted(() => publishChatExtent(extent));
+  onUpdated(() => publishChatExtent(extent));
+
+  return (
+    <layer x={0} y={0} w="fill" h="fill" hide={rebuild < -1}>
+      {uids.map(
+        (rowUid, row) =>
+          row < rows && (
+            <>
+              {rowUid === FILTER_ROW && (
+                <ChatRow
+                  shape={RowShape.SINGLE}
+                  y={tops[row]}
+                  width={width}
+                  height={heights[row]}
+                  lead={filterLine}
+                  name=""
+                  body=""
+                  ink={ink}
+                  shadow={transparent}
+                  subject=""
+                  type={-1}
+                  text=""
+                  uid={-1}
+                  hoverInk={-1}
+                />
+              )}
+              {rowUid !== FILTER_ROW && (
+                <ChatRow
+                  shape={rowShapeOf(rowUid)}
+                  y={tops[row]}
+                  width={width}
+                  height={heights[row]}
+                  lead={rowPart(Part.LEAD, rowUid, transparent, timestamped)}
+                  name={rowPart(Part.NAME, rowUid, transparent, timestamped)}
+                  body={rowPart(Part.BODY, rowUid, transparent, timestamped)}
+                  ink={ink}
+                  shadow={transparent}
+                  subject={rowOptionSubject(rowUid)}
+                  type={rowTypeOf(rowUid)}
+                  text={rowTextOf(rowUid)}
+                  uid={rowUid}
+                  hoverInk={rowHoverInk(rowTypeOf(rowUid), rowTextOf(rowUid))}
+                />
+              )}
+            </>
+          ),
+      )}
+    </layer>
+  );
+}
+
+function rowTypeOf(uid: Int): Int {
+  const [type, _cycle, _sender, _clan, _text, _friend, _stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+  return type;
+}
+
+function rowTextOf(uid: Int): String {
+  const [_type, _cycle, _sender, _clan, text, _friend, _stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+  return text;
+}
+
+function rowShapeOf(uid: Int): Int {
+  const [type, _cycle, _sender, _clan, text, _friend, _stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+  return rowShape(type, text);
+}
+
+function rowHeight(uid: Int, width: Int, transparent: Boolean, timestamped: Boolean): Int {
+  const shape: Int = rowShapeOf(uid);
+  const lead: String = rowPart(Part.LEAD, uid, transparent, timestamped);
+  if (shape === RowShape.SINGLE) {
+    return singleRowHeight(lead, width);
+  }
+  const body: String = rowPart(Part.BODY, uid, transparent, timestamped);
+  if (shape === RowShape.SPLIT) {
+    return splitRowHeight(lead, body, width);
+  }
+  return quadRowHeight(lead, rowPart(Part.NAME, uid, transparent, timestamped), body, width);
+}
+
+function publishChatExtent(extent: Int): void {
+  settlePaneExtent(extent);
+  const [lastPos, setLastPos] = useState(chatLastscrollpos);
+  const [lastSize, setLastSize] = useState(chatLastscrollsize);
+  const limit: Int = Math.max(extent - line0Ref.height!, 1);
+  const wanted: Int = lastPos + (extent - lastSize);
+  line0Ref.scrollY = Math.max(Math.min(wanted, limit), 0);
+  setLastPos(line0Ref.scrollY!);
+  setLastSize(extent);
+}
+
+function ChatRow({
+  shape,
+  y,
+  width,
+  height,
+  lead,
+  name,
+  body,
+  ink,
+  shadow,
+  subject,
+  type,
+  text,
+  uid,
+  hoverInk,
+}: {
+  shape: Int;
+  y: Int;
+  width: Int;
+  height: Int;
+  lead: String;
+  name: String;
+  body: String;
+  ink: Int;
+  shadow: Boolean;
+  subject: String;
+  type: Int;
+  text: String;
+  uid: Int;
+  hoverInk: Int;
+}): Component {
+  const [hovered, setHovered] = useState(0);
+  const paint: Int = hovered === 1 && hoverInk !== -1 ? hoverInk : ink;
+  const inset: Int = shape === RowShape.SPLIT ? splitInset(lead) : 0;
+  const nameX: Int = quadNameX(lead, name);
+  const bodyX: Int = quadBodyX(lead, name);
+  const leadW: Int = CS2.parawidth(lead, 2147483647, GameFonts.font_495);
+  const nameW: Int = CS2.parawidth(name, 2147483647, GameFonts.font_495);
+  return (
+    <>
+      {shape === RowShape.SINGLE && (
+        <text
+          x={LINE_X}
+          y={y}
+          w={width}
+          h={height}
+          text={lead}
+          font={GameFonts.font_495}
+          color={paint}
+          lineHeight={LINE_HEIGHT}
+          align="left"
+          valign="top"
+          shadow={shadow}
+        />
+      )}
+      {shape === RowShape.SPLIT && (
+        <text
+          x={LINE_X}
+          y={y}
+          w={width}
+          h={height}
+          text={lead}
+          font={GameFonts.font_495}
+          color={paint}
+          lineHeight={LINE_HEIGHT}
+          align="left"
+          valign="top"
+          shadow={shadow}
+        />
+      )}
+      {shape === RowShape.SPLIT && (
+        <text
+          x={LINE_X + inset}
+          y={y}
+          w={width - inset}
+          h={height}
+          text={body}
+          font={GameFonts.font_495}
+          color={paint}
+          lineHeight={LINE_HEIGHT}
+          align="left"
+          valign="top"
+          shadow={shadow}
+        />
+      )}
+      {shape === RowShape.QUAD && leadW > 0 && (
+        <text
+          x={LINE_X}
+          y={y}
+          w={leadW}
+          h={LINE_HEIGHT}
+          text={lead}
+          font={GameFonts.font_495}
+          color={paint}
+          lineHeight={LINE_HEIGHT}
+          align="left"
+          valign="top"
+          shadow={shadow}
+        />
+      )}
+      {shape === RowShape.QUAD && nameW > 0 && (
+        <text
+          x={LINE_X + nameX}
+          y={y}
+          w={nameW}
+          h={LINE_HEIGHT}
+          text={name}
+          font={GameFonts.font_495}
+          color={paint}
+          lineHeight={LINE_HEIGHT}
+          align="left"
+          valign="top"
+          shadow={shadow}
+        />
+      )}
+      {shape === RowShape.QUAD && (
+        <text
+          x={LINE_X + bodyX}
+          y={y}
+          w={width - bodyX}
+          h={height}
+          text={body}
+          font={GameFonts.font_495}
+          color={paint}
+          lineHeight={LINE_HEIGHT}
+          align="left"
+          valign="top"
+          shadow={shadow}
+        />
+      )}
+      {CS2.string_length(subject) > 0 && (
+        <text
+          x={LINE_X}
+          y={y}
+          w={width}
+          h={height}
+          font={GameFonts.font_495}
+          options={[
+            rowOption(1, uid),
+            rowOption(2, uid),
+            '',
+            '',
+            '',
+            rowOption(6, uid),
+            rowOption(7, uid),
+            rowOption(8, uid),
+            rowOption(9, uid),
+            rowOption(10, uid),
+          ]}
+          optionSubject={subject}
+          onOptionSelect={(event) => chatRowOp(event.option, event.optionSubject, type, text)}
+          onMouseEnter={() => setHovered(1)}
+          onMouseLeave={() => setHovered(0)}
+        />
+      )}
+    </>
+  );
+}

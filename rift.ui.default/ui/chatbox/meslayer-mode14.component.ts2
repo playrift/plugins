@@ -1,0 +1,160 @@
+import { CS2, intArray, onMounted, onUpdated, useState } from 'ts2';
+import { meslayermode } from '../lib/game/varcs';
+import { mesScrollAreaRef } from './chatbox.constants';
+import {
+  MESLAYER_MODE_ITEM_SEARCH,
+  meslayerMode14Apply,
+  meslayerMode14Select,
+  offered,
+  MODE14_GRID,
+  MODE14_IDLE,
+  MODE14_NONE,
+  MODE14_START,
+  MODE14_TOO_MANY,
+} from './meslayer-mode14';
+import { mode14Call, mode14Filter, mode14Searched, mode14Tradeable } from './meslayer-mode14.state';
+import { GameFonts } from '../game-assets';
+
+export function MeslayerMode14Grid(): Component {
+  const [mode] = useState(meslayermode);
+  const [searched] = useState(mode14Searched);
+  const [call] = useState(mode14Call);
+  const [tradeableFlag] = useState(mode14Tradeable);
+  const [filterId] = useState(mode14Filter);
+
+  let active: Boolean = false;
+  if (mode === MESLAYER_MODE_ITEM_SEARCH && call > 0) {
+    active = true;
+  }
+  const tradeable: Boolean = tradeableFlag === 1;
+  const filter: Enum = filterId as Enum;
+  const paneW: Int = mesScrollAreaRef.width!;
+  const paneH: Int = mesScrollAreaRef.height!;
+
+  const found = intArray<Item>(MAX_MATCHES);
+  let shown: Int = 0;
+  let status: Int = MODE14_IDLE;
+  if (active) {
+    if (searched.length <= 0) {
+      status = MODE14_START;
+    } else {
+      const matches: Int = CS2.item_config_find(searched, tradeableFlag);
+      if (matches < 0) {
+        status = MODE14_TOO_MANY;
+      } else if (matches === 0) {
+        status = MODE14_NONE;
+      } else {
+        let item: Item = CS2.item_next_find();
+        while (item !== -1) {
+          if (shown < MAX_MATCHES && offered(item, tradeable, filter)) {
+            found[shown] = item;
+            shown = shown + 1;
+          }
+          item = CS2.item_next_find();
+        }
+        status = MODE14_GRID;
+        if (shown <= 0) {
+          status = MODE14_NONE;
+        }
+      }
+    }
+  }
+
+  const colW: Int = paneW / 3;
+  const left: Int = paneW - colW * 3;
+  const rows: Int = (shown + 2) / 3;
+  const extent: Int = rows * ROW_H;
+
+  let message: String = '';
+  if (status === MODE14_START) {
+    message = 'Start typing the name of an item to search for it.';
+  } else if (status === MODE14_TOO_MANY) {
+    message = 'Too many matches found. Please refine your search.';
+  } else if (status === MODE14_NONE) {
+    message = 'No matches found.';
+  }
+
+  onMounted(() => meslayerMode14Apply(active, status, extent));
+  onUpdated(() => meslayerMode14Apply(active, status, extent));
+
+  return (
+    <layer x={0} y={0} w="fill" h={extent > paneH ? extent : paneH}>
+      {found.map((item, i) =>
+        i < shown ? (
+          <Mode14Cell item={item} x={left + (i % 3) * colW} y={(i / 3) * ROW_H} w={colW} first={i === 0} />
+        ) : null,
+      )}
+      {message.length > 0 ? (
+        <text
+          x={0}
+          y={0}
+          w={paneW}
+          h={paneH}
+          text={message}
+          font={GameFonts.font_495}
+          color={BLACK}
+          align="center"
+          valign="middle"
+        />
+      ) : null}
+    </layer>
+  );
+}
+
+function Mode14Cell({ item, x, y, w, first }: { item: Item; x: Int; y: Int; w: Int; first: Boolean }): Component {
+  const name: String = CS2.item_name(item);
+  let count: Int = 1;
+  if (CS2.item_stackable(item)) {
+    count = 100;
+  }
+  return (
+    <>
+      <rect
+        x={x}
+        y={y}
+        w={w}
+        h={ROW_H}
+        color={WHITE}
+        fill
+        transparency={255}
+        hover={{ transparency: HOVER_TRANSPARENCY }}
+        options={['Select']}
+        optionSubject={`<col=${ITEM_NAME_COL}>${name}</col>`}
+        onOptionSelect={() => meslayerMode14Select(item, KEY_ENTER)}
+        onKey={first ? (event) => meslayerMode14Select(item, event.keyCode) : null}
+      />
+      <text
+        x={x + 40}
+        y={y}
+        w={w - 40}
+        h={ROW_H}
+        text={name}
+        font={GameFonts.font_495}
+        color={BLACK}
+        align="left"
+        valign="middle"
+      />
+      <sprite
+        x={x}
+        y={y}
+        w={36}
+        h={ROW_H}
+        item={item}
+        itemCount={count}
+        itemCountMode="never"
+        outline={1}
+        shadowColor={ITEM_SHADOW}
+      />
+    </>
+  );
+}
+
+const MAX_MATCHES = 250;
+const ROW_H = 32;
+export const MES_GRID_HOST_H = 2688;
+const WHITE = 0xffffff;
+const BLACK = 0x000000;
+const ITEM_SHADOW = 0x555555;
+const HOVER_TRANSPARENCY = 200;
+const ITEM_NAME_COL = 'ff9040';
+const KEY_ENTER = 84;

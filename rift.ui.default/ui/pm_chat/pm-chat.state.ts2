@@ -1,0 +1,7 @@
+import { sessionState } from 'ts2';
+
+export const pmChatLinesHeight = sessionState(0);
+
+export const pmboxRebuild = sessionState(0);
+
+export const chatboxTimerArmed = sessionState(0);

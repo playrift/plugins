@@ -1,0 +1,94 @@
+import { CS2, useState } from 'ts2';
+import {
+  chatView,
+  clanChatClearedTime,
+  friendschatClearedTime,
+  privateChatClearedTime,
+  publicChatClearedTime,
+} from '../lib/game/varcs';
+import { chatAlertSet, chatSetFilter } from './chat-buttons';
+import { setChatboxMode } from './chat-send';
+import { WINDOW_MODE_FIXED, chatboxBackground, chatboxPermitTransparent, rebuildChatbox } from './chatbox-chrome';
+import { extraTabSlotRef } from './chatbox.constants';
+import { CHAT_VIEW_COLLAPSED, ChatTab } from './chatbox.data';
+
+const SWITCH_TAB = 1;
+
+/** Handles a chat tab's menu option. */
+export function chatTabOp(tab: Int, op: Int): void {
+  if (op === 1) {
+    switchTab(tab);
+    return;
+  }
+  if (tab === ChatTab.ALL) {
+    if (op >= 2 && op <= 4) setChatboxMode(op - 2);
+    return;
+  }
+  if (tab === ChatTab.PUBLIC) {
+    const filter: Int = PublicFilterByOp.get(op) ?? -1;
+    if (filter !== -1) {
+      setFilter(tab, filter);
+    } else if (op === 7) {
+      clearHistory(tab);
+    }
+    return;
+  }
+  if (op >= 3 && op <= 5) {
+    setFilter(tab, op - 3);
+  } else if (op === 7) {
+    clearHistory(tab);
+  }
+}
+
+export function extraTabReveal(): void {
+  const docked: Boolean = CS2.if_sub_has(extraTabSlotRef);
+  const [view] = useState(chatView);
+  if (!docked || view === ChatTab.CLAN) {
+    return;
+  }
+
+  chatTabOp(ChatTab.CLAN, SWITCH_TAB);
+}
+
+function switchTab(tab: Int): void {
+  const [view, setView] = useState(chatView);
+  if (view === tab && tab !== ChatTab.ALL && chatboxPermitTransparent() && CS2.window_mode_get() !== WINDOW_MODE_FIXED) {
+    setView(CHAT_VIEW_COLLAPSED);
+  } else {
+    setView(tab);
+  }
+  chatAlertSet(tab, 0);
+  chatboxBackground();
+  rebuildChatbox();
+}
+
+function setFilter(tab: Int, filter: Int): void {
+  chatSetFilter(tab, filter);
+  rebuildChatbox();
+}
+
+function clearHistory(tab: Int): void {
+  const now: Int = CS2.clientclock();
+  if (tab === ChatTab.PUBLIC) {
+    const [, setCleared] = useState(publicChatClearedTime);
+    setCleared(now);
+  } else if (tab === ChatTab.PRIVATE) {
+    const [, setCleared] = useState(privateChatClearedTime);
+    setCleared(now);
+  } else if (tab === ChatTab.CHANNEL) {
+    const [, setCleared] = useState(friendschatClearedTime);
+    setCleared(now);
+  } else if (tab === ChatTab.CLAN) {
+    const [, setCleared] = useState(clanChatClearedTime);
+    setCleared(now);
+  }
+  rebuildChatbox();
+}
+
+const PublicFilterByOp = mapOf<Int, Int>([
+  [2, 4],
+  [3, 0],
+  [4, 1],
+  [5, 2],
+  [6, 3],
+]);

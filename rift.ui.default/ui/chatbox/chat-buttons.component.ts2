@@ -1,0 +1,166 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, onMounted, onUpdated, useDerived, useInterval, useRef, useServerState, useState } from 'ts2';
+
+import { chatHighlight, chatView, mobileChatboxDisabled } from '../lib/game/varcs';
+import { onMobile } from '../lib/lib.helpers';
+import { mobileGameframeFlag } from './chatbox.helpers';
+import { ALERT_BIT_ANY, chatAlertQuarters, chatAlertTick, chatGetFilter, mobileChatStone, tabArt } from './chat-buttons';
+import { CHAT_FILTER_LABEL_DEFAULT, ChatFilterLabels, ChatTab } from './chatbox.data';
+import {
+  Layout,
+  tab0PlateRef,
+  tab1PlateRef,
+  tab1StateRef,
+  tab2PlateRef,
+  tab2StateRef,
+  tab3PlateRef,
+  tab3StateRef,
+  tab4PlateRef,
+  tab4StateRef,
+  tab6PlateRef,
+  tab6StateRef,
+} from './chatbox.constants';
+import { GameSprites } from '../game-assets';
+
+export function ChatTabs(): Component {
+  const host = useRef();
+
+  const [view] = useState(chatView);
+  const [highlight] = useState(chatHighlight);
+  const [chatDisabled] = useState(mobileChatboxDisabled);
+
+  const alerts: Int = useDerived(() => chatAlertQuarters());
+
+  const frame: Int = useDerived(() => mobileGameframeFlag());
+  let mobile: Boolean = false;
+  if (frame === 1) {
+    mobile = true;
+  }
+
+  const filterPublic: Int = useDerived(() => chatGetFilter(ChatTab.PUBLIC));
+  const filterPrivate: Int = useDerived(() => chatGetFilter(ChatTab.PRIVATE));
+  const filterChannel: Int = useDerived(() => chatGetFilter(ChatTab.CHANNEL));
+  const filterTrade: Int = useDerived(() => chatGetFilter(ChatTab.TRADE));
+
+  let gameFilter: Int = 0;
+  if (useServerState(Game.game_filter) === 1) {
+    gameFilter = GAME_FILTERED;
+  }
+
+  let stoneOnly: Boolean = false;
+  if (onMobile() && chatDisabled === 1 && useServerState(Game.settings_mobile_show_filter_stones_enabled) === 0) {
+    stoneOnly = true;
+  }
+
+  let plateH: Int = Layout.PLATE_H;
+  if (mobile) {
+    plateH = Layout.PLATE_H + MOBILE_PLATE_GROWTH;
+  }
+
+  const art0: Sprite = tabArt(ChatTab.ALL, view, highlight, mobile, alerts);
+  const art1: Sprite = tabArt(ChatTab.GAME, view, highlight, mobile, alerts);
+  const art2: Sprite = tabArt(ChatTab.PUBLIC, view, highlight, mobile, alerts);
+  const art3: Sprite = tabArt(ChatTab.PRIVATE, view, highlight, mobile, alerts);
+  const art4: Sprite = tabArt(ChatTab.CHANNEL, view, highlight, mobile, alerts);
+  const art6: Sprite = tabArt(ChatTab.TRADE, view, highlight, mobile, alerts);
+
+  const labelGame: String = ChatFilterLabels.get(gameFilter) ?? CHAT_FILTER_LABEL_DEFAULT;
+  const labelPublic: String = ChatFilterLabels.get(filterPublic) ?? CHAT_FILTER_LABEL_DEFAULT;
+  const labelPrivate: String = ChatFilterLabels.get(filterPrivate) ?? CHAT_FILTER_LABEL_DEFAULT;
+  const labelChannel: String = ChatFilterLabels.get(filterChannel) ?? CHAT_FILTER_LABEL_DEFAULT;
+  const labelTrade: String = ChatFilterLabels.get(filterTrade) ?? CHAT_FILTER_LABEL_DEFAULT;
+
+  let stoneAlert: Boolean = false;
+  if (CS2.testbit(alerts, ALERT_BIT_ANY) === 1) {
+    stoneAlert = true;
+  }
+
+  onMounted(() =>
+    redrawChatButtons(
+      stoneOnly,
+      stoneAlert,
+      plateH,
+      art0,
+      art1,
+      art2,
+      art3,
+      art4,
+      art6,
+      labelGame,
+      labelPublic,
+      labelPrivate,
+      labelChannel,
+      labelTrade,
+    ),
+  );
+  onUpdated(() =>
+    redrawChatButtons(
+      stoneOnly,
+      stoneAlert,
+      plateH,
+      art0,
+      art1,
+      art2,
+      art3,
+      art4,
+      art6,
+      labelGame,
+      labelPublic,
+      labelPrivate,
+      labelChannel,
+      labelTrade,
+    ),
+  );
+
+  useInterval(() => chatAlertTick(), host);
+
+  return <layer ref={host} x={0} y={0} w={1} h={1} />;
+}
+
+function redrawChatButtons(
+  stoneOnly: Boolean,
+  stoneAlert: Boolean,
+  plateH: Int,
+  art0: Sprite,
+  art1: Sprite,
+  art2: Sprite,
+  art3: Sprite,
+  art4: Sprite,
+  art6: Sprite,
+  labelGame: String,
+  labelPublic: String,
+  labelPrivate: String,
+  labelChannel: String,
+  labelTrade: String,
+): void {
+  if (stoneOnly) {
+    const stone: ComponentId = mobileChatStone();
+    if (stone !== -1) {
+      if (stoneAlert) {
+        if (CS2.cc_find(stone, 0)) {
+          CS2.cc_sprite_set(GameSprites.tli_button01_rectangle_58x40_2);
+        }
+      } else if (CS2.cc_find(stone, 0)) {
+        CS2.cc_sprite_set(GameSprites.tli_button01_rectangle_58x40_0);
+      }
+    }
+    return;
+  }
+
+  tab0PlateRef.props = { w: 'fill', h: plateH, sprite: art0 };
+  tab1PlateRef.props = { w: 'fill', h: plateH, sprite: art1 };
+  tab2PlateRef.props = { w: 'fill', h: plateH, sprite: art2 };
+  tab3PlateRef.props = { w: 'fill', h: plateH, sprite: art3 };
+  tab4PlateRef.props = { w: 'fill', h: plateH, sprite: art4 };
+  tab6PlateRef.props = { w: 'fill', h: plateH, sprite: art6 };
+
+  tab1StateRef.text = labelGame;
+  tab2StateRef.text = labelPublic;
+  tab3StateRef.text = labelPrivate;
+  tab4StateRef.text = labelChannel;
+  tab6StateRef.text = labelTrade;
+}
+
+const MOBILE_PLATE_GROWTH = 2;
+
+const GAME_FILTERED = -1000;

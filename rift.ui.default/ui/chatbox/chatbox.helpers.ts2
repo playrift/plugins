@@ -1,0 +1,26 @@
+import { Game } from '../lib/game/server-states';
+import { useServerState } from 'ts2';
+
+import { mobileGameframe } from '../lib/lib.overlay';
+import { toplevelComponents } from '../lib/lib.helpers';
+
+export const IronmanIcons = mapOf<Int, String>([
+  [1, '<img=2>'],
+  [2, '<img=3>'],
+  [3, '<img=10>'],
+  [4, '<img=41>'],
+  [5, '<img=42>'],
+  [6, '<img=43>'],
+]);
+
+export function accountIcon(): String {
+  return IronmanIcons.get(useServerState(Game.ironman)) ?? '';
+}
+
+/** Returns 1 on the mobile game frame, else 0. */
+export function mobileGameframeFlag(): Int {
+  if (mobileGameframe(toplevelComponents())) {
+    return 1;
+  }
+  return 0;
+}

@@ -1,0 +1,4 @@
+import { GameSprites } from '../game-assets';
+export const StoneHighlights = listOf<Sprite>([
+  GameSprites.side_stone_highlights_0, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_1, GameSprites.side_stone_highlights_2, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_4, GameSprites.side_stone_highlights_3,
+]);

@@ -1,0 +1,33 @@
+import { useState } from 'ts2';
+import { toplevelMainmodalBgColour, toplevelMainmodalBgTrans } from '../lib/game/varcs';
+import { ToplevelComponents } from '../lib/lib.constants';
+import { onMobile, toplevelComponents } from '../lib/lib.helpers';
+import { Modal, Panel, hudContainerFrontRef, mainmodalRef } from './toplevel-mobile.constants';
+import { chatboxOff, switchSidePanel } from './toplevel-mobile.helpers';
+
+export function toplevelMainmodalOpen(colour: Int, trans: Int): void {
+  mainmodalBackground(colour, trans);
+  if (onMobile()) {
+    mobileMainmodalOpen();
+  }
+}
+
+export function mainmodalBackground(colour: Int, trans: Int): void {
+  const [, setColour] = useState(toplevelMainmodalBgColour);
+  const [, setTrans] = useState(toplevelMainmodalBgTrans);
+  setColour(colour);
+  setTrans(trans);
+}
+
+export function mobileMainmodalOpen(): void {
+  if (toplevelComponents() !== ToplevelComponents.MOBILE) {
+    return;
+  }
+  const modalW: Int = mainmodalRef.width;
+  const frontW: Int = hudContainerFrontRef.width;
+  if (modalW + Modal.SIDE_W - Modal.SIDE_PAD >= frontW) {
+    switchSidePanel(Panel.NONE, 0);
+  } else if (chatboxOff()) {
+    switchSidePanel(Panel.NONE, 0);
+  }
+}

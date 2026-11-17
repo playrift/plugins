@@ -1,0 +1,5 @@
+import { createRef } from 'ts2';
+
+export const ignore = createRef('ignore');
+
+export const friendsToggleRef = createRef('ignore_friends');

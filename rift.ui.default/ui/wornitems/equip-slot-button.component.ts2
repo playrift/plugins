@@ -1,0 +1,16 @@
+import { useInventory } from 'ts2';
+import { SlotIcons } from './wornitems.constants';
+import { ExternalInventories, GameSprites } from '../game-assets';
+
+export function EquipSlotButton({ slot }: { slot: Int }): Component {
+  const worn = useInventory(ExternalInventories.worn_equipment);
+  const equipped: Boolean = worn[slot] !== -1;
+
+  return (
+    <>
+      <sprite x="center" y="center" w={36} h={36} sprite={GameSprites.miscgraphics_0} />
+
+      {!equipped && <sprite x="center" y="center" w={32} h={32} sprite={SlotIcons.get(slot) ?? -1} />}
+    </>
+  );
+}

@@ -1,0 +1,27 @@
+name = "classic"
+ui = "toplevel_classic"
+
+[slots]
+chat = "toplevel_classic_chat_container"
+"chat.split" = "toplevel_classic_pm_container"
+"tab.stats" = "toplevel_classic_side1"
+"tab.inventory" = "toplevel_classic_side3"
+"tab.worn" = "toplevel_classic_side4"
+"tab.friends" = "toplevel_classic_side9"
+"tab.logout" = "toplevel_classic_side10"
+"tab.music" = "toplevel_classic_side13"
+"tab.settings" = "toplevel_classic_side11"
+modal = "toplevel_classic_mainmodal"
+"modal.side" = "toplevel_classic_sidemodal"
+floater = "toplevel_classic_floater"
+"hud.hp" = "toplevel_classic_hpbar_hud"
+"hud.xp_drops" = "toplevel_classic_xp_drops"
+orbs = "toplevel_classic_orbs"
+"orbs.button.extra" = { interface = "orbs", component = "orbs_extra_button" }
+popout = "toplevel_classic_popout"
+"chat.modal" = { interface = "chatbox", component = "chatbox_chatmodal" }
+"chat.tab.extra" = { interface = "chatbox", component = "chatbox_extra_tab" }
+
+[[on_show]]
+script = "lib.lib.helpers.settingsClientMode"
+arguments = [2]

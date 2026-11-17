@@ -1,0 +1,76 @@
+export function hexToRgb(colour: Int): [Int, Int, Int] {
+  return [(colour / Math.pow(2, 16)) % 256, (colour / Math.pow(2, 8)) % 256, colour % 256];
+}
+
+/** Packs red, green and blue into one colour. */
+export function rgbToHex(red: Int, green: Int, blue: Int): Int {
+  const r: Int = Math.max(0, Math.min(255, red));
+  const g: Int = Math.max(0, Math.min(255, green));
+  const b: Int = Math.max(0, Math.min(255, blue));
+  return (r * 65536) | (g * 256) | b;
+}
+
+const HexLetters = mapOf<Int, String>([
+  [1, 'a'],
+  [2, 'b'],
+  [3, 'c'],
+  [4, 'd'],
+  [5, 'e'],
+  [6, 'f'],
+  [7, 'g'],
+  [8, 'h'],
+  [9, 'i'],
+  [10, 'j'],
+  [11, 'k'],
+  [12, 'l'],
+  [13, 'm'],
+  [14, 'n'],
+  [15, 'o'],
+  [16, 'p'],
+  [17, 'q'],
+  [18, 'r'],
+  [19, 's'],
+  [20, 't'],
+  [21, 'u'],
+  [22, 'v'],
+  [23, 'w'],
+  [24, 'x'],
+  [25, 'y'],
+  [26, 'z'],
+]);
+
+export function replaceAll(subject: String, search: String, replacement: String): String {
+  let out: String = '';
+  let from: Int = 0;
+  let at: Int = subject.indexOf(search, from);
+  while (at !== -1) {
+    out = `${out}${subject.substring(from, at)}${replacement}`;
+    from = at + search.length;
+    at = subject.indexOf(search, from);
+  }
+  return `${out}${subject.substring(from, subject.length)}`;
+}
+
+function hexDigit(nibble: Int): String {
+  if (nibble < 10) {
+    return stringOf(nibble);
+  }
+  return HexLetters.get(nibble - 9) ?? '';
+}
+
+function hexByte(channel: Int): String {
+  return `${hexDigit(channel / 16)}${hexDigit(channel % 16)}`;
+}
+
+export function colourTag(colour: Int, tag: String): String {
+  const packed: Int = colour === -1 ? 0xff981f : colour;
+  const [red, green, blue] = hexToRgb(packed);
+
+  let out: String = '<col=xxyyzz>';
+  if (tag.length > 0) {
+    out = replaceAll(out, 'col', tag);
+  }
+  out = replaceAll(out, 'xx', hexByte(red));
+  out = replaceAll(out, 'yy', hexByte(green));
+  return replaceAll(out, 'zz', hexByte(blue));
+}

@@ -1,0 +1,67 @@
+/** Formats a number with digit group separators. */
+export function groupDigits(value: Int, separator: String): String {
+  const billions: Int = value / 1000000000;
+  const millions: Int = (value - billions * 1000000000) / 1000000;
+  const thousands: Int = (value - (billions * 1000000000 + millions * 1000000)) / 1000;
+  const units: Int = value - (billions * 1000000000 + millions * 1000000 + thousands * 1000);
+
+  if (billions > 0) {
+    return `${stringOf(billions)}${separator}${padGroup(millions)}${separator}${padGroup(thousands)}${separator}${padGroup(units)}`;
+  }
+  if (millions > 0) {
+    return `${stringOf(millions)}${separator}${padGroup(thousands)}${separator}${padGroup(units)}`;
+  }
+  if (thousands > 0) {
+    return `${stringOf(thousands)}${separator}${padGroup(units)}`;
+  }
+  return stringOf(value);
+}
+
+/** Pads a digit group to three digits. */
+export function padGroup(group: Int): String {
+  if (group > 99) {
+    return stringOf(group);
+  }
+  if (group > 9) {
+    return `0${stringOf(group)}`;
+  }
+  if (group >= 0) {
+    return `00${stringOf(group)}`;
+  }
+  return stringOf(group);
+}
+
+/** Returns the text before the first bar. */
+export function pipeHead(text: String): String {
+  const length: Int = text.length;
+  if (length <= 0) {
+    return '';
+  }
+  const bar: Int = text.indexOf('|', 0);
+  if (bar === -1) {
+    return text;
+  }
+  if (bar === 0) {
+    return '';
+  }
+  return text.substring(0, bar);
+}
+
+/** Returns the text after the first bar. */
+export function pipeTail(text: String): String {
+  const length: Int = text.length;
+  if (length <= 0) {
+    return '';
+  }
+  const bar: Int = text.indexOf('|', 0);
+  if (bar === -1) {
+    return '';
+  }
+  if (bar === 0) {
+    return text.substring(1, length);
+  }
+  if (bar + 1 >= length) {
+    return '';
+  }
+  return text.substring(bar + 1, length);
+}

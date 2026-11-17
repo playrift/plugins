@@ -1,0 +1,46 @@
+import { CS2, param } from 'ts2';
+
+import { GameProperties } from '../game-assets';
+
+export const EXAMINE = 'Examine';
+
+/** Plays a sound effect. */
+export function playSound(sound: Sound): void {
+  CS2.sound_effect(sound, 1, 0);
+}
+
+export function scaled(value: Int, ofMax: Int, intoRange: Int): Int {
+  return CS2.scale(value, ofMax, intoRange);
+}
+
+/** Whether a bit is set. */
+export function hasBit(flags: Int, position: Int): Boolean {
+  return CS2.testbit(flags, position);
+}
+
+export function itemName(item: Item): String {
+  return CS2.item_name(item);
+}
+
+/** Returns how many lines text wraps to. */
+export function textLineCount(text: String, maxWidth: Int, font: Font): Int {
+  return CS2.paraheight(text, maxWidth, font);
+}
+
+/** Returns the width of text. */
+export function textWidth(text: String, maxWidth: Int, font: Font): Int {
+  return CS2.parawidth(text, maxWidth, font);
+}
+
+export function membersWorld(): Boolean {
+  return CS2.map_members();
+}
+
+/** Returns the client clock. */
+export function clientClock(): Int {
+  return CS2.clientclock();
+}
+
+export function chatMessage(text: String): void {
+  CS2.message(text);
+}

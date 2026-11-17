@@ -1,0 +1,33 @@
+import { ChatboxColor, Layout } from './chatbox.constants';
+import { GameFonts } from '../game-assets';
+
+const TEN = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+const SEVEN = [0, 1, 2, 3, 4, 5, 6] as const;
+const EIGHT = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+
+function MessageLine(): Component {
+  return (
+    <text
+      x={Layout.LINE_X}
+      y={Layout.LINE_Y}
+      w={{ fill: Layout.LINE_INSET_W }}
+      h={Layout.LINE_H}
+      font={GameFonts.font_495}
+      color={ChatboxColor.BODY}
+      align="left"
+      valign="top"
+      options={['', '', '', '', '', '', '', '*']}
+    />
+  );
+}
+
+export function MessageLines(): Component {
+  return (
+    <>
+      {SEVEN.map(() => SEVEN.map(() => TEN.map(() => <MessageLine />)))}
+      {EIGHT.map(() => (
+        <MessageLine />
+      ))}
+    </>
+  );
+}

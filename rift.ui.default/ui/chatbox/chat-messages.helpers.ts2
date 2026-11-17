@@ -1,0 +1,863 @@
+import { Chat, Game } from '../lib/game/server-states';
+import { CS2, useServerState, useState } from 'ts2';
+
+import {
+  allChatClearedTime,
+  bondifConvertPerbondCs,
+  broadcastClearedTime,
+  chatLastalertcheck,
+  chatView,
+  mobileChatboxDisabled,
+  clanChatClearedTime,
+  friendschatClearedTime,
+  privateChatClearedTime,
+  publicChatClearedTime,
+  snapshotName,
+  tradepartner,
+} from '../lib/game/varcs';
+import { pipeHead, pipeTail } from '../lib/lib.format';
+import { textLineCount, textWidth } from '../lib/lib.engine';
+import { colourTag, replaceAll } from '../lib/colour-tag';
+import {
+  affixTimestamp,
+  broadcastLink,
+  broadcastText,
+  broadcastUrl,
+  noticeMode,
+  timestampsShown,
+} from '../pm_chat/pm-chat.helpers';
+import { friendsChatKick } from './chat-send';
+import { MesboxChatTypes, meslayerMode1, meslayerMode1Enabled, meslayerMode6 } from './meslayer';
+import { newestChatUid } from './chatout';
+import { chatAlertEnable } from './chat-buttons';
+import { chatoverlayRef } from './chatbox.constants';
+import { onMobile } from '../lib/lib.helpers';
+import { GameFonts, GameSounds } from '../game-assets';
+
+export const LINE_FONT: Font = GameFonts.font_495;
+export const LINE_HEIGHT = 14;
+export const LINE_X = 3;
+const UNWRAPPED = 2147483647;
+export const MAX_ROWS = 500;
+
+export const RowShape = {
+  SINGLE: 0,
+  SPLIT: 1,
+  QUAD: 2,
+} as const;
+
+export const Part = {
+  LEAD: 0,
+  NAME: 1,
+  BODY: 2,
+} as const;
+
+export const Palette = {
+  PUBLIC: 0,
+  PRIVATE: 1,
+  AUTOCHAT: 2,
+  BROADCAST: 3,
+  FRIENDSCHAT: 4,
+  CLANCHAT: 5,
+  TRADEREQ: 6,
+  CHALLENGEREQ: 7,
+  CLANBROADCAST: 10,
+  DIDYOUKNOW: 12,
+} as const;
+
+const OpaqueDefault = mapOf<Int, Int>([
+  [0, 255],
+  [1, 8323072],
+  [2, 2105583],
+  [3, 0],
+  [4, 8323072],
+  [5, 8323072],
+  [6, 8323199],
+  [7, 8270336],
+  [8, 31232],
+  [9, 8323072],
+  [10, 0],
+  [11, 0],
+  [12, 26112],
+]);
+
+const TransparentDefault = mapOf<Int, Int>([
+  [0, 9474303],
+  [1, 12525600],
+  [2, 4210943],
+  [3, 16777215],
+  [4, 15683664],
+  [5, 8323072],
+  [6, 14622975],
+  [7, 16720095],
+  [8, 54016],
+  [9, 8323072],
+  [10, 16777215],
+  [11, 16777215],
+  [12, 16776960],
+]);
+
+function paletteOverride(slot: Int, transparent: Boolean): Int {
+  if (transparent) {
+    switch (slot) {
+      case 0:
+        return useServerState(Game.option_chat_colour_public_transparent);
+      case 1:
+        return useServerState(Game.option_chat_colour_private_transparent);
+      case 2:
+        return useServerState(Game.option_chat_colour_autochat_transparent);
+      case 3:
+        return useServerState(Game.option_chat_colour_broadcast_transparent);
+      case 4:
+        return useServerState(Game.option_chat_colour_friendschat_transparent);
+      case 5:
+        return useServerState(Game.option_chat_colour_clanchat_transparent);
+      case 6:
+        return useServerState(Game.option_chat_colour_tradereq_transparent);
+      case 7:
+        return useServerState(Game.option_chat_colour_challengereq_transparent);
+      case 10:
+        return useServerState(Game.option_chat_colour_clanbroadcast_transparent);
+      default:
+        return useServerState(Game.option_chat_colour_didyouknow_transparent);
+    }
+  }
+  switch (slot) {
+    case 0:
+      return useServerState(Game.option_chat_colour_public_opaque);
+    case 1:
+      return useServerState(Game.option_chat_colour_private_opaque);
+    case 2:
+      return useServerState(Game.option_chat_colour_autochat_opaque);
+    case 3:
+      return useServerState(Game.option_chat_colour_broadcast_opaque);
+    case 4:
+      return useServerState(Game.option_chat_colour_friendschat_opaque);
+    case 5:
+      return useServerState(Game.option_chat_colour_clanchat_opaque);
+    case 6:
+      return useServerState(Game.option_chat_colour_tradereq_opaque);
+    case 7:
+      return useServerState(Game.option_chat_colour_challengereq_opaque);
+    case 10:
+      return useServerState(Game.option_chat_colour_clanbroadcast_opaque);
+    default:
+      return useServerState(Game.option_chat_colour_didyouknow_opaque);
+  }
+}
+
+export function paletteTag(slot: Int, transparent: Boolean): String {
+  const chosen: Int = paletteOverride(slot, transparent) - 1;
+  if (chosen !== -1) {
+    return colourTag(chosen, 'col');
+  }
+  if (transparent) {
+    return colourTag(TransparentDefault.get(slot) ?? 0, 'col');
+  }
+  return colourTag(OpaqueDefault.get(slot) ?? 0, 'col');
+}
+
+function broadcastPrefixTag(transparent: Boolean): String {
+  return transparent ? '<col=30ff30>' : '<col=004f00>';
+}
+
+function channelTag(transparent: Boolean): String {
+  return transparent ? '<col=9070ff>' : '<col=0000ff>';
+}
+
+function type113Tag(transparent: Boolean): String {
+  return transparent ? '<col=ff8f3e>' : '<col=93370c>';
+}
+
+function type114Tag(transparent: Boolean): String {
+  return transparent ? '<col=12ea77>' : '<col=004a23>';
+}
+
+export function tradePartnerTest(type: Int, sender: String, friend: Int): Boolean {
+  const [view] = useState(chatView);
+  if (view !== 6) {
+    return false;
+  }
+  const [partner] = useState(tradepartner);
+  if (CS2.string_length(partner) <= 0) {
+    return false;
+  }
+  if (type === 2 || type === 1 || type === 3 || type === 6 || type === 7 || type === 9) {
+    const name: String = CS2.tags_remove(sender);
+    if (CS2.compare(name, CS2.tags_remove(CS2.chat_playername())) === 0) {
+      return true;
+    }
+    if (CS2.compare(name, CS2.tags_remove(partner)) === 0) {
+      if (type === 1 || type === 7) {
+        return true;
+      }
+      if (CS2.chat_filter_trade_get() === 0) {
+        return true;
+      }
+      if (CS2.chat_filter_trade_get() === 1 && friend === 1) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+export function chatViewTest(type: Int, sender: String, friend: Int, text: String): Boolean {
+  const [view] = useState(chatView);
+  if (view === 0) {
+    return true;
+  }
+  if (type === -1) {
+    return false;
+  }
+  switch (view) {
+    case 1:
+      if (MesboxChatTypes.get(type) ?? false) {
+        return true;
+      }
+      return false;
+    case 2:
+      return type === 1 || type === 2 || type === 90 || type === 91;
+    case 3:
+      return type === 3 || type === 5 || type === 6 || type === 7;
+    case 4:
+      return type === 9 || type === 11 || type === 104;
+    case 5:
+      return type === 41 || type === 43 || type === 110;
+    case 6:
+      if (type === 101 || type === 103 || type === 102 || type === 113) {
+        return true;
+      }
+      return tradePartnerTest(type, sender, friend);
+  }
+  return false;
+}
+
+export function chatFilterTest(
+  type: Int,
+  sender: String,
+  line: String,
+  text: String,
+  cycle: Int,
+  privateTab: Int,
+  me: String,
+  friend: Int,
+): Boolean {
+  if (type === -1) {
+    return false;
+  }
+  const [allCleared] = useState(allChatClearedTime);
+  if (cycle < allCleared) {
+    return false;
+  }
+  if ((MesboxChatTypes.get(type) ?? false) && type !== 106) {
+    if (type === 105 && useServerState(Game.game_filter) === 1) {
+      return false;
+    }
+    if (type === 114 && useServerState(Game.show_dialogue_in_chatbox) === 0) {
+      return false;
+    }
+    if (type === 115 && useServerState(Game.show_mesbox_in_chatbox) === 0) {
+      return false;
+    }
+    if (type === 118) {
+      const [skillGuideCleared] = useState(bondifConvertPerbondCs);
+      if (cycle < skillGuideCleared) {
+        return false;
+      }
+    }
+    return true;
+  }
+  const mine: Boolean = CS2.compare(me, CS2.tags_remove(sender)) === 0;
+  const messageFilter: String = CS2.chat_message_filter_get();
+  const filtered: Boolean =
+    CS2.string_length(messageFilter) > 0 && CS2.string_indexof_string(CS2.lowercase(line), messageFilter, 0) === -1;
+  switch (type) {
+    case 2:
+    case 1: {
+      const [publicCleared] = useState(publicChatClearedTime);
+      if (cycle < publicCleared) return false;
+      if (mine) return true;
+      if (friend === 2) return false;
+      const publicFilter: Int = CS2.chat_filter_public_get();
+      if (publicFilter === 2 || publicFilter === 3) return false;
+      if (filtered) return false;
+      if (publicFilter === 1) return friend === 1;
+      return true;
+    }
+    case 90:
+    case 91: {
+      const [publicCleared] = useState(publicChatClearedTime);
+      if (cycle < publicCleared) return false;
+      if (mine) return true;
+      if (friend === 2) return false;
+      if (CS2.chat_filter_public_get() !== 4) return false;
+      if (filtered) return false;
+      return true;
+    }
+    case 3:
+    case 7: {
+      const [privateCleared] = useState(privateChatClearedTime);
+      if (cycle < privateCleared) return false;
+      if (friend === 2) return false;
+      if (useServerState(Game.option_pm) === 1 && privateTab === 0 && !tradePartnerTest(type, sender, friend)) {
+        return false;
+      }
+      if (CS2.chat_filter_private_get() === 0) return true;
+      if (CS2.chat_filter_private_get() === 1 && friend === 1) return true;
+      return false;
+    }
+    case 101:
+    case 103:
+    case 113:
+      if (friend === 2) return false;
+      if (CS2.chat_filter_trade_get() === 0) return true;
+      if (CS2.chat_filter_trade_get() === 1 && friend === 1) return true;
+      return false;
+    case 5:
+    case 6: {
+      const [privateCleared] = useState(privateChatClearedTime);
+      if (cycle < privateCleared) return false;
+      if (type === 5) {
+        const mode: Int = noticeMode(
+          useServerState(Game.loginlogout_permanent),
+          useServerState(Game.loginlogout_setting),
+        );
+        if (mode === 2) return false;
+        if (mode === 0 && CS2.clientclock() - cycle >= 500) return false;
+      }
+      if (useServerState(Game.option_pm) === 1 && privateTab === 0 && !tradePartnerTest(type, sender, friend)) {
+        return false;
+      }
+      return CS2.chat_filter_private_get() !== 2;
+    }
+    case 9:
+    case 104: {
+      const [fcCleared] = useState(friendschatClearedTime);
+      if (cycle < fcCleared) return false;
+      if (mine) return true;
+      if (friend === 2) return false;
+      const fcFilter: Int = useServerState(Game.chat_filter_friendschat);
+      if (fcFilter === 0) return true;
+      if (fcFilter === 1 && friend === 1) return true;
+      return false;
+    }
+    case 11: {
+      const [fcCleared] = useState(friendschatClearedTime);
+      if (cycle < fcCleared) return false;
+      return useServerState(Game.chat_filter_friendschat) !== 2;
+    }
+    case 41:
+    case 43:
+    case 110: {
+      const [clanCleared] = useState(clanChatClearedTime);
+      if (cycle < clanCleared) return false;
+      if (mine) return true;
+      const clanFilter: Int = useServerState(Game.chat_filter_clanchat);
+      if (clanFilter === 0) return true;
+      if (clanFilter === 1 && friend === 1) return true;
+      return false;
+    }
+    case 102:
+      return CS2.chat_filter_trade_get() !== 2;
+    case 106:
+      return friend !== 2;
+    case 14: {
+      const [broadcastCleared] = useState(broadcastClearedTime);
+      if (cycle < broadcastCleared) return false;
+      return true;
+    }
+  }
+  return true;
+}
+
+export function rowShape(type: Int, text: String): Int {
+  switch (type) {
+    case 1:
+    case 2:
+    case 90:
+    case 91:
+    case 3:
+    case 7:
+    case 6:
+    case 9:
+    case 14:
+      return RowShape.SPLIT;
+    case 41:
+    case 43:
+      return RowShape.QUAD;
+    case 114:
+    case 116:
+      return CS2.string_length(pipeHead(text)) > 0 ? RowShape.SPLIT : RowShape.SINGLE;
+  }
+  return RowShape.SINGLE;
+}
+
+function channelLead(timestamped: Boolean, stamp: String, name: String, transparent: Boolean): String {
+  return affixTimestamp(timestamped, stamp, `[${channelTag(transparent)}${name}</col>]`, 'null');
+}
+
+export function rowPart(part: Int, uid: Int, transparent: Boolean, timestamped: Boolean): String {
+  const [type, cycle, sender0, clan, text0, _friend, stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+  let sender: String = sender0;
+  let text: String = text0;
+  let lead: String = '';
+  let name: String = '';
+  let body: String = '';
+  switch (type) {
+    case 2:
+    case 1:
+      lead = affixTimestamp(timestamped, stamp, `${sender}:`, 'null');
+      body = `${paletteTag(Palette.PUBLIC, transparent)}${text}</col>`;
+      break;
+    case 90:
+    case 91:
+      lead = affixTimestamp(timestamped, stamp, `${sender}:`, 'null');
+      body = `${paletteTag(Palette.AUTOCHAT, transparent)}${text}</col>`;
+      break;
+    case 3:
+    case 7:
+      lead = affixTimestamp(timestamped, stamp, `From ${sender}:`, 'null');
+      body = `${paletteTag(Palette.PRIVATE, transparent)}${text}</col>`;
+      break;
+    case 101:
+      lead = affixTimestamp(timestamped, stamp, `${paletteTag(Palette.TRADEREQ, transparent)}${text}</col>`, 'null');
+      break;
+    case 5:
+      lead = affixTimestamp(timestamped, stamp, `${paletteTag(Palette.PRIVATE, transparent)}${text}</col>`, 'null');
+      break;
+    case 6:
+      lead = affixTimestamp(timestamped, stamp, `To ${sender}:`, 'null');
+      body = `${paletteTag(Palette.PRIVATE, transparent)}${text}</col>`;
+      break;
+    case 103:
+    case 104:
+    case 110:
+      lead = affixTimestamp(
+        timestamped,
+        stamp,
+        `${paletteTag(Palette.CHALLENGEREQ, transparent)}${text}</col>`,
+        'null',
+      );
+      break;
+    case 9:
+      lead = affixTimestamp(timestamped, stamp, `[${channelTag(transparent)}${clan}</col>] ${sender}:`, 'null');
+      body = `${paletteTag(Palette.FRIENDSCHAT, transparent)}${text}</col>`;
+      break;
+    case 41:
+      lead = channelLead(timestamped, stamp, clan, transparent);
+      name = `${sender}:`;
+      body = `${paletteTag(Palette.CLANCHAT, transparent)}${text}</col>`;
+      break;
+    case 43:
+      const clanBroadcast: String = paletteTag(Palette.CLANBROADCAST, transparent);
+      text = replaceAll(text, '</col>', `</col>${clanBroadcast}`);
+      if (CS2.string_length(text) > 0 && CS2.string_indexof_string(text, '|', 0) !== -1) {
+        text = pipeTail(text);
+      }
+      if (CS2.activeclanchannel_affined_find(0)) {
+        lead = channelLead(timestamped, stamp, CS2.activeclanchannel_clan_name_get(), transparent);
+      } else {
+        lead = affixTimestamp(timestamped, stamp, '', 'null');
+      }
+      body = `${clanBroadcast}${text}</col>`;
+      break;
+    case 14:
+      lead = affixTimestamp(timestamped, stamp, `${broadcastPrefixTag(transparent)}Broadcast:</col>`, 'null');
+      body = `${paletteTag(Palette.BROADCAST, transparent)}${broadcastText(text)}</col>`;
+      break;
+    case 118:
+      lead = affixTimestamp(timestamped, stamp, pipeTail(text), 'null');
+      break;
+    case 107:
+      if (CS2.clientclock() - cycle > 500) {
+        lead = '';
+      } else {
+        lead = affixTimestamp(timestamped, stamp, text, 'null');
+      }
+      break;
+    case 113:
+      lead = affixTimestamp(timestamped, stamp, `${type113Tag(transparent)}${text}</col>`, 'null');
+      break;
+    case 114:
+      sender = pipeHead(text);
+      text = pipeTail(text);
+      if (CS2.string_length(sender) > 0) {
+        lead = affixTimestamp(timestamped, stamp, `${sender}:`, 'null');
+        body = `${type114Tag(transparent)}${text}</col>`;
+      } else {
+        lead = affixTimestamp(timestamped, stamp, `${type114Tag(transparent)}${text}</col>`, 'null');
+      }
+      break;
+    case 116:
+      sender = pipeHead(text);
+      text = pipeTail(text);
+      if (CS2.string_length(sender) > 0) {
+        lead = affixTimestamp(timestamped, stamp, `${sender}:`, 'null');
+        body = `${paletteTag(Palette.PUBLIC, transparent)}${text}</col>`;
+      } else {
+        lead = affixTimestamp(timestamped, stamp, `${paletteTag(Palette.PUBLIC, transparent)}${text}</col>`, 'null');
+      }
+      break;
+    case 0:
+      if (CS2.string_length(text) > 0 && CS2.string_indexof_string(text, '|', 0) !== -1) {
+        text = pipeTail(text);
+      }
+      lead = affixTimestamp(timestamped, stamp, text, 'null');
+      break;
+    case 117:
+      lead = affixTimestamp(timestamped, stamp, `${paletteTag(Palette.DIDYOUKNOW, transparent)}${text}</col>`, 'null');
+      break;
+    default:
+      lead = affixTimestamp(timestamped, stamp, text, 'null');
+      break;
+  }
+  if (part === Part.LEAD) {
+    return lead;
+  }
+  if (part === Part.NAME) {
+    return name;
+  }
+  return body;
+}
+
+export function singleRowHeight(line: String, width: Int): Int {
+  return textLineCount(line, width, GameFonts.font_495) * LINE_HEIGHT;
+}
+
+export function splitInset(prefix: String): Int {
+  return textWidth(prefix, UNWRAPPED, GameFonts.font_495) + 3;
+}
+
+export function splitRowHeight(prefix: String, body: String, width: Int): Int {
+  return textLineCount(body, width - splitInset(prefix), GameFonts.font_495) * LINE_HEIGHT;
+}
+
+export function unwrappedWidth(text: String): Int {
+  return textWidth(text, UNWRAPPED, GameFonts.font_495);
+}
+
+export function quadNameX(lead: String, name: String): Int {
+  const leadW: Int = unwrappedWidth(lead);
+  if (unwrappedWidth(name) <= 0 || leadW <= 0) {
+    return 0;
+  }
+  return leadW + 3;
+}
+
+export function quadBodyX(lead: String, name: String): Int {
+  const leadW: Int = unwrappedWidth(lead);
+  const nameW: Int = unwrappedWidth(name);
+  let x: Int = 0;
+  if (leadW > 0) {
+    x = nameW > 0 ? leadW + 3 : leadW;
+  }
+  x = x + nameW;
+  return x > 0 ? x + 3 : 0;
+}
+
+export function quadRowHeight(lead: String, name: String, body: String, width: Int): Int {
+  return textLineCount(body, width - quadBodyX(lead, name), GameFonts.font_495) * LINE_HEIGHT;
+}
+
+export function rowOptionSubject(uid: Int): String {
+  const [type, _cycle, sender, _clan, text, _friend, _stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+  switch (type) {
+    case 1:
+    case 2:
+    case 3:
+    case 6:
+    case 7:
+    case 9:
+    case 90:
+    case 91:
+    case 106:
+    case 41:
+    case 44:
+    case 101:
+    case 103:
+    case 104:
+    case 110:
+      return `<col=ffffff>${sender}</col>`;
+    case 109:
+    case 111:
+    case 112:
+      return `<col=0xffffff>${sender}</col>`;
+    case 0:
+      if (
+        CS2.string_length(sender) > 0 &&
+        CS2.compare(CS2.tags_remove(CS2.chat_playername()), CS2.tags_remove(sender)) !== 0
+      ) {
+        return `<col=ffffff>${sender}</col>`;
+      }
+      return '';
+    case 14:
+      return '<col=ff9040>Notification</col>';
+    case 118:
+      return '<col=ff9040>Skill guide</col>';
+  }
+  return '';
+}
+
+export function rowOption(op: Int, uid: Int): String {
+  const [type, _cycle, sender, _clan, text, friend, _stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+  const me: String = CS2.tags_remove(CS2.chat_playername());
+  const other: Boolean = CS2.compare(me, CS2.tags_remove(sender)) !== 0;
+  switch (type) {
+    case 1:
+    case 2:
+    case 3:
+    case 6:
+    case 7:
+    case 9:
+    case 90:
+    case 91:
+    case 106:
+    case 41:
+    case 44: {
+      if (!other) {
+        return '';
+      }
+      if (op === 6) return friend === 1 ? 'Message' : 'Add friend';
+      if (op === 7) return friend === 1 ? '' : 'Add ignore';
+      if (op === 8) return 'Report';
+      if (op === 9 && type === 9) {
+        if (
+          CS2.friendschat_chat_count_get() > 0 &&
+          CS2.friendschat_chat_rank_get() >= CS2.friendschat_chat_min_kick_get()
+        ) {
+          return 'Kick';
+        }
+      }
+      return '';
+    }
+    case 0:
+      if (op === 8 && CS2.string_length(sender) > 0 && other) {
+        return 'Report';
+      }
+      return '';
+    case 101:
+      if (op === 1) return 'Accept trade';
+      if (op === 6) return friend === 1 ? 'Message' : 'Add friend';
+      if (op === 7) return friend === 1 ? '' : 'Add ignore';
+      return '';
+    case 103:
+    case 104:
+    case 110:
+      if (op === 2) return 'Accept challenge';
+      if (op === 6) return friend === 1 ? 'Message' : 'Add friend';
+      if (op === 7) return friend === 1 ? '' : 'Add ignore';
+      return '';
+    case 109:
+    case 111:
+    case 112:
+      if (op === 2) return type === 109 ? 'Form clan' : type === 111 ? 'Form group' : 'Group with';
+      if (op === 6) return friend === 1 ? 'Message' : 'Add friend';
+      if (op === 7) return friend === 1 ? '' : 'Add ignore';
+      return '';
+    case 14:
+      if (op === 6 && CS2.string_length(broadcastUrl(text)) > 0 && broadcastLink(text) !== -1) return 'Open';
+      if (op === 7 && CS2.string_length(broadcastUrl(text)) > 0 && broadcastLink(text) !== -1) return 'Check';
+      if (op === 9) return 'Clear history';
+      return '';
+    case 118:
+      if (op === 9) return 'Clear all';
+      return '';
+  }
+  return '';
+}
+
+export function chatRowOp(op: Int, subject: String, type: Int, text: String): void {
+  if (type === 14) {
+    broadcastOp(op, text);
+    return;
+  }
+  if (type === 118) {
+    skillGuideOp(op);
+    return;
+  }
+  chatOp(op, subject, type);
+}
+
+function broadcastOp(op: Int, text: String): void {
+  if (op === 9) {
+    const [, setCleared] = useState(broadcastClearedTime);
+    setCleared(CS2.clientclock());
+    newestChatUid();
+    return;
+  }
+  const url: String = broadcastUrl(text);
+  if (CS2.string_length(url) <= 0) {
+    return;
+  }
+  if (op === 6) {
+    CS2.sound_effect(GameSounds.interface_select1, 1, 0);
+    CS2.url_open(url, true);
+  } else {
+    CS2.message(`Link destination: <col=ef1020>${url}</col>`);
+  }
+}
+
+function skillGuideOp(op: Int): void {
+  if (op === 9) {
+    const [, setCleared] = useState(bondifConvertPerbondCs);
+    setCleared(CS2.clientclock());
+    newestChatUid();
+  }
+}
+
+export function chatOp(op: Int, subject: String, type: Int): void {
+  const name: String = CS2.tags_remove(subject);
+  switch (op) {
+    case 1:
+      CS2.opplayer(4, name);
+      return;
+    case 2:
+      CS2.opplayer(1, name);
+      return;
+    case 8: {
+      const [, setReported] = useState(snapshotName);
+      setReported(name);
+      return;
+    }
+    case 9:
+      if (type === 9) {
+        friendsChatKick(name);
+      }
+      return;
+  }
+  const named: Boolean = useServerState(Chat.has_display_name);
+  if (CS2.friend_test(name)) {
+    if (op === 6 || op === 7) {
+      if (named) {
+        meslayerMode6(name);
+      } else {
+        CS2.message('You must set a name before you can do that.');
+      }
+    }
+  } else if (op === 6) {
+    if (named) {
+      CS2.friend_add(name);
+    } else {
+      CS2.message('You must set a name before you can do that.');
+    }
+  } else if (op === 7) {
+    if (named) {
+      CS2.ignore_add(name);
+    } else {
+      CS2.message('You must set a name before you can do that.');
+    }
+  }
+}
+
+export function chatTransmit(): void {
+  const newest: Int = newestChatUid();
+  if (CS2.if_sub_has(chatoverlayRef) && useServerState(Game.chatoverlay_allowmesoverlap) === 1) {
+    const [type, _cycle, _sender, _clan, text, _friend, stamp, _mode] = CS2.chat_history_by_uid_get(newest);
+    if (meslayerMode1Enabled(type)) {
+      meslayerMode1(affixTimestamp(timestampsShown(), stamp, text, 'null'));
+    }
+  }
+  chatAlerts(newest);
+}
+
+export function rowHoverInk(type: Int, text: String): Int {
+  if (type === 14 && CS2.string_length(broadcastUrl(text)) > 0 && broadcastLink(text) !== -1) {
+    return 0x3030ff;
+  }
+  return -1;
+}
+
+export function chatAlerts(newest: Int): void {
+  const [lastCheck, setLastCheck] = useState(chatLastalertcheck);
+  const since: Int = lastCheck;
+  const mobile: Boolean = onMobile();
+  setLastCheck(CS2.clientclock());
+  const [view] = useState(chatView);
+  const [chatDisabled] = useState(mobileChatboxDisabled);
+  if (view === 0 && (!mobile || chatDisabled === 0)) {
+    return;
+  }
+  const privateTab: Int = view === 1337 ? 1 : 0;
+  const me: String = CS2.tags_remove(CS2.chat_playername());
+  const timestamped: Boolean = timestampsShown();
+  let uid: Int = newest;
+  while (uid !== -1) {
+    const [type, cycle, sender, _clan, text, friend, stamp, _mode] = CS2.chat_history_by_uid_get(uid);
+    if (cycle <= since) {
+      return;
+    }
+    if (
+      chatFilterTest(
+        type,
+        sender,
+        affixTimestamp(timestamped, stamp, text, 'null'),
+        text,
+        cycle,
+        privateTab,
+        me,
+        friend,
+      ) &&
+      !tradePartnerTest(type, sender, friend)
+    ) {
+      switch (type) {
+        case 1:
+        case 2:
+          chatAlertEnable(2);
+          break;
+        case 3:
+        case 6:
+        case 7:
+          chatAlertEnable(3);
+          break;
+        case 5:
+          if (!mobile) {
+            chatAlertEnable(3);
+          }
+          break;
+        case 101:
+        case 102:
+        case 103:
+        case 113:
+          chatAlertEnable(6);
+          break;
+        case 9:
+        case 11:
+        case 104:
+          chatAlertEnable(4);
+          break;
+        case 41:
+        case 43:
+        case 110:
+          chatAlertEnable(5);
+          break;
+        default:
+          if ((MesboxChatTypes.get(type) ?? false) && type !== 108) {
+            chatAlertEnable(1);
+          }
+          break;
+      }
+    }
+    uid = CS2.chat_prev_uid_get(uid);
+  }
+}
+
+export function newestUid(): Int {
+  let newest: Int = -1;
+  let newestStamp: Int = -2147483648;
+  let type: Int = 0;
+  while (type <= 118) {
+    if (CS2.chat_history_length_get(type) > 0) {
+      const [uid, stamp, _sender, _title, _body, _friend, _prefix, _mode] = CS2.chat_history_by_type_and_line_get(
+        type,
+        0,
+      );
+      if (stamp > newestStamp || uid > newest) {
+        newestStamp = stamp;
+        newest = uid;
+      }
+    }
+    type = type + 1;
+  }
+  return newest;
+}

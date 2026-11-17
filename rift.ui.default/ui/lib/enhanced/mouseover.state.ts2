@@ -1,0 +1,26 @@
+import { sessionState } from 'ts2';
+
+export const mouseoverParts = sessionState(0);
+export const mouseoverTexts = sessionState('');
+export const mouseoverOpLength = sessionState(0);
+export const mouseoverLeftLength = sessionState(0);
+export const mouseoverX = sessionState(0);
+export const mouseoverY = sessionState(0);
+export const mouseoverW = sessionState(0);
+export const mouseoverOpH = sessionState(0);
+export const mouseoverCaptionH = sessionState(0);
+export const mouseoverTransparency = sessionState(0);
+export const mouseoverCountW = sessionState(0);
+export const mouseoverNumOps = sessionState(0);
+
+export enum MouseoverPart {
+  TEXT = 1,
+  OP_BOX = 2,
+  CAPTION = 4,
+  CAPTION_SPLIT = 8,
+  BAR = 16,
+  COUNT = 32,
+}
+
+export const MOUSEOVER_BAR_H = 20;
+export const MOUSEOVER_COUNT_H = 14;

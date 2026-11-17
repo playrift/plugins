@@ -1,0 +1,50 @@
+import { closeInterface, onMobile } from './lib.helpers';
+import { GameFonts, GameSprites } from '../game-assets';
+
+export function StoneBorder({ title }: { title: String }): Component {
+  const mobile: Boolean = onMobile();
+
+  return (
+    <layer w="fill" h="fill">
+      <sprite x={1} y={1} w={{ fill: 2 }} h={{ fill: 2 }} sprite={GameSprites.tradebacking} tiling />
+
+      <text
+        x={6}
+        y={6}
+        w={{ fill: 12 }}
+        h={23}
+        text={title}
+        font={GameFonts.font_496}
+        color={0xff981f}
+        shadow
+        align="center"
+        valign="middle"
+      />
+
+      <sprite x="left" y="top" w={32} h={32} sprite={GameSprites.v2_stone_borders_4} tiling />
+      <sprite x="right" y="top" w={32} h={32} sprite={GameSprites.v2_stone_borders_5} tiling />
+      <sprite x="left" y="bottom" w={32} h={32} sprite={GameSprites.v2_stone_borders_6} tiling />
+      <sprite x="right" y="bottom" w={32} h={32} sprite={GameSprites.v2_stone_borders_7} tiling />
+
+      <sprite x={32} y={-13} w={{ fill: 64 }} h={32} sprite={GameSprites.v2_stone_borders_0} tiling />
+      <sprite x={32} y={{ bottom: -12 }} w={{ fill: 64 }} h={32} sprite={GameSprites.v2_stone_borders_2} tiling />
+      <sprite x={-13} y={32} w={32} h={{ fill: 64 }} sprite={GameSprites.v2_stone_borders_1} tiling />
+      <sprite x={{ right: -12 }} y={32} w={32} h={{ fill: 64 }} sprite={GameSprites.v2_stone_borders_3} tiling />
+
+      <sprite x={0} y={17} w={32} h={32} sprite={GameSprites.v2_stone_borders_9} tiling />
+      <sprite x="right" y={17} w={32} h={32} sprite={GameSprites.v2_stone_borders_10} tiling />
+      <sprite x={11} y={15} w={{ fill: 22 }} h={32} sprite={GameSprites.v2_stone_borders_8} tiling />
+
+      <sprite
+        x={{ right: mobile ? 2 : 10 }}
+        y={mobile ? 2 : 10}
+        w={mobile ? 32 : 16}
+        h={mobile ? 32 : 16}
+        sprite={mobile ? GameSprites.stoneborder_close_button_0 : GameSprites.v2_stone_close_button_0}
+        hover={{ sprite: mobile ? GameSprites.stoneborder_close_button_0 : GameSprites.v2_stone_close_button_1 }}
+        options={['Close']}
+        onOptionSelect={() => closeInterface()}
+      />
+    </layer>
+  );
+}

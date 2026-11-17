@@ -1,0 +1,22 @@
+name = "mobile"
+ui = "toplevel_mobile"
+
+[slots]
+chat = "toplevel_mobile_chat_container"
+"chat.split" = "toplevel_mobile_pm_container"
+"tab.stats" = "toplevel_mobile_side1"
+"tab.inventory" = "toplevel_mobile_side3"
+"tab.worn" = "toplevel_mobile_side4"
+"tab.friends" = "toplevel_mobile_side9"
+"tab.logout" = "toplevel_mobile_side10"
+"tab.music" = "toplevel_mobile_side13"
+"tab.settings" = "toplevel_mobile_side11"
+modal = "toplevel_mobile_mainmodal"
+"modal.side" = "toplevel_mobile_sidemodal"
+floater = "toplevel_mobile_floater"
+"hud.hp" = "toplevel_mobile_hpbar_hud"
+"hud.xp_drops" = "toplevel_mobile_xp_drops"
+orbs = "toplevel_mobile_orbs"
+"orbs.button.extra" = { interface = "orbs", component = "orbs_extra_button" }
+"chat.modal" = { interface = "chatbox", component = "chatbox_chatmodal" }
+"chat.tab.extra" = { interface = "chatbox", component = "chatbox_extra_tab" }

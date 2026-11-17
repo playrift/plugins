@@ -1,0 +1,14 @@
+import { GameSprites } from '../game-assets';
+export const SlotIcons = mapOf<Int, Sprite>([
+  [0, GameSprites.wornicons_0],
+  [1, GameSprites.wornicons_1],
+  [2, GameSprites.wornicons_2],
+  [3, GameSprites.wornicons_3],
+  [4, GameSprites.wornicons_5],
+  [5, GameSprites.wornicons_6],
+  [7, GameSprites.wornicons_7],
+  [9, GameSprites.wornicons_8],
+  [10, GameSprites.wornicons_9],
+  [12, GameSprites.wornicons_4],
+  [13, GameSprites.wornicons_10],
+]);

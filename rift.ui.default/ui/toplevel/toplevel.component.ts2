@@ -1,0 +1,59 @@
+import { Game } from '../lib/game/server-states';
+import { useInterval, useRef, useServerState, useState, useWatch } from 'ts2';
+
+import { logoutTimerNotifierStep } from '../lib/enhanced/logout-notifier';
+import { compassOp } from '../toplevel_mobile/toplevel-mobile.helpers';
+import { clientClock } from '../lib/lib.engine';
+import { opsound } from '../lib/lib.helpers';
+import { Grave } from './toplevel.constants';
+import { graveElapsed, graveStart, graveTicks } from './toplevel.state';
+import { GameFonts, GameSprites } from '../game-assets';
+import { localNotificationsAvailable } from '../lib/lib.client';
+
+export function CompassOps(): Component {
+  const state: Int = useServerState(Game.minimap_state);
+  let live: Boolean = true;
+  if (state === 3 || state === 4 || state === 5) {
+    live = false;
+  }
+  return (
+    <>
+      <text
+        x="center"
+        y="center"
+        w="fill"
+        h="fill"
+        font={GameFonts.font_494}
+        noClickThrough
+        onClick={() => opsound(0, 0)}
+      />
+      <text
+        x="center"
+        y="center"
+        w="fill"
+        h="fill"
+        font={GameFonts.font_494}
+        options={live ? ['Look North', 'Look East', 'Look South', 'Look West'] : undefined}
+        onOptionSelect={live ? (event) => compassOp(event.option) : undefined}
+      />
+    </>
+  );
+}
+
+export function EhcHooks(): Component {
+  const notifies: Boolean = localNotificationsAvailable();
+  const logoutTimer = useRef();
+  useInterval(() => logoutTimerNotifierStep(), logoutTimer);
+  return (
+    <>
+      {notifies && (
+        <>
+          <rect ref={logoutTimer} x={0} y={0} w={1} h={1} transparency={255} />
+          <rect x={0} y={0} w={1} h={1} transparency={255} />
+          <rect x={0} y={0} w={1} h={1} transparency={255} />
+          <rect x={0} y={0} w={1} h={1} transparency={255} />
+        </>
+      )}
+    </>
+  );
+}

@@ -1,0 +1,51 @@
+import { useState } from 'ts2';
+
+import { Panel } from '../toplevel/toplevel.constants';
+import { desktopToplevelInit, switchSidePanel } from '../toplevel/toplevel.helpers';
+import { toplevelPanel } from '../lib/game/varcs';
+import { ToplevelComponents } from '../lib/lib.constants';
+import { onMobile } from '../lib/lib.helpers';
+import { Anchor, HelperDodges, overlayInit } from '../lib/lib.overlay';
+import { ClassicInset, helperContentRef, helperDodgerRef } from './toplevel-classic.constants';
+
+export function classicToplevelInit(): void {
+  desktopToplevelInit(ToplevelComponents.CLASSIC, true);
+}
+
+export function classicHelperInit(): void {
+  if (onMobile()) {
+    overlayInit(helperDodgerRef, helperContentRef, HelperDodges.MOBILE, Anchor.LEFT, Anchor.TOP, 1);
+  } else {
+    overlayInit(helperDodgerRef, helperContentRef, HelperDodges.DESKTOP, Anchor.LEFT, Anchor.TOP, 1);
+  }
+}
+
+export function classicTabOp(panel: Int, option: Int): void {
+  if (option !== 1) {
+    return;
+  }
+  const [selected] = useState(toplevelPanel);
+  if (selected === panel) {
+    switchSidePanel(Panel.NONE, 0, true);
+    return;
+  }
+  switchSidePanel(panel, 0, true);
+}
+
+export function classicLogoutOp(option: Int): void {
+  classicTabOp(Panel.LOGOUT, option);
+}
+
+export function classicInsetRight(clamp: Int, frameW: Int, viewW: Int): Int {
+  if (clamp === 0) {
+    return ClassicInset.RIGHT;
+  }
+  return Math.max(0, ClassicInset.RIGHT - Math.max(0, frameW - viewW) / 2);
+}
+
+export function classicInsetBottom(clamp: Int, frameH: Int, viewH: Int): Int {
+  if (clamp === 0) {
+    return ClassicInset.BOTTOM;
+  }
+  return Math.max(0, ClassicInset.BOTTOM - Math.max(0, frameH - viewH) / 2);
+}

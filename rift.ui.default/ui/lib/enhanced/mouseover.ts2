@@ -1,0 +1,343 @@
+import { Game } from '../game/server-states';
+import { CS2, useServerState, useState } from 'ts2';
+import {
+  mouseoverTooltipCustomTextLeft,
+  mouseoverTooltipCustomTextRight,
+  mouseoverTooltipProgressBarMax,
+  mouseoverTooltipProgressBarValue,
+  mouseoverTooltipSourceIdOverride,
+  mouseoverTooltipSourceOverride,
+  mouseoverTooltipTooltipOverride,
+  mouseoverTooltipXOverride,
+  mouseoverTooltipYOverride,
+  tooltipBuilt,
+  tooltipTime,
+} from '../game/varcs';
+import { clientClock, textLineCount, textWidth } from '../lib.engine';
+import { GameframeSlot, gameframeSlot } from '../lib.gameframe';
+import { pipeHead, pipeTail } from '../lib.format';
+import { onMobile } from '../lib.helpers';
+import {
+  MOUSEOVER_BAR_H,
+  MOUSEOVER_COUNT_H,
+  MouseoverPart,
+  mouseoverCaptionH,
+  mouseoverCountW,
+  mouseoverLeftLength,
+  mouseoverNumOps,
+  mouseoverOpH,
+  mouseoverOpLength,
+  mouseoverParts,
+  mouseoverTexts,
+  mouseoverTransparency,
+  mouseoverW,
+  mouseoverX,
+  mouseoverY,
+} from './mouseover.state';
+import { GameFonts } from '../../game-assets';
+import { enhancedMouseoverAvailable } from '../lib.client';
+
+function tooltipForType(type: Int): Boolean {
+  return type !== 0 && type !== 1;
+}
+
+function textForType(type: Int): Boolean {
+  return type !== 0;
+}
+
+const TRANSPARENCY_OP = 150;
+const TRANSPARENCY_CAPTION = 64;
+const OP_MEASURE = 192;
+const CAPTION_MEASURE = 194;
+const UNWRAPPED = 2147483647;
+
+function minimenuEntryLine(): String {
+  return '';
+}
+
+export function mouseoverClear(): void {
+  const [, setParts] = useState(mouseoverParts);
+  setParts(0);
+}
+
+export function mouseoverOps(): void {
+  if (!enhancedMouseoverAvailable()) {
+    return;
+  }
+  const desktop: Boolean = !onMobile();
+  if (CS2.mouse_x_get() === -1 && CS2.mouse_y_get() === -1 && desktop) {
+    return;
+  }
+  const row: ComponentId = gameframeSlot(GameframeSlot.MOUSEOVER);
+  if (row === -1) {
+    return;
+  }
+  if (CS2.if_hide_get(row)) {
+    mouseoverClear();
+    return;
+  }
+  if (CS2.minimenu_open_is()) {
+    mouseoverClear();
+    return;
+  }
+  const line: String = minimenuEntryLine();
+  const numOps: Int = CS2.native_minimenu_numops();
+  const type: Int = CS2.native_minimenu_type();
+  let parts: Int = 0;
+  if (desktop && useServerState(Game.mouseover_text_enabled) === 1 && textForType(type) && line.length > 0) {
+    parts = parts + MouseoverPart.TEXT;
+  }
+  mouseoverTooltipLayout(parts, row, line, type, numOps);
+}
+
+function mouseoverTooltipLayout(built: Int, row: ComponentId, line: String, type: Int, numOps: Int): void {
+  let parts: Int = built;
+  let opBox: Boolean = true;
+  let captionAllowed: Boolean = true;
+  if (
+    useServerState(Game.mouseover_tooltips_disabled) === 1 ||
+    !tooltipForType(type) ||
+    onMobile() ||
+    line.length === 0
+  ) {
+    opBox = false;
+  } else if (type === 7 && CS2.native_minimenu_component_find()) {
+    captionAllowed = true;
+  }
+  let opW: Int = 0;
+  let opH: Int = 0;
+  if (opBox) {
+    opW = textWidth(line, OP_MEASURE, GameFonts.font_495) + 8;
+    opH = textLineCount(line, OP_MEASURE, GameFonts.font_495) * 14 + 8;
+    parts = parts + MouseoverPart.OP_BOX;
+  }
+  let countW: Int = 0;
+  const countShown: Boolean = useServerState(Game.mouseover_tooltips_hide_opcount) === 0 && numOps > 1 && opBox;
+  if (countShown) {
+    countW = textWidth(countLabel(numOps), CS2.if_width_get(row), GameFonts.font_494) + 6;
+  }
+
+  const [customLeft] = useState(mouseoverTooltipCustomTextLeft);
+  const [customRight] = useState(mouseoverTooltipCustomTextRight);
+  const [time] = useState(tooltipTime);
+  const [barMax] = useState(mouseoverTooltipProgressBarMax);
+  let left: String = customLeft;
+  let right: String = customRight;
+  if (clientClock() > time) {
+    left = '';
+    right = '';
+  }
+  let captionLeft: String = '';
+  let captionRight: String = '';
+  let captionW: Int = 0;
+  let captionH: Int = 0;
+  let barH: Int = 0;
+  let transparency: Int = TRANSPARENCY_OP;
+  if (captionAllowed && customLeft.length > 0) {
+    if (customRight.length > 0) {
+      let headL: String = pipeHead(left);
+      let tailL: String = pipeTail(left);
+      let headR: String = pipeHead(right);
+      let tailR: String = pipeTail(right);
+      let lenL: Int = headL.length;
+      let lenR: Int = headR.length;
+      let rows: Int = 0;
+      while (lenL > 0 || lenR > 0) {
+        const wL: Int = lenL > 0 ? textWidth(headL, UNWRAPPED, GameFonts.font_495) : 0;
+        const wR: Int = lenR > 0 ? textWidth(headR, UNWRAPPED, GameFonts.font_495) : 0;
+        captionW = Math.max(captionW, wL + wR + 2);
+        if (rows > 0) {
+          captionLeft = `${captionLeft}<br>${headL}`;
+          captionRight = `${captionRight}<br>${headR}`;
+        } else {
+          captionLeft = `${captionLeft}${headL}`;
+          captionRight = `${captionRight}${headR}`;
+        }
+        rows = rows + 1;
+        if (tailL.length > 0 || tailR.length > 0) {
+          const nextL: String = tailL;
+          const nextR: String = tailR;
+          headL = pipeHead(nextL);
+          tailL = pipeTail(nextL);
+          headR = pipeHead(nextR);
+          tailR = pipeTail(nextR);
+          lenL = headL.length;
+          lenR = headR.length;
+        } else {
+          lenL = 0;
+          lenR = 0;
+        }
+      }
+      if (barMax > 0) {
+        captionW = Math.max(captionW, 110);
+        barH = MOUSEOVER_BAR_H;
+      }
+      captionW = captionW + 6;
+      captionH = rows * 16 + barH + 6;
+    } else {
+      captionLeft = left;
+      captionH = textLineCount(captionLeft, CAPTION_MEASURE, GameFonts.font_495) * 14 + 6;
+      captionW = textWidth(captionLeft, CAPTION_MEASURE, GameFonts.font_495) + 6;
+      if (barMax > 0) {
+        captionW = Math.max(captionW, 110);
+        barH = MOUSEOVER_BAR_H;
+      }
+    }
+    transparency = TRANSPARENCY_CAPTION;
+  }
+  if (captionLeft.length > 0) {
+    parts = parts + MouseoverPart.CAPTION;
+    if (captionRight.length > 0) {
+      parts = parts + MouseoverPart.CAPTION_SPLIT;
+    }
+    if (barMax > 0) {
+      parts = parts + MouseoverPart.BAR;
+    }
+  }
+  if (countShown) {
+    parts = parts + MouseoverPart.COUNT;
+  }
+
+  const w: Int = Math.max(Math.max(opW, captionW), countW);
+  let x: Int = CS2.mouse_x_get();
+  let y: Int = CS2.mouse_y_get();
+  const phone: Boolean = onMobile();
+  const [xOverride] = useState(mouseoverTooltipXOverride);
+  const [yOverride] = useState(mouseoverTooltipYOverride);
+  if (phone && xOverride >= 0 && yOverride >= 0) {
+    x = xOverride;
+    y = yOverride;
+  }
+  const safezone: ComponentId = gameframeSlot(GameframeSlot.SAFE_ZONE);
+  if (safezone !== -1) {
+    x = x - CS2.if_x_get(safezone);
+    y = y - CS2.if_y_get(safezone);
+  }
+  if (phone) {
+    x = Math.max(x - w, 0);
+  } else {
+    x = Math.min(x, CS2.if_width_get(row) - w);
+  }
+  const countH: Int = countShown ? MOUSEOVER_COUNT_H : 0;
+  y = Math.min(y + 24, CS2.if_height_get(row) - (opH + captionH + countH - 2));
+
+  const [, setParts] = useState(mouseoverParts);
+  const [, setTexts] = useState(mouseoverTexts);
+  const [, setOpLength] = useState(mouseoverOpLength);
+  const [, setLeftLength] = useState(mouseoverLeftLength);
+  const [, setX] = useState(mouseoverX);
+  const [, setY] = useState(mouseoverY);
+  const [, setW] = useState(mouseoverW);
+  const [, setOpH] = useState(mouseoverOpH);
+  const [, setCaptionH] = useState(mouseoverCaptionH);
+  const [, setTransparency] = useState(mouseoverTransparency);
+  const [, setCountW] = useState(mouseoverCountW);
+  const [, setNumOps] = useState(mouseoverNumOps);
+  setTexts(`${line}${captionLeft}${captionRight}`);
+  setOpLength(line.length);
+  setLeftLength(captionLeft.length);
+  setX(x);
+  setY(y);
+  setW(w);
+  setOpH(opH);
+  setCaptionH(captionH);
+  setTransparency(transparency);
+  setCountW(countW);
+  setNumOps(numOps);
+  setParts(parts);
+}
+
+export function countLabel(numOps: Int): String {
+  if (numOps > 2) {
+    return `+${numOps - 1} options`;
+  }
+  return `+${numOps - 1} option`;
+}
+
+export function mouseoverTextLine(line: String, numOps: Int): String {
+  if (numOps > 1) {
+    return `${line}</col> / ${numOps - 1} more options`;
+  }
+  return line;
+}
+
+export function mouseoverTooltipSetup(
+  left: String,
+  right: String,
+  x: Int,
+  y: Int,
+  tooltip: ComponentId,
+  source: ComponentId,
+  sourceId: Int,
+  barValue: Int,
+  barMax: Int,
+  rebuild: Int,
+): void {
+  const [, setTime] = useState(tooltipTime);
+  const [tooltipOverride, setTooltipOverride] = useState(mouseoverTooltipTooltipOverride);
+  if (left.length > 0) {
+    setTime(clientClock());
+  } else if ((tooltip as Int) !== tooltipOverride) {
+    return;
+  }
+  if (onMobile()) {
+    const [sourceOverride, setSourceOverride] = useState(mouseoverTooltipSourceOverride);
+    const [sourceIdOverride, setSourceIdOverride] = useState(mouseoverTooltipSourceIdOverride);
+    const [, setX] = useState(mouseoverTooltipXOverride);
+    const [, setY] = useState(mouseoverTooltipYOverride);
+    if ((source as Int) !== sourceOverride || sourceId !== sourceIdOverride) {
+      setX(x);
+      setY(y);
+      setSourceOverride(source as Int);
+      setSourceIdOverride(sourceId);
+      if ((source as Int) === -1) {
+        setTooltipOverride(-1);
+      } else {
+        setTooltipOverride(tooltip as Int);
+      }
+    }
+    if ((tooltip as Int) !== -1) {
+      if ((source as Int) !== -1) {
+        CS2.if_on_timer_set(
+          () => mouseoverTooltipHold(left, right, x, y, barValue, barMax, tooltip, source, sourceId),
+          tooltip,
+        );
+        const [, setBuilt] = useState(tooltipBuilt);
+        setBuilt(1);
+      } else {
+        CS2.if_on_timer_set(null, tooltip);
+      }
+    }
+  }
+  const [, setLeft] = useState(mouseoverTooltipCustomTextLeft);
+  const [, setRight] = useState(mouseoverTooltipCustomTextRight);
+  const [, setBarValue] = useState(mouseoverTooltipProgressBarValue);
+  const [, setBarMax] = useState(mouseoverTooltipProgressBarMax);
+  setLeft(left);
+  setRight(right);
+  setBarValue(barValue);
+  setBarMax(barMax);
+  if (rebuild === 1) {
+    mouseoverOps();
+  }
+}
+
+export function mouseoverTooltipHold(
+  left: String,
+  right: String,
+  x: Int,
+  y: Int,
+  barValue: Int,
+  barMax: Int,
+  tooltip: ComponentId,
+  source: ComponentId,
+  sourceId: Int,
+): void {
+  const [sourceOverride] = useState(mouseoverTooltipSourceOverride);
+  const [sourceIdOverride] = useState(mouseoverTooltipSourceIdOverride);
+  if ((source as Int) === sourceOverride && sourceId === sourceIdOverride) {
+    mouseoverTooltipSetup(left, right, x, y, tooltip, source, sourceId, barValue, barMax, 0);
+  } else {
+    CS2.if_on_timer_set(null, tooltip);
+  }
+}

@@ -1,0 +1,42 @@
+import { CS2 } from 'ts2';
+
+const enum OriginalClientType {
+  ENHANCED_WINDOWS = 4,
+  ENHANCED_MAC = 5,
+  ENHANCED_ANDROID = 7,
+  ENHANCED_IOS = 8,
+  ENHANCED_LINUX = 10,
+}
+
+function originalEnhancedClient(): Boolean {
+  const type: Int = CS2.clienttype();
+  return (
+    type === OriginalClientType.ENHANCED_WINDOWS ||
+    type === OriginalClientType.ENHANCED_MAC ||
+    type === OriginalClientType.ENHANCED_LINUX ||
+    type === OriginalClientType.ENHANCED_ANDROID ||
+    type === OriginalClientType.ENHANCED_IOS
+  );
+}
+
+export function chatTimestampsAvailable(): Boolean {
+  return originalEnhancedClient();
+}
+
+export function localNotificationsAvailable(): Boolean {
+  return originalEnhancedClient();
+}
+
+export function newRendererAvailable(): Boolean {
+  return originalEnhancedClient();
+}
+
+export function entityHighlightsAvailable(): Boolean {
+  const type: Int = CS2.clienttype();
+  return type === OriginalClientType.ENHANCED_ANDROID || type === OriginalClientType.ENHANCED_IOS;
+}
+
+/** Whether the enhanced mouseover is available. */
+export function enhancedMouseoverAvailable(): Boolean {
+  return originalEnhancedClient();
+}

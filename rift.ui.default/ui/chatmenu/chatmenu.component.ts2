@@ -1,0 +1,361 @@
+import { CS2, createRef, resumePauseButton, useState } from 'ts2';
+
+import { clientClock, textWidth } from '../lib/lib.engine';
+import { dialogueMayAdvance } from '../lib/lib.dialogue';
+import { onMobile } from '../lib/lib.helpers';
+import {
+  ADVANCE_DEBOUNCE,
+  DialogueGate,
+  MenuColor,
+  PLEASE_WAIT,
+  Root,
+  Sword,
+  Title,
+} from './chatmenu.constants';
+import { optionAt, rowHeight, rowTop, titleTop } from './chatmenu.helpers';
+import {
+  menuArmedAt1,
+  menuArmedAt2,
+  menuArmedAt3,
+  menuArmedAt4,
+  menuArmedAt5,
+  menuCount,
+  menuOptions,
+  menuTitle,
+  menuWaiting,
+} from './chatmenu.state';
+import { GameFonts, GameSprites } from '../game-assets';
+
+export function ChatMenu(): Component {
+  return (
+    <>
+      <layer w="fill" h="fill" />
+
+      <layer w="fill" h="fill">
+        <ChatMenuTitle />
+      </layer>
+      <layer w="fill" h="fill">
+        <ChatMenuRows />
+      </layer>
+    </>
+  );
+}
+
+export function ChatMenuTitle(): Component {
+  const [title] = useState(menuTitle);
+  const [count] = useState(menuCount);
+  const phone: Boolean = onMobile();
+
+  const top: Int = titleTop(count, phone);
+
+  let measured: Int = textWidth(title, Root.W, GameFonts.font_497);
+  if (measured < Sword.MIN_TITLE_W) {
+    measured = Sword.MIN_TITLE_W;
+  }
+  let swordsHidden: Boolean = true;
+  if (count > 0 && measured <= Sword.MAX_TITLE_W) {
+    swordsHidden = false;
+  }
+
+  let inset: Int = (Root.W - (measured + Sword.TITLE_PAD)) / 2 - Sword.W;
+  if (inset < Sword.MIN_INSET) {
+    inset = Sword.MIN_INSET;
+  }
+
+  return (
+    <>
+      <text
+        x={0}
+        y={top}
+        w={Root.W}
+        h={Title.H}
+        text={title}
+        font={GameFonts.font_497}
+        color={MenuColor.TITLE}
+        align="center"
+        valign="middle"
+      />
+      <sprite x={inset} y={top + Sword.DY} w={Sword.W} h={Sword.H} sprite={GameSprites.sworddecor_1} hide={swordsHidden} />
+      <sprite
+        x={Root.W - (inset + Sword.W)}
+        y={top + Sword.DY}
+        w={Sword.W}
+        h={Sword.H}
+        sprite={GameSprites.sworddecor_0}
+        hide={swordsHidden}
+      />
+    </>
+  );
+}
+
+const NO_CHAR = -1;
+
+const row1 = createRef('chatmenu_option1');
+const row2 = createRef('chatmenu_option2');
+const row3 = createRef('chatmenu_option3');
+const row4 = createRef('chatmenu_option4');
+const row5 = createRef('chatmenu_option5');
+
+export function ChatMenuRows(): Component {
+  const [options] = useState(menuOptions);
+  const [count] = useState(menuCount);
+  const [waiting, setWaiting] = useState(menuWaiting);
+  const [hover1, setHover1] = useState(0);
+  const [hover2, setHover2] = useState(0);
+  const [hover3, setHover3] = useState(0);
+  const [hover4, setHover4] = useState(0);
+  const [hover5, setHover5] = useState(0);
+  const phone: Boolean = onMobile();
+
+  const height: Int = rowHeight(count, phone);
+
+  return (
+    <>
+      <text
+        x={0}
+        y={rowTop(count, 1, phone)}
+        w={Root.W}
+        h={height}
+        ref={row1}
+        text={waiting === 1 ? PLEASE_WAIT : optionAt(options, 1)}
+        font={GameFonts.font_497}
+        color={hover1 === 1 ? MenuColor.OPTION_HOVER : MenuColor.OPTION}
+        align="center"
+        valign="middle"
+        hide={count < 1}
+        onMouseEnter={() => setHover1(1)}
+        onMouseLeave={() => setHover1(0)}
+        onClick={() => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt1);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 1).length > 0) {
+            resumePauseButton(row1);
+            setWaiting(1);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+        onKey={(event) => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt1);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          if (dialogueMayAdvance(DialogueGate.NO_TOPLEVEL, DialogueGate.CHATBOX) === false) {
+            return;
+          }
+          if (event.keyChar === NO_CHAR) {
+            return;
+          }
+          if (CS2.string_indexof_char('1', event.keyChar) === -1) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 1).length > 0) {
+            resumePauseButton(row1);
+            setWaiting(1);
+            setHover1(0);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+      />
+      <text
+        x={0}
+        y={rowTop(count, 2, phone)}
+        w={Root.W}
+        h={height}
+        ref={row2}
+        text={waiting === 2 ? PLEASE_WAIT : optionAt(options, 2)}
+        font={GameFonts.font_497}
+        color={hover2 === 1 ? MenuColor.OPTION_HOVER : MenuColor.OPTION}
+        align="center"
+        valign="middle"
+        hide={count < 2}
+        onMouseEnter={() => setHover2(1)}
+        onMouseLeave={() => setHover2(0)}
+        onClick={() => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt2);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 2).length > 0) {
+            resumePauseButton(row2);
+            setWaiting(2);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+        onKey={(event) => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt2);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          if (dialogueMayAdvance(DialogueGate.NO_TOPLEVEL, DialogueGate.CHATBOX) === false) {
+            return;
+          }
+          if (event.keyChar === NO_CHAR) {
+            return;
+          }
+          if (CS2.string_indexof_char('2', event.keyChar) === -1) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 2).length > 0) {
+            resumePauseButton(row2);
+            setWaiting(2);
+            setHover2(0);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+      />
+      <text
+        x={0}
+        y={rowTop(count, 3, phone)}
+        w={Root.W}
+        h={height}
+        ref={row3}
+        text={waiting === 3 ? PLEASE_WAIT : optionAt(options, 3)}
+        font={GameFonts.font_497}
+        color={hover3 === 1 ? MenuColor.OPTION_HOVER : MenuColor.OPTION}
+        align="center"
+        valign="middle"
+        hide={count < 3}
+        onMouseEnter={() => setHover3(1)}
+        onMouseLeave={() => setHover3(0)}
+        onClick={() => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt3);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 3).length > 0) {
+            resumePauseButton(row3);
+            setWaiting(3);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+        onKey={(event) => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt3);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          if (dialogueMayAdvance(DialogueGate.NO_TOPLEVEL, DialogueGate.CHATBOX) === false) {
+            return;
+          }
+          if (event.keyChar === NO_CHAR) {
+            return;
+          }
+          if (CS2.string_indexof_char('3', event.keyChar) === -1) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 3).length > 0) {
+            resumePauseButton(row3);
+            setWaiting(3);
+            setHover3(0);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+      />
+      <text
+        x={0}
+        y={rowTop(count, 4, phone)}
+        w={Root.W}
+        h={height}
+        ref={row4}
+        text={waiting === 4 ? PLEASE_WAIT : optionAt(options, 4)}
+        font={GameFonts.font_497}
+        color={hover4 === 1 ? MenuColor.OPTION_HOVER : MenuColor.OPTION}
+        align="center"
+        valign="middle"
+        hide={count < 4}
+        onMouseEnter={() => setHover4(1)}
+        onMouseLeave={() => setHover4(0)}
+        onClick={() => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt4);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 4).length > 0) {
+            resumePauseButton(row4);
+            setWaiting(4);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+        onKey={(event) => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt4);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          if (dialogueMayAdvance(DialogueGate.NO_TOPLEVEL, DialogueGate.CHATBOX) === false) {
+            return;
+          }
+          if (event.keyChar === NO_CHAR) {
+            return;
+          }
+          if (CS2.string_indexof_char('4', event.keyChar) === -1) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 4).length > 0) {
+            resumePauseButton(row4);
+            setWaiting(4);
+            setHover4(0);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+      />
+      <text
+        x={0}
+        y={rowTop(count, 5, phone)}
+        w={Root.W}
+        h={height}
+        ref={row5}
+        text={waiting === 5 ? PLEASE_WAIT : optionAt(options, 5)}
+        font={GameFonts.font_497}
+        color={hover5 === 1 ? MenuColor.OPTION_HOVER : MenuColor.OPTION}
+        align="center"
+        valign="middle"
+        hide={count < 5}
+        onMouseEnter={() => setHover5(1)}
+        onMouseLeave={() => setHover5(0)}
+        onClick={() => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt5);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 5).length > 0) {
+            resumePauseButton(row5);
+            setWaiting(5);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+        onKey={(event) => {
+          const [armedAt, setArmedAt] = useState(menuArmedAt5);
+          if (clientClock() < armedAt) {
+            return;
+          }
+          if (dialogueMayAdvance(DialogueGate.NO_TOPLEVEL, DialogueGate.CHATBOX) === false) {
+            return;
+          }
+          if (event.keyChar === NO_CHAR) {
+            return;
+          }
+          if (CS2.string_indexof_char('5', event.keyChar) === -1) {
+            return;
+          }
+          const [live] = useState(menuOptions);
+          if (optionAt(live, 5).length > 0) {
+            resumePauseButton(row5);
+            setWaiting(5);
+            setHover5(0);
+          }
+          setArmedAt(clientClock() + ADVANCE_DEBOUNCE);
+        }}
+      />
+    </>
+  );
+}

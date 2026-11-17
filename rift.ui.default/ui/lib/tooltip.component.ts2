@@ -1,0 +1,96 @@
+import { sessionState, useState } from 'ts2';
+
+import { tooltipBuilt, tooltipTime } from './game/varcs';
+import { clientClock } from './lib.engine';
+
+const PAD_X = 4;
+const PAD_Y = 7;
+const LINE = 12;
+const NUDGE = 5;
+
+/** Whether the tooltip's dwell time has passed. */
+export function tooltipDwellElapsed(delay: Int): Boolean {
+  const [until, setUntil] = useState(tooltipTime);
+  if (until < clientClock() + delay) {
+    if (until < clientClock()) {
+      setUntil(clientClock() + 2);
+    } else {
+      setUntil(until + 2);
+    }
+    return false;
+  }
+  setUntil(clientClock() + delay + 10);
+  return true;
+}
+
+export const tooltipSeen = sessionState(-1);
+
+/** Marks the tooltip as seen. */
+export function tooltipMark(): void {
+  const [, setSeen] = useState(tooltipSeen);
+  setSeen(clientClock());
+}
+
+/** Hides the tooltip. */
+export function tooltipHide(): void {
+  const [, setBuilt] = useState(tooltipBuilt);
+  const [, setSeen] = useState(tooltipSeen);
+  setBuilt(0);
+  setSeen(-1);
+}
+
+/** Whether the tooltip is hidden. */
+export function tooltipDown(): Boolean {
+  const [built] = useState(tooltipBuilt);
+  if (built === 0) {
+    return true;
+  }
+  return false;
+}
+
+/** Shows the tooltip. */
+export function tooltipRaise(): void {
+  const [, setBuilt] = useState(tooltipBuilt);
+  setBuilt(1);
+}
+
+/** Whether the tooltip is shown. */
+export function tooltipUp(): Boolean {
+  const [built] = useState(tooltipBuilt);
+  if (built === 1) {
+    return true;
+  }
+  return false;
+}
+
+/** The tooltip box's padding and colours. */
+export const TooltipBox = {
+  padX: PAD_X,
+  padY: PAD_Y,
+  line: LINE,
+  nudge: NUDGE,
+  fill: 0xffffa0,
+  ink: 0x000000
+} as const;
+
+/** A tooltip's box and text. */
+export function TooltipChrome({ text, font, lineHeight }: { text: String; font: Font; lineHeight: Int }): Component {
+  return (
+    <>
+      <rect x="center" y="center" w="fill" h="fill" fill color={TooltipBox.fill} />
+      <rect x="center" y="center" w="fill" h="fill" color={TooltipBox.ink} />
+      <text
+        x="center"
+        y={{ bottom: 0 }}
+        w={{ fill: TooltipBox.padX }}
+        h={{ fill: 1 }}
+        text={text}
+        align="left"
+        valign="top"
+        lineHeight={lineHeight}
+        font={font}
+        color={TooltipBox.ink}
+      />
+    </>
+  );
+}

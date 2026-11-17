@@ -1,0 +1,48 @@
+import { CS2 } from 'ts2';
+
+import { controlRef } from '../toplevel_mobile/toplevel-mobile.constants';
+import { controlRef as classicFrameRef } from '../toplevel_classic/toplevel-classic.constants';
+import { controlRef as resizableFrameRef } from '../toplevel_resizable/toplevel-resizable.constants';
+import { ResizableSlots } from './game/gameframe-resizable.data';
+import { ClassicSlots } from './game/gameframe-classic.data';
+import { MobileSlots } from './game/gameframe-mobile.data';
+
+/** The gameframe's slots. */
+export enum GameframeSlot {
+  VIEWPORT,
+  SUB_MOUNT,
+  SIDE_MODAL,
+  CHAT_CONTAINER,
+  CHAT_TOGGLE,
+  HELPER_CONTENT,
+  OVERLAY_HUD,
+  MULTIWAY_ICON,
+  MOUSEOVER,
+  SAFE_ZONE,
+  SAFE_ZONE_NOCLICK,
+  SIDE_CONTAINER,
+  SIDE_RIGHT_TABS,
+  SIDE0,
+  SIDE1,
+  SIDE2,
+  SIDE3,
+  SIDE4,
+  SIDE5,
+  SIDE6,
+  SIDE7,
+  SIDE8,
+  SIDE9,
+  SIDE10,
+  SIDE11,
+  SIDE12,
+  SIDE13,
+}
+
+/** Returns the current gameframe's component for a slot. */
+export function gameframeSlot(slot: GameframeSlot): ComponentId {
+  const top = CS2.if_top_get();
+  if (top === interfaceOf(controlRef)) return MobileSlots.get(slot) ?? -1;
+  if (top === interfaceOf(resizableFrameRef)) return ResizableSlots.get(slot) ?? -1;
+  if (top === interfaceOf(classicFrameRef)) return ClassicSlots.get(slot) ?? -1;
+  return -1;
+}

@@ -1,0 +1,38 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, useServerState } from 'ts2';
+
+import { onMobile } from '../lib/lib.helpers';
+import { dropSettingOn } from './inventory.helpers';
+import { entityHighlightsAvailable } from '../lib/lib.client';
+
+export function dropModeWanted(): Boolean {
+  if (
+    entityHighlightsAvailable() &&
+    (useServerState(Game.settings_mobile_tile_highlight_enabled) === 1 ||
+      useServerState(Game.option_npc_indicators_tagging_enabled) === 1)
+  ) {
+    return true;
+  }
+  if (dropSettingOn() === 1) {
+    return true;
+  }
+  return false;
+}
+
+export function applyDropModes(): void {
+  if (onMobile()) {
+    CS2.tap_to_drop_set(dropModeWanted());
+    CS2.shift_click_enabled_set(true);
+  } else {
+    CS2.shift_click_enabled_set(dropModeWanted());
+    CS2.tap_to_drop_set(false);
+  }
+}
+
+export function shiftclickToggle(): void {
+  applyDropModes();
+}
+
+export function tapToDropOn(): Int {
+  return CS2.tap_to_drop_get() ? 1 : 0;
+}

@@ -1,0 +1,78 @@
+import { CS2, useState } from 'ts2';
+
+import { chatboxBackground, chatboxRelayout } from '../chatbox/chatbox-chrome';
+import { chatView, chatViewSaved, mobileChatboxDisabled, mobileChatboxFiltersDisabled } from '../lib/game/varcs';
+import { toplevelComponents } from '../lib/lib.helpers';
+import { mobileGameframe } from '../lib/lib.overlay';
+import { Modal, mainmodalRef } from './toplevel-mobile.constants';
+import { touchDodgers } from './toplevel-mobile.helpers';
+import { chatHiddenForModal } from './toplevel-mobile.state';
+
+export function mobileHidechatEntrypoint(target: Int, frame: Int): void {
+  if (!mobileGameframe(toplevelComponents())) {
+    return;
+  }
+  if (mobileHidechat()) {
+    const [, setArmed] = useState(chatHiddenForModal);
+    setArmed(1);
+  }
+}
+
+export function mobileHidechatCheck(): void {
+  const [armed, setArmed] = useState(chatHiddenForModal);
+  if (armed !== 1) {
+    return;
+  }
+  if (CS2.if_sub_has(mainmodalRef)) {
+    return;
+  }
+  setArmed(0);
+  mobileShowchat();
+}
+
+export function mobileClosechat(arg0: Int, arg1: Int): void {
+  const [, setView] = useState(chatView);
+  setView(Modal.CHAT_VIEW_OFF);
+  chatboxBackground();
+}
+
+export function mobileShowchat(): void {
+  const [saved] = useState(chatViewSaved);
+  if (saved === Modal.CHAT_VIEW_OFF) {
+    return;
+  }
+  const [, setView] = useState(chatView);
+  setView(saved);
+  chatboxBackground();
+}
+
+export function mobileHidechat(): Boolean {
+  const [view, setView] = useState(chatView);
+  const was: Int = view;
+  if (was === Modal.CHAT_VIEW_OFF) {
+    return false;
+  }
+  const [, setSaved] = useState(chatViewSaved);
+  setSaved(was);
+  setView(Modal.CHAT_VIEW_OFF);
+  chatboxBackground();
+  return true;
+}
+
+export function mobileChatFiltersToggle(): void {
+  const [chatDisabled] = useState(mobileChatboxDisabled);
+  if (chatDisabled === 1) {
+    return;
+  }
+  if (!mobileGameframe(toplevelComponents())) {
+    return;
+  }
+  const [filtersDisabled, setFiltersDisabled] = useState(mobileChatboxFiltersDisabled);
+  if (filtersDisabled === 1) {
+    setFiltersDisabled(0);
+  } else {
+    setFiltersDisabled(1);
+  }
+  chatboxRelayout();
+  touchDodgers();
+}

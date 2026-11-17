@@ -1,0 +1,72 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, useServerState, useState } from 'ts2';
+import { keybindPanel } from '../toplevel_resizable/toplevel-resizable.keys';
+import { chatmodalRef } from '../chatbox/chatbox.constants';
+import { meslayermode, toplevelPanel } from '../lib/game/varcs';
+import { dialogueMayAdvance } from '../lib/lib.dialogue';
+import { Panel, SideSlots, controlRef, floaterRef, mainmodalRef, sidemodalRef } from './toplevel-mobile.constants';
+import { DESELECTS_OPEN_TAB } from './toplevel-mobile.data';
+import { switchSidePanel, toplevelMobileInit } from './toplevel-mobile.helpers';
+import { rendererNoticeBuild } from '../lib/enhanced/renderer-notice.component';
+
+export function mobileKeypress(key: Int): void {
+  if (dialogueMayAdvance(-1, -1) === false) {
+    return;
+  }
+  if (key === Keys.ESCAPE) {
+    const [mode] = useState(meslayermode);
+    if (mode === 14 || mode === 17 || mode === 18 || mode === 11) {
+      return;
+    }
+    if (useServerState(Game.keybinding_esc_to_close) === 1) {
+      if (CS2.if_sub_has(floaterRef)) {
+        return;
+      }
+      if (mobileMountOpen(Panel.INVENTORY) && CS2.if_sub_has(mainmodalRef)) {
+        CS2.if_close();
+        return;
+      }
+      if (mobileMountOpen(Panel.INVENTORY) && CS2.if_sub_has(sidemodalRef)) {
+        CS2.if_close();
+        return;
+      } else if (CS2.if_sub_has(chatmodalRef)) {
+        CS2.if_close();
+        return;
+      }
+    }
+  }
+  const panel: Int = keybindPanel(key);
+  if (panel === -1 || panel === useServerState(Game.flashside) - 1) {
+    return;
+  }
+  if (mobileMountOpen(panel)) {
+    mobileTabHotkey(panel);
+  }
+}
+
+function mobileTabHotkey(panel: Int): void {
+  let target: Int = panel;
+  const [selected] = useState(toplevelPanel);
+  if (useServerState(Game.hotkey_cannot_close_sidepanel) === 0 && selected === panel && DESELECTS_OPEN_TAB) {
+    target = Panel.NONE;
+  }
+  switchSidePanel(target, 0);
+}
+
+function mobileMountOpen(panel: Int): Boolean {
+  const slot: ComponentId = SideSlots.at(panel) ?? -1;
+  if (slot !== -1 && CS2.if_sub_has(slot)) {
+    return true;
+  }
+  return false;
+}
+
+enum Keys {
+  ESCAPE = 13,
+}
+
+export function toplevelMobileLoad(): void {
+  toplevelMobileInit();
+  controlRef.onKey = (event) => mobileKeypress(event.keyCode);
+  rendererNoticeBuild();
+}

@@ -1,0 +1,42 @@
+export enum StoneBoxSkin {
+  PLAIN = 0,
+  ORNATE = 1,
+}
+
+import { GameSprites } from '../game-assets';
+
+export function StoneBox({ skin = StoneBoxSkin.PLAIN }: { skin?: Int }): Component {
+  if (skin === StoneBoxSkin.ORNATE) {
+    return (
+      <>
+        <sprite x="left" y="top" w={32} h={32} sprite={GameSprites.v2_stone_borders_4} tiling />
+        <sprite x="right" y="top" w={32} h={32} sprite={GameSprites.v2_stone_borders_5} tiling />
+        <sprite x="left" y="bottom" w={32} h={32} sprite={GameSprites.v2_stone_borders_6} tiling />
+        <sprite x="right" y="bottom" w={32} h={32} sprite={GameSprites.v2_stone_borders_7} tiling />
+
+        <sprite x="center" y={-13} w={{ fill: 64 }} h={32} sprite={GameSprites.v2_stone_borders_0} tiling />
+        <sprite x="center" y={{ bottom: -12 }} w={{ fill: 64 }} h={32} sprite={GameSprites.v2_stone_borders_2} tiling />
+        <sprite x={-13} y="center" w={32} h={{ fill: 64 }} sprite={GameSprites.v2_stone_borders_1} tiling />
+        <sprite x={{ right: -12 }} y="center" w={32} h={{ fill: 64 }} sprite={GameSprites.v2_stone_borders_3} tiling />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <sprite x="left" y="top" w={32} h={32} sprite={GameSprites.v2_stone_borders_18} tiling />
+      <sprite x="right" y="top" w={32} h={32} sprite={GameSprites.v2_stone_borders_19} tiling />
+      <sprite x="left" y="bottom" w={32} h={32} sprite={GameSprites.v2_stone_borders_20} tiling />
+      <sprite x="right" y="bottom" w={32} h={32} sprite={GameSprites.v2_stone_borders_21} tiling />
+
+      <sprite x="center" y={-14} w={{ fill: 64 }} h={32} sprite={GameSprites.v2_stone_borders_8} tiling />
+      <sprite x="center" y={{ bottom: -12 }} w={{ fill: 64 }} h={32} sprite={GameSprites.v2_stone_borders_8} tiling />
+      <sprite x={-14} y="center" w={32} h={{ fill: 64 }} sprite={GameSprites.v2_stone_borders_13} tiling />
+      <sprite x={{ right: -12 }} y="center" w={32} h={{ fill: 64 }} sprite={GameSprites.v2_stone_borders_13} tiling />
+    </>
+  );
+}
+
+export function StoneBoxEntrypoint({ skin = StoneBoxSkin.PLAIN }: { skin?: Int }): Component {
+  return <StoneBox skin={skin} />;
+}

@@ -1,0 +1,94 @@
+import { createRef, useRef } from 'ts2';
+import { EquipSlot } from './wornitems.constants';
+import { StoneHoverButton } from './stone-hover-button.component';
+import { WornSlot } from './worn-slot.component';
+import { QuiverSlot } from '../equipment/quiver-slot.component';
+import { GameSprites } from '../game-assets';
+
+const equipmentButton = createRef('wornitems_equipment');
+const pricecheckerButton = createRef('wornitems_pricechecker');
+const deathkeepButton = createRef('wornitems_deathkeep');
+const callFollowerButton = createRef('wornitems_call_follower');
+
+export function Equipment(): Component {
+  const slot0 = useRef('slot0');
+  const slot1 = useRef('slot1');
+  const slot2 = useRef('slot2');
+  const slot3 = useRef('slot3');
+  const slot4 = useRef('slot4');
+  const slot5 = useRef('slot5');
+  const slot7 = useRef('slot7');
+  const slot9 = useRef('slot9');
+  const slot10 = useRef('slot10');
+  const slot12 = useRef('slot12');
+  const slot13 = useRef('slot13');
+
+  return (
+    <>
+      <layer ref={equipmentButton} x={7} y={208} w={40} h={40} options={['View equipment stats']}>
+        <StoneHoverButton />
+      </layer>
+      <layer w="fill" h="fill">
+        <layer ref={pricecheckerButton} x={52} y={208} w={40} h={40} options={['View guide prices']}>
+          <StoneHoverButton />
+        </layer>
+        <layer ref={deathkeepButton} x={97} y={208} w={40} h={40} options={['View items kept on death']}>
+          <StoneHoverButton />
+        </layer>
+        <layer ref={callFollowerButton} x={142} y={208} w={40} h={40} options={['Call follower']}>
+          <StoneHoverButton />
+        </layer>
+
+        <sprite x={77} y={39} w={36} h={124} sprite={GameSprites.miscgraphics_2} tiling />
+        <sprite x={21} y={118} w={36} h={45} sprite={GameSprites.miscgraphics_2} tiling />
+        <sprite x={133} y={118} w={36} h={45} sprite={GameSprites.miscgraphics_2} tiling />
+        <sprite x={56} y={81} w={78} h={36} sprite={GameSprites.miscgraphics_3} tiling />
+        <sprite x={71} y={42} w={48} h={36} sprite={GameSprites.miscgraphics_3} tiling />
+
+        <layer x={77} y={4} w={36} h={36}>
+          <WornSlot slot={EquipSlot.HEAD} ref={slot0} showsSlot={EquipSlot.HEAD} />
+        </layer>
+        <layer x={36} y={43} w={36} h={36}>
+          <WornSlot slot={EquipSlot.CAPE} ref={slot1} showsSlot={EquipSlot.CAPE} />
+        </layer>
+        <layer x={77} y={43} w={36} h={36}>
+          <WornSlot slot={EquipSlot.AMULET} ref={slot2} showsSlot={EquipSlot.AMULET} />
+        </layer>
+        <layer x={21} y={82} w={36} h={36}>
+          <WornSlot slot={EquipSlot.WEAPON} ref={slot3} showsSlot={EquipSlot.WEAPON} />
+        </layer>
+        <layer x={77} y={82} w={36} h={36}>
+          <WornSlot slot={EquipSlot.BODY} ref={slot4} showsSlot={EquipSlot.BODY} />
+        </layer>
+        <layer x={133} y={82} w={36} h={36}>
+          <WornSlot slot={EquipSlot.SHIELD} ref={slot5} showsSlot={EquipSlot.SHIELD} />
+        </layer>
+        <layer x={77} y={122} w={36} h={36}>
+          <WornSlot slot={EquipSlot.LEGS} ref={slot7} showsSlot={EquipSlot.LEGS} />
+        </layer>
+        <layer x={21} y={162} w={36} h={36}>
+          <WornSlot slot={EquipSlot.HANDS} ref={slot9} showsSlot={EquipSlot.HANDS} />
+        </layer>
+        <layer x={77} y={162} w={36} h={36}>
+          <WornSlot slot={EquipSlot.FEET} ref={slot10} showsSlot={EquipSlot.FEET} />
+        </layer>
+        <layer x={133} y={162} w={36} h={36}>
+          <WornSlot slot={EquipSlot.RING} ref={slot12} showsSlot={EquipSlot.RING} />
+        </layer>
+        <layer x={118} y={43} w={36} h={36}>
+          <WornSlot slot={EquipSlot.AMMO} ref={slot13} showsSlot={EquipSlot.AMMO} />
+        </layer>
+
+        <layer x={118} y={4} w={36} h={36}>
+          <QuiverSlot />
+        </layer>
+
+      </layer>
+
+      <sprite x={10} y={210} w={32} h={32} sprite={GameSprites.options_icons_16} />
+      <sprite x={56} y={212} w={32} h={32} sprite={GameSprites.options_icons_28} />
+      <sprite x={99} y={211} w={34} h={34} sprite={GameSprites.options_icons_18} />
+      <sprite x={145} y={211} w={32} h={32} sprite={GameSprites.whistle} />
+    </>
+  );
+}

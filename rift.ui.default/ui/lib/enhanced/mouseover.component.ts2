@@ -1,0 +1,227 @@
+import { onMounted, useInterval, useState } from 'ts2';
+import { mouseoverTooltipProgressBarMax, mouseoverTooltipProgressBarValue } from '../game/varcs';
+import { scaled } from '../lib.engine';
+import { countLabel, mouseoverOps, mouseoverTextLine } from './mouseover';
+import {
+  MOUSEOVER_BAR_H,
+  MOUSEOVER_COUNT_H,
+  MouseoverPart,
+  mouseoverCaptionH,
+  mouseoverCountW,
+  mouseoverLeftLength,
+  mouseoverNumOps,
+  mouseoverOpH,
+  mouseoverOpLength,
+  mouseoverParts,
+  mouseoverTexts,
+  mouseoverTransparency,
+  mouseoverW,
+  mouseoverX,
+  mouseoverY,
+} from './mouseover.state';
+import { GameFonts, GameSprites } from '../../game-assets';
+
+const EDGE_OUTER = 0x0e0e0c;
+const EDGE_INNER = 0x474745;
+const TEXT_COLOUR = 0xd8d8d8;
+const BAR_TRACK = 0x002200;
+const BAR_FILL = 0x006600;
+const BAR_STRIP_H = 15;
+const TEXT_INSET = 10;
+
+export function MouseoverOps(): Component {
+  const [parts] = useState(mouseoverParts);
+  const [texts] = useState(mouseoverTexts);
+  const [opLength] = useState(mouseoverOpLength);
+  const [leftLength] = useState(mouseoverLeftLength);
+  const [x] = useState(mouseoverX);
+  const [y] = useState(mouseoverY);
+  const [w] = useState(mouseoverW);
+  const [opH] = useState(mouseoverOpH);
+  const [captionH] = useState(mouseoverCaptionH);
+  const [transparency] = useState(mouseoverTransparency);
+  const [countW] = useState(mouseoverCountW);
+  const [numOps] = useState(mouseoverNumOps);
+  const [barValue] = useState(mouseoverTooltipProgressBarValue);
+  const [barMax] = useState(mouseoverTooltipProgressBarMax);
+
+  onMounted(() => {
+    mouseoverOps();
+  });
+  useInterval(() => {
+    mouseoverOps();
+  });
+
+  const line: String = texts.substring(0, opLength);
+  const left: String = texts.substring(opLength, opLength + leftLength);
+  const right: String = texts.substring(opLength + leftLength, texts.length);
+  const textShown: Boolean = (parts & MouseoverPart.TEXT) !== 0;
+  const opShown: Boolean = (parts & MouseoverPart.OP_BOX) !== 0;
+  const captionShown: Boolean = (parts & MouseoverPart.CAPTION) !== 0;
+  const split: Boolean = (parts & MouseoverPart.CAPTION_SPLIT) !== 0;
+  const barShown: Boolean = (parts & MouseoverPart.BAR) !== 0;
+  const countShown: Boolean = (parts & MouseoverPart.COUNT) !== 0;
+  const barH: Int = barShown ? MOUSEOVER_BAR_H : 0;
+  const captionY: Int = opShown ? y + opH - 1 : y;
+  const countY: Int = captionShown ? captionY + captionH - 1 : captionY;
+  const countX: Int = x + (w - countW);
+
+  return (
+    <>
+      {textShown && (
+        <text
+          x="center"
+          y="center"
+          w={{ fill: TEXT_INSET }}
+          h={{ fill: TEXT_INSET }}
+          font={GameFonts.font_496}
+          shadow
+          color={TEXT_COLOUR}
+          text={mouseoverTextLine(line, numOps)}
+        />
+      )}
+      {opShown && (
+        <>
+          <rect x={x} y={y} w={w} h={opH} color={EDGE_OUTER} transparency={transparency} />
+          <rect x={x + 1} y={y + 1} w={w - 2} h={opH - 2} color={EDGE_INNER} transparency={transparency} />
+          <sprite
+            x={x + 2}
+            y={y + 2}
+            w={w - 4}
+            h={opH - 4}
+            sprite={GameSprites.tradebacking}
+            tiling
+            transparency={transparency}
+          />
+          <text
+            x={x + 4}
+            y={y + 4}
+            w={w - 8}
+            h={opH - 8}
+            font={GameFonts.font_495}
+            shadow
+            align="left"
+            valign="middle"
+            lineHeight={0}
+            color={0xffffff}
+            text={line}
+          />
+        </>
+      )}
+      {captionShown && (
+        <>
+          <rect x={x} y={captionY} w={w} h={captionH + barH} color={EDGE_OUTER} transparency={transparency} />
+          <rect
+            x={x + 1}
+            y={captionY + 1}
+            w={w - 2}
+            h={captionH - 2 + barH}
+            color={EDGE_INNER}
+            transparency={transparency}
+          />
+          <sprite
+            x={x + 2}
+            y={captionY + 2}
+            w={w - 4}
+            h={captionH - 4 + barH}
+            sprite={GameSprites.tradebacking}
+            tiling
+            transparency={transparency}
+          />
+          {split ? (
+            <>
+              <text
+                x={x + 3}
+                y={captionY + 3}
+                w={w - 6}
+                h={captionH - 6}
+                font={GameFonts.font_495}
+                shadow
+                align="left"
+                valign="middle"
+                lineHeight={16}
+                color={0xffffff}
+                text={left}
+              />
+              <text
+                x={x + 3}
+                y={captionY + 3}
+                w={w - 6}
+                h={captionH - 6}
+                font={GameFonts.font_495}
+                shadow
+                align="right"
+                valign="middle"
+                lineHeight={16}
+                color={0xffffff}
+                text={right}
+              />
+            </>
+          ) : (
+            <text
+              x={x + 3}
+              y={captionY + 3}
+              w={w - 6}
+              h={captionH - 6}
+              font={GameFonts.font_495}
+              shadow
+              align="left"
+              valign="middle"
+              lineHeight={0}
+              color={0xffffff}
+              text={left}
+            />
+          )}
+          {barShown && (
+            <>
+              <rect x={x + 5} y={captionY + captionH} w={w - 10} h={BAR_STRIP_H} fill color={BAR_TRACK} />
+              <rect
+                x={x + 5}
+                y={captionY + captionH}
+                w={scaled(barValue, barMax, w - 12)}
+                h={BAR_STRIP_H}
+                fill
+                color={BAR_FILL}
+              />
+            </>
+          )}
+        </>
+      )}
+      {countShown && (
+        <>
+          <rect x={countX} y={countY} w={countW} h={MOUSEOVER_COUNT_H} color={EDGE_OUTER} transparency={transparency} />
+          <rect
+            x={countX + 1}
+            y={countY + 1}
+            w={countW - 2}
+            h={MOUSEOVER_COUNT_H - 2}
+            color={EDGE_INNER}
+            transparency={transparency}
+          />
+          <sprite
+            x={countX + 2}
+            y={countY + 2}
+            w={countW - 4}
+            h={MOUSEOVER_COUNT_H - 4}
+            sprite={GameSprites.tradebacking}
+            tiling
+            transparency={transparency}
+          />
+          <text
+            x={countX + 3}
+            y={countY + 4}
+            w={countW - 6}
+            h={MOUSEOVER_COUNT_H - 6}
+            font={GameFonts.font_494}
+            shadow
+            align="center"
+            valign="middle"
+            lineHeight={0}
+            color={0xffffff}
+            text={countLabel(numOps)}
+          />
+        </>
+      )}
+    </>
+  );
+}

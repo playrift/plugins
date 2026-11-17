@@ -1,0 +1,39 @@
+import { CS2, sessionState, useState } from 'ts2';
+
+import { chatboxRepaint } from './chatbox.state';
+import { chatBackdropVisible } from './chatbox-chrome';
+
+export const arcSmileyAt = sessionState(-1);
+
+const MOUTH_START = 20384;
+const MOUTH_END = 45152;
+
+export function chatboxArcTest(): void {
+  if (chatBackdropVisible() !== 1) {
+    return;
+  }
+  const [repaint] = useState(chatboxRepaint);
+  const [, setAt] = useState(arcSmileyAt);
+  setAt(repaint);
+  CS2.message(`start:${MOUTH_START} end:${MOUTH_END}`);
+}
+
+export function ArcSmiley(): Component {
+  return (
+    <layer x={0} y={0} w="fill" h="fill">
+      <arc x={{ center: 100 }} y={{ center: -5 }} w={105} h={105} fill color={0xffff00} />
+      <arc x={{ center: 75 }} y={{ center: -25 }} w={20} h={20} fill color={0x000000} />
+      <arc x={{ center: 125 }} y={{ center: -25 }} w={20} h={20} fill color={0x000000} />
+      <arc
+        x={{ center: 100 }}
+        y={{ center: -5 }}
+        w={90}
+        h={90}
+        color={0x000000}
+        lineWidth={6}
+        arcStart={MOUTH_START}
+        arcEnd={MOUTH_END}
+      />
+    </layer>
+  );
+}

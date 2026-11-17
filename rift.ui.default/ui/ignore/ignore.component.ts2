@@ -1,0 +1,135 @@
+import { onMounted, onUpdated, useState } from 'ts2';
+
+import { GameFonts, GameSprites } from '../game-assets';
+
+import { SteelFrameEntrypoint } from '../lib/steel-frame-entrypoint.component';
+import { titleWithWorld } from '../lib/lib.world';
+import { IgnoreColor, Layout } from './ignore.constants';
+import { IgnoreBody } from './ignore-list.component';
+import { ignoreOpen, ignoreToggleSize } from './ignore.state';
+import { friendsToggleRef } from './ignore.refs';
+import { meslayerMode4, meslayerMode5 } from '../chatbox/meslayer';
+
+export function Ignore(): Component {
+  return (
+    <>
+      <layer x={0} y={0} w={1} h={1} onLoad={() => ignoreOpen()} />
+
+      <layer
+        static
+        ref={friendsToggleRef}
+        x={{ right: 0 }}
+        y={0}
+        w={Layout.FRIENDS_BUTTON}
+        h={Layout.FRIENDS_BUTTON}
+        options={['View Friends List']}
+      >
+        <FriendsToggle />
+      </layer>
+
+      <layer x={0} y={0} w="fill" h="fill">
+        <IgnoreTitle />
+      </layer>
+
+      <layer x="center" y={Layout.FRAME_Y} w={{ fill: Layout.FRAME_INSET }} h={{ fill: Layout.FRAME_DROP }}>
+        <IgnoreBody />
+        <SteelFrameEntrypoint />
+      </layer>
+
+      <sprite
+        x={Layout.BUTTON_X}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        sprite={GameSprites.combatboxes_0}
+        options={['Add Name']}
+        onOptionSelect={() => meslayerMode4()}
+      />
+      <text
+        x={Layout.BUTTON_X}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        text="Add Name"
+        font={GameFonts.font_494}
+        color={IgnoreColor.CAPTION}
+        align="center"
+        valign="middle"
+        shadow
+      />
+
+      <sprite
+        x={{ right: Layout.BUTTON_X }}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        sprite={GameSprites.combatboxes_0}
+        options={['Delete Name']}
+        onOptionSelect={() => meslayerMode5()}
+      />
+      <text
+        x={{ right: Layout.BUTTON_X }}
+        y={{ bottom: 0 }}
+        w={Layout.BUTTON_W}
+        h={Layout.BUTTON_H}
+        text="Del Name"
+        font={GameFonts.font_494}
+        color={IgnoreColor.CAPTION}
+        align="center"
+        valign="middle"
+        shadow
+      />
+
+      <layer x={0} y={0} w={Layout.TOOLTIP} h={Layout.TOOLTIP} />
+    </>
+  );
+}
+
+function FriendsToggle(): Component {
+  const [hover, setHover] = useState(0);
+  const [size] = useState(ignoreToggleSize);
+
+  onMounted(() => sizeToggle(size));
+  onUpdated(() => sizeToggle(size));
+
+  return (
+    <layer
+      x={{ right: 0 }}
+      y={0}
+      w={size}
+      h={size}
+      onMouseEnter={() => setHover(1)}
+      onMouseLeave={() => setHover(0)}
+    >
+      <sprite
+        x={{ right: Layout.FRIENDS_ICON_RIGHT }}
+        y={Layout.FRIENDS_ICON_Y}
+        w={Layout.FRIENDS_ICON_W}
+        h={Layout.FRIENDS_ICON_H}
+        sprite={GameSprites.options_icons_small_4}
+        transparency={hover === 1 ? Layout.FRIENDS_ICON_HOVER : Layout.FRIENDS_ICON_REST}
+      />
+    </layer>
+  );
+}
+
+function sizeToggle(size: Int): void {
+  friendsToggleRef.props = { w: size, h: size };
+}
+
+function IgnoreTitle(): Component {
+  return (
+    <text
+      x={0}
+      y={Layout.TITLE_Y}
+      w={{ fill: Layout.TITLE_INSET }}
+      h={Layout.TITLE_H}
+      text={titleWithWorld('Ignore List', ' - World ')}
+      font={GameFonts.font_496}
+      color={IgnoreColor.CAPTION}
+      align="center"
+      valign="middle"
+      shadow
+    />
+  );
+}

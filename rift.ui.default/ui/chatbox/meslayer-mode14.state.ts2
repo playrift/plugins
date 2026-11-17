@@ -1,0 +1,9 @@
+import { sessionState } from 'ts2';
+
+export const mode14Searched = sessionState('');
+
+export const mode14Call = sessionState(0);
+
+export const mode14Tradeable = sessionState(0);
+
+export const mode14Filter = sessionState(-1);

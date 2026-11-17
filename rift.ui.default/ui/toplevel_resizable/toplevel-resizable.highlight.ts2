@@ -1,0 +1,444 @@
+import { CS2, sessionState, useRef, useState } from 'ts2';
+
+import { HighlightBorders } from '../inventory/highlight-borders.data';
+import { HighlightPulses } from '../inventory/highlight-pulses.data';
+import { highlightExpired, pulseTransparency } from '../inventory/inventory-highlight.state';
+import { clientClock } from '../lib/lib.engine';
+
+export const HighlightRows = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+
+export const highlightKind0 = sessionState(-1);
+export const highlightKind1 = sessionState(-1);
+export const highlightKind2 = sessionState(-1);
+export const highlightKind3 = sessionState(-1);
+export const highlightKind4 = sessionState(-1);
+export const highlightKind5 = sessionState(-1);
+export const highlightKind6 = sessionState(-1);
+export const highlightKind7 = sessionState(-1);
+
+export const highlightKinds = [
+  highlightKind0,
+  highlightKind1,
+  highlightKind2,
+  highlightKind3,
+  highlightKind4,
+  highlightKind5,
+  highlightKind6,
+  highlightKind7,
+] as const;
+
+export const highlightIndex0 = sessionState(-1);
+export const highlightIndex1 = sessionState(-1);
+export const highlightIndex2 = sessionState(-1);
+export const highlightIndex3 = sessionState(-1);
+export const highlightIndex4 = sessionState(-1);
+export const highlightIndex5 = sessionState(-1);
+export const highlightIndex6 = sessionState(-1);
+export const highlightIndex7 = sessionState(-1);
+
+export const highlightIndexes = [
+  highlightIndex0,
+  highlightIndex1,
+  highlightIndex2,
+  highlightIndex3,
+  highlightIndex4,
+  highlightIndex5,
+  highlightIndex6,
+  highlightIndex7,
+] as const;
+
+export const highlightTarget0 = sessionState(-1);
+export const highlightTarget1 = sessionState(-1);
+export const highlightTarget2 = sessionState(-1);
+export const highlightTarget3 = sessionState(-1);
+export const highlightTarget4 = sessionState(-1);
+export const highlightTarget5 = sessionState(-1);
+export const highlightTarget6 = sessionState(-1);
+export const highlightTarget7 = sessionState(-1);
+
+export const highlightTargets = [
+  highlightTarget0,
+  highlightTarget1,
+  highlightTarget2,
+  highlightTarget3,
+  highlightTarget4,
+  highlightTarget5,
+  highlightTarget6,
+  highlightTarget7,
+] as const;
+
+export const highlightChild0 = sessionState(-1);
+export const highlightChild1 = sessionState(-1);
+export const highlightChild2 = sessionState(-1);
+export const highlightChild3 = sessionState(-1);
+export const highlightChild4 = sessionState(-1);
+export const highlightChild5 = sessionState(-1);
+export const highlightChild6 = sessionState(-1);
+export const highlightChild7 = sessionState(-1);
+
+export const highlightChildren = [
+  highlightChild0,
+  highlightChild1,
+  highlightChild2,
+  highlightChild3,
+  highlightChild4,
+  highlightChild5,
+  highlightChild6,
+  highlightChild7,
+] as const;
+
+export const highlightStyle0 = sessionState(-1);
+export const highlightStyle1 = sessionState(-1);
+export const highlightStyle2 = sessionState(-1);
+export const highlightStyle3 = sessionState(-1);
+export const highlightStyle4 = sessionState(-1);
+export const highlightStyle5 = sessionState(-1);
+export const highlightStyle6 = sessionState(-1);
+export const highlightStyle7 = sessionState(-1);
+
+export const highlightStyles = [
+  highlightStyle0,
+  highlightStyle1,
+  highlightStyle2,
+  highlightStyle3,
+  highlightStyle4,
+  highlightStyle5,
+  highlightStyle6,
+  highlightStyle7,
+] as const;
+
+export const highlightDuration0 = sessionState(0);
+export const highlightDuration1 = sessionState(0);
+export const highlightDuration2 = sessionState(0);
+export const highlightDuration3 = sessionState(0);
+export const highlightDuration4 = sessionState(0);
+export const highlightDuration5 = sessionState(0);
+export const highlightDuration6 = sessionState(0);
+export const highlightDuration7 = sessionState(0);
+
+export const highlightDurations = [
+  highlightDuration0,
+  highlightDuration1,
+  highlightDuration2,
+  highlightDuration3,
+  highlightDuration4,
+  highlightDuration5,
+  highlightDuration6,
+  highlightDuration7,
+] as const;
+
+export const highlightSince0 = sessionState(-1);
+export const highlightSince1 = sessionState(-1);
+export const highlightSince2 = sessionState(-1);
+export const highlightSince3 = sessionState(-1);
+export const highlightSince4 = sessionState(-1);
+export const highlightSince5 = sessionState(-1);
+export const highlightSince6 = sessionState(-1);
+export const highlightSince7 = sessionState(-1);
+
+export const highlightSinces = [
+  highlightSince0,
+  highlightSince1,
+  highlightSince2,
+  highlightSince3,
+  highlightSince4,
+  highlightSince5,
+  highlightSince6,
+  highlightSince7,
+] as const;
+
+function rowKind(row: Int): Int {
+  const [kind] = useState(highlightKinds[row]);
+  return kind;
+}
+
+function rowIndex(row: Int): Int {
+  const [index] = useState(highlightIndexes[row]);
+  return index;
+}
+
+function rowStyle(row: Int): Int {
+  const [style] = useState(highlightStyles[row]);
+  return style;
+}
+
+function rowDuration(row: Int): Int {
+  const [duration] = useState(highlightDurations[row]);
+  return duration;
+}
+
+function findRow(kind: Int, index: Int): Int {
+  let row: Int = 0;
+  while (row < 8) {
+    if (rowKind(row) === kind && rowIndex(row) === index) {
+      return row;
+    }
+    row = row + 1;
+  }
+  return -1;
+}
+
+function freeRow(): Int {
+  let row: Int = 0;
+  while (row < 8) {
+    if (rowKind(row) === -1) {
+      return row;
+    }
+    row = row + 1;
+  }
+  return -1;
+}
+
+function clearRow(row: Int): void {
+  const [, setKind] = useState(highlightKinds[row]);
+  const [, setIndex] = useState(highlightIndexes[row]);
+  setKind(-1);
+  setIndex(-1);
+}
+
+function openRow(row: Int, kind: Int, index: Int, style: Int): void {
+  const [, setKind] = useState(highlightKinds[row]);
+  const [, setIndex] = useState(highlightIndexes[row]);
+  const [, setStyle] = useState(highlightStyles[row]);
+  setIndex(index);
+  setStyle(style);
+  setKind(kind);
+}
+
+function aimRow(row: Int, target: Int, child: Int): void {
+  const [, setTarget] = useState(highlightTargets[row]);
+  const [, setChild] = useState(highlightChildren[row]);
+  setTarget(target);
+  setChild(child);
+}
+
+function timeRow(row: Int, duration: Int): void {
+  const [, setDuration] = useState(highlightDurations[row]);
+  const [, setSince] = useState(highlightSinces[row]);
+  setDuration(duration);
+  setSince(clientClock());
+}
+
+export function highlightComponent(kind: Int, index: Int, target: Int, child: Int, style: Int, duration: Int): void {
+  let row: Int = findRow(kind, index);
+  if (row !== -1 && rowStyle(row) !== style) {
+    clearRow(row);
+    row = -1;
+  }
+  if (row === -1) {
+    row = freeRow();
+    if (row !== -1) {
+      openRow(row, kind, index, style);
+      aimRow(row, target, child);
+      timeRow(row, duration);
+    }
+    return;
+  }
+  aimRow(row, target, child);
+  if (rowDuration(row) !== duration) {
+    timeRow(row, duration);
+  }
+}
+
+export function removeHighlight(kind: Int, index: Int): void {
+  const row: Int = findRow(kind, index);
+  if (row !== -1) {
+    clearRow(row);
+  }
+}
+
+function selectTarget(target: ComponentId, child: Int): Boolean {
+  if (child >= 0) {
+    return CS2.cc_find(target, child);
+  }
+  return CS2.if_find(target);
+}
+
+export function targetAbsX(target: ComponentId, child: Int): Int {
+  if (!selectTarget(target, child)) {
+    return 0;
+  }
+  let x: Int = CS2.cc_x_get();
+  let parent: ComponentId = CS2.cc_parent_layer_get();
+  while (parent !== -1) {
+    x = x + CS2.if_x_get(parent);
+    parent = CS2.if_parent_layer_get(parent);
+  }
+  return x;
+}
+
+export function targetAbsY(target: ComponentId, child: Int): Int {
+  if (!selectTarget(target, child)) {
+    return 0;
+  }
+  let y: Int = CS2.cc_y_get();
+  let parent: ComponentId = CS2.cc_parent_layer_get();
+  while (parent !== -1) {
+    y = y + CS2.if_y_get(parent);
+    parent = CS2.if_parent_layer_get(parent);
+  }
+  return y;
+}
+
+export function targetWidth(target: ComponentId, child: Int): Int {
+  if (!selectTarget(target, child)) {
+    return 0;
+  }
+  return CS2.cc_width_get();
+}
+
+export function targetHeight(target: ComponentId, child: Int): Int {
+  if (!selectTarget(target, child)) {
+    return 0;
+  }
+  return CS2.cc_height_get();
+}
+
+export function targetHidden(target: ComponentId, child: Int): Boolean {
+  if (!selectTarget(target, child)) {
+    return true;
+  }
+  let parent: ComponentId = CS2.cc_parent_layer_get();
+  while (parent !== -1) {
+    if (CS2.if_hide_get(parent)) {
+      return true;
+    }
+    parent = CS2.if_parent_layer_get(parent);
+  }
+  if (!selectTarget(target, child)) {
+    return true;
+  }
+  if (CS2.cc_parentsubid() === -1) {
+    return false;
+  }
+  while (CS2.cc_root_find()) {
+    if (CS2.cc_hide_get()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function highlightKeep(row: Int, target: ComponentId, child: Int, since: Int, duration: Int): Boolean {
+  if (highlightExpired(since, duration) === 1 || !selectTarget(target, child)) {
+    clearRow(row);
+    return false;
+  }
+  return true;
+}
+
+export function styleGrow(style: Int): Int {
+  if (style < 0) {
+    return 2;
+  }
+  const border = HighlightBorders.at(style);
+  if (border === null) {
+    return 2;
+  }
+  return Math.max(1, border.width) * 2 + border.padding * 2;
+}
+
+export function HighlightRow({ row }: { row: Int }): Component {
+  const [kind] = useState(highlightKinds[row]);
+  const [targetCell] = useState(highlightTargets[row]);
+  const target: ComponentId = targetCell as ComponentId;
+  const [childCell] = useState(highlightChildren[row]);
+  const sub: Int = childCell;
+  const [style] = useState(highlightStyles[row]);
+  const [duration] = useState(highlightDurations[row]);
+  const [since] = useState(highlightSinces[row]);
+  if (kind === -1) {
+    return null;
+  }
+  const grow: Int = styleGrow(style);
+  const boxX: Int = targetAbsX(target, sub) - grow / 2;
+  const boxY: Int = targetAbsY(target, sub) - grow / 2;
+  const boxW: Int = targetWidth(target, sub) + grow;
+  const boxH: Int = targetHeight(target, sub) + grow;
+  const hidden: Boolean = targetHidden(target, sub);
+  const border = HighlightBorders.at(Math.max(0, style));
+  const width: Int = border === null || style < 0 ? 1 : Math.max(1, border.width);
+  const colour: Int = border === null || style < 0 ? 0x00ffff : border.colour;
+  const fx: Int = border === null || style < 0 ? -1 : border.fx;
+  const shade = useRef();
+  return (
+    <layer
+      x={0}
+      y={0}
+      w="fill"
+      h="fill"
+      onTimer={() => {
+        const out: Boolean = targetHidden(target, sub);
+        if (highlightKeep(row, target, sub, since, duration)) {
+          shade.hide = out;
+        }
+      }}
+    >
+      <layer ref={shade} x={0} y={0} w="fill" h="fill" hide={hidden}>
+        <layer
+          x={boxX}
+          y={boxY}
+          w={boxW}
+          h={boxH}
+          onTimer={(event) => {
+            const x: Int = targetAbsX(target, sub) - grow / 2;
+            const y: Int = targetAbsY(target, sub) - grow / 2;
+            const w: Int = targetWidth(target, sub) + grow;
+            const h: Int = targetHeight(target, sub) + grow;
+            event.self.x = x;
+            event.self.y = y;
+            event.self.width = w;
+            event.self.height = h;
+          }}
+        >
+          <HighlightRing inset={0} colour={colour} fx={fx} />
+          {width > 1 ? <HighlightRing inset={2} colour={colour} fx={fx} /> : null}
+        </layer>
+      </layer>
+    </layer>
+  );
+}
+
+function HighlightRing({ inset, colour, fx }: { inset: Int; colour: Int; fx: Int }): Component {
+  if (fx < 0) {
+    return (
+      <rect
+        x={{ center: 0 }}
+        y={{ center: 0 }}
+        w={{ fill: inset }}
+        h={{ fill: inset }}
+        color={colour}
+        transparency={0}
+      />
+    );
+  }
+  const pulse = HighlightPulses.at(fx);
+  if (pulse === null) {
+    return (
+      <rect
+        x={{ center: 0 }}
+        y={{ center: 0 }}
+        w={{ fill: inset }}
+        h={{ fill: inset }}
+        color={colour}
+        transparency={0}
+      />
+    );
+  }
+  const a: Int = pulse.transparencyRangeSlot0;
+  const b: Int = pulse.transparencyRangeSlot1;
+  const step: Int = pulse.stepDuration;
+  return (
+    <rect
+      x={{ center: 0 }}
+      y={{ center: 0 }}
+      w={{ fill: inset }}
+      h={{ fill: inset }}
+      color={colour}
+      transparency={0}
+      onTimer={(event) => {
+        event.self.transparency = pulseTransparency(a, b, step);
+      }}
+    />
+  );
+}

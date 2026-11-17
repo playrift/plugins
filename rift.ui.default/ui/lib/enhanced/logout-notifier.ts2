@@ -1,0 +1,42 @@
+import { Game } from '../game/server-states';
+import { CS2, useServerState, useState } from 'ts2';
+
+import { logoutNotificationSent } from '../game/varcs';
+import { clientClock } from '../lib.engine';
+import { localNotificationsAvailable } from '../lib.client';
+
+const CHECK_EVERY = 50;
+const WARN_UNDER = 30000;
+
+export function logoutTimerNotifierStep(): void {
+  if (!localNotificationsAvailable() || useServerState(Game.logout_notification_disabled) === 1) {
+    return;
+  }
+  if (clientClock() % CHECK_EVERY !== 0) {
+    return;
+  }
+  const idle: Int = CS2.native_idletimer_get();
+  const [sent, setSent] = useState(logoutNotificationSent);
+  if (idle < WARN_UNDER) {
+    if (sent === 1) {
+      return;
+    }
+    localNotification(
+      'You are about to be logged out!',
+      'You have 30 seconds until you are logged out due to inactivity.',
+    );
+    setSent(1);
+  } else if (sent === 1) {
+    setSent(0);
+  }
+}
+
+export function localNotification(title: String, body: String): void {
+  if (!localNotificationsAvailable()) {
+    return;
+  }
+  if (title.length <= 0) {
+    return;
+  }
+  CS2.notifications_sendlocal(title, body, 0, 0);
+}

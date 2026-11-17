@@ -1,0 +1,335 @@
+import {
+  CS2,
+  Engine,
+  intArray,
+  useInterval,
+  useRef,
+  useRerenderOn,
+  useServerState,
+  useServerStateOnce,
+  useState,
+  useUniverse,
+  useWatch,
+} from 'ts2';
+
+import { clientClock, playSound, scaled, textWidth, chatMessage } from '../lib/lib.engine';
+import { onMobile, textDevice } from '../lib/lib.helpers';
+import { ScrollbarVertical } from '../lib/scrollbar-vertical.component';
+import { ThinBoxEntrypoint } from '../lib/thin-box-entrypoint.component';
+import { meslayerMode6 } from '../chatbox/meslayer';
+import { GameFonts, GameSounds, GameSprites } from '../game-assets';
+import { Chat } from '../lib/game/server-states';
+import {
+  CLASSIC_WORLD_BASE,
+  FriendListState,
+  FriendsColor,
+  FriendsSort,
+  LOADING_TEXT,
+  Layout,
+  NO_NAME_TEXT,
+  ONLINE_NO_HOP_TEXT,
+  ONLINE_NO_HOP_WORLD,
+  OFFLINE_MESSAGE,
+} from './friends.constants';
+import { currentSort, lastScrollPos, previousSort } from './friends.state';
+import { SortColumns } from './sort-columns.component';
+
+export function FriendList(): Component {
+  useRerenderOn(Engine.FRIENDS);
+
+  const [heardCount, setHeardCount] = useState(useServerStateOnce(() => CS2.friend_count()));
+  useWatch(Engine.FRIENDS, () => setHeardCount(CS2.friend_count()));
+
+  const universe = useUniverse();
+  const list = useRef();
+
+  const mobile: Boolean = onMobile();
+  const rowHeight: Int = mobile ? scaled(8, 5, Layout.ROW_H) : Layout.ROW_H;
+  const world: Int = CS2.map_world();
+  const count: Int = heardCount;
+  const named: Boolean = useServerState(Chat.has_display_name);
+
+  let state: Int = 0;
+  let message: String = '';
+  if (count <= FriendListState.UNREQUESTED || count === FriendListState.LOADING) {
+    state = 1;
+    message = named ? LOADING_TEXT : NO_NAME_TEXT;
+  } else if (count === 0) {
+    state = 2;
+    message = `You may add friends by using the button below, or by ${textDevice('right-clicking', 'long pressing')} on a message from them and selecting to add them as a friend.`;
+  }
+
+  const sort: Int = currentSort();
+  const previous: Int = useServerStateOnce(() => previousSort());
+  if (state === 0) {
+    CS2.friendlist_sort_reset();
+    if (sort === FriendsSort.LEGACY_REVERSED) {
+      CS2.friendlist_sort_legacy(false);
+    } else if (sort === FriendsSort.NAME_ASC) {
+      CS2.friendlist_sort_online_status(true);
+      CS2.friendlist_sort_name(true);
+    } else if (sort === FriendsSort.NAME_DESC) {
+      CS2.friendlist_sort_online_status(true);
+      CS2.friendlist_sort_name(false);
+    } else if (sort === FriendsSort.RECENT_ASC) {
+      CS2.friendlist_sort_online_status(true);
+      CS2.friendlist_sort_lastworldchange(true);
+    } else if (sort === FriendsSort.RECENT_DESC) {
+      CS2.friendlist_sort_online_status(true);
+      CS2.friendlist_sort_lastworldchange(false);
+    } else if (sort === FriendsSort.WORLD_ASC) {
+      CS2.friendlist_sort_online_status(true);
+      CS2.friendlist_sort_online_world(true);
+      CS2.friendlist_sort_world(true);
+      tieBreak(previous);
+    } else if (sort === FriendsSort.WORLD_DESC) {
+      CS2.friendlist_sort_online_status(true);
+      CS2.friendlist_sort_online_world(true);
+      CS2.friendlist_sort_world(false);
+      tieBreak(previous);
+    }
+    CS2.friendlist_sort_apply();
+  }
+
+  const live = intArray(MAX_FRIENDS);
+  let at: Int = 0;
+  while (at < MAX_FRIENDS) {
+    live[at] = state === 0 && at < count ? 1 : 0;
+    at = at + 1;
+  }
+
+  let extent: Int = 0;
+  if (state === 0 && count >= 1) {
+    extent = count * rowHeight + Layout.TAIL_PAD;
+  }
+  const lastScroll: Int = useServerStateOnce(() => lastScrollPos());
+  const listHeight: Int = universe.height - Layout.BOX_H_INSET - Layout.INNER_INSET - Layout.LIST_H_INSET;
+  const fits: Boolean = extent <= listHeight;
+
+  return (
+    <layer w="fill" h="fill">
+      <layer x="center" y="center" w={{ fill: Layout.INNER_INSET }} h={{ fill: Layout.INNER_INSET }} hide={state !== 0}>
+        <layer x="center" y={0} w="fill" h={Layout.SORT_ROW_H}>
+          <SortColumns />
+          <ThinBoxEntrypoint />
+        </layer>
+
+        <layer
+          ref={list}
+          x={Layout.LIST_X}
+          y={{ bottom: Layout.LIST_BOTTOM }}
+          w={{ fill: Layout.LIST_W_INSET }}
+          h={{ fill: Layout.LIST_H_INSET }}
+          scrollHeight={fits ? 0 : extent}
+          scrollY={fits ? 0 : lastScroll}
+        >
+          {live.map(
+            (row, index) =>
+              row === 1 && (
+                <FriendRow
+                  index={index}
+                  top={index * rowHeight}
+                  rowHeight={rowHeight}
+                  world={world}
+                  mobile={mobile ? 1 : 0}
+                />
+              ),
+          )}
+        </layer>
+
+        <layer
+          x={{ right: Layout.BAR_RIGHT }}
+          y={{ bottom: Layout.LIST_BOTTOM }}
+          w={Layout.BAR_W}
+          h={{ fill: Layout.LIST_H_INSET }}
+        >
+          <ScrollbarVertical
+            content={list}
+            track={GameSprites.scrollbar_dragger_v2_3}
+            capTopSprite={GameSprites.scrollbar_dragger_v2_0}
+            thumbSprite={GameSprites.scrollbar_dragger_v2_1}
+            capBottomSprite={GameSprites.scrollbar_dragger_v2_2}
+            arrowUp={GameSprites.scrollbar_v2_0}
+            arrowDown={GameSprites.scrollbar_v2_1}
+          />
+        </layer>
+      </layer>
+
+      <text
+        x="center"
+        y={Layout.LOADING_Y}
+        w={{ fill: Layout.LOADING_W_INSET }}
+        h="50%"
+        text={message}
+        font={GameFonts.font_495}
+        color={FriendsColor.WHITE}
+        align="center"
+        valign="middle"
+        shadow
+      />
+    </layer>
+  );
+}
+
+const MAX_FRIENDS = 400;
+
+function tieBreak(previous: Int): void {
+  if (previous === FriendsSort.NAME_DESC) {
+    CS2.friendlist_sort_name(false);
+  } else if (previous === FriendsSort.RECENT_ASC) {
+    CS2.friendlist_sort_lastworldchange(true);
+  } else if (previous === FriendsSort.RECENT_DESC) {
+    CS2.friendlist_sort_lastworldchange(false);
+  } else {
+    CS2.friendlist_sort_name(true);
+  }
+}
+
+function FriendRow({
+  index,
+  top,
+  rowHeight,
+  world,
+  mobile,
+}: {
+  index: Int;
+  top: Int;
+  rowHeight: Int;
+  world: Int;
+  mobile: Int;
+}): Component {
+  const [name, previousName] = CS2.friend_name_get(index);
+  const friendWorld: Int = CS2.friend_world_get(index);
+
+  const badge = useRef();
+
+  const [revealUntil, setRevealUntil] = useState(0);
+  useInterval(
+    revealUntil > 0
+      ? () => {
+          if (clientClock() >= revealUntil) {
+            setRevealUntil(0);
+          }
+        }
+      : undefined,
+    badge,
+  );
+
+  const subject: String = `<col=ff9040>${name}</col>`;
+
+  let renamed: Int = 0;
+  let badgeHidden: Boolean = true;
+  if (previousName.length > 0) {
+    renamed = 1;
+    badgeHidden = false;
+  }
+  const online: Int = friendWorld !== 0 ? 1 : 0;
+  const hoppable: Int = friendWorld !== ONLINE_NO_HOP_WORLD ? 1 : 0;
+  const elsewhere: Int = world !== friendWorld && hoppable === 1 ? 1 : 0;
+
+  const reveal: Int = renamed === 1 && mobile === 1 ? 1 : 0;
+
+  let worldText: String = 'Offline';
+  let worldColor: Int = FriendsColor.OFFLINE;
+  if (friendWorld === ONLINE_NO_HOP_WORLD) {
+    worldText = ONLINE_NO_HOP_TEXT;
+    worldColor = FriendsColor.OTHER_WORLD;
+  } else if (friendWorld === world && friendWorld !== 0) {
+    worldText = `World ${CS2.tostring(friendWorld)}`;
+    worldColor = FriendsColor.SAME_WORLD;
+  } else if (friendWorld !== 0) {
+    worldText =
+      friendWorld > CLASSIC_WORLD_BASE
+        ? `<col=ffff00>Classic ${CS2.tostring(friendWorld - CLASSIC_WORLD_BASE)}`
+        : `<col=ffff00>World ${CS2.tostring(friendWorld)}`;
+    worldColor = FriendsColor.OTHER_WORLD;
+  }
+
+  return (
+    <>
+      <text
+        x="center"
+        y={top}
+        w="fill"
+        h={rowHeight}
+        text={revealUntil > 0 ? `<col=ff2020>${previousName}</col>` : name}
+        font={GameFonts.font_495}
+        color={FriendsColor.WHITE}
+        align="left"
+        valign="middle"
+        shadow
+        optionSubject={subject}
+        options={[
+          online === 1 ? 'Message' : '',
+          online === 1 ? '' : 'Message',
+          'Delete',
+          elsewhere === 1 && online === 1 ? 'Switch world' : '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          reveal === 1 ? 'Reveal previous name' : '',
+        ]}
+        onOptionSelect={(event) => {
+          if (event.option === 10) {
+            playSound(GameSounds.interface_select1);
+            setRevealUntil(clientClock() + Layout.REVEAL_CYCLES);
+            playSound(GameSounds.interface_select1);
+            return;
+          }
+          friendOp(event.option, event.optionSubject, friendWorld);
+        }}
+      />
+
+      <sprite
+        ref={badge}
+        x={textWidth(name, Layout.BADGE_MEASURE_W, GameFonts.font_495) + Layout.BADGE_GAP}
+        y={top + (rowHeight - Layout.BADGE) / 2}
+        w={Layout.BADGE}
+        h={Layout.BADGE}
+        sprite={GameSprites.friends_changed_name}
+        shadowColor={FriendsColor.BADGE_SHADOW}
+        hide={badgeHidden}
+        transparency={revealUntil > 0 ? Layout.BADGE_HIDDEN : Layout.BADGE_SHOWN}
+      />
+
+      <text
+        x="center"
+        y={top}
+        w="fill"
+        h={rowHeight}
+        text={worldText}
+        font={GameFonts.font_495}
+        color={worldColor}
+        align="right"
+        valign="middle"
+        shadow
+      />
+    </>
+  );
+}
+
+function friendOp(option: Int, subject: String, world: Int): void {
+  const target: String = CS2.tags_remove(subject);
+  switch (option) {
+    case 1:
+      meslayerMode6(target);
+      break;
+    case 2:
+      chatMessage(OFFLINE_MESSAGE);
+      break;
+    case 3:
+      CS2.friend_del(target);
+      break;
+    case 4:
+      if (world === ONLINE_NO_HOP_WORLD) {
+        return;
+      }
+      CS2.world_hop(world);
+      break;
+    default:
+      return;
+  }
+  playSound(GameSounds.interface_select1);
+}

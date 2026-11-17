@@ -1,0 +1,116 @@
+import { Game } from '../game/server-states';
+import { CS2, sessionState, useServerState, useState } from 'ts2';
+import { ToplevelComponents } from '../lib.constants';
+import { chatMessage } from '../lib.engine';
+import { GameframeSlot, gameframeSlot } from '../lib.gameframe';
+import { toplevelComponents } from '../lib.helpers';
+import { mobileGameframe } from '../lib.overlay';
+import { GameFonts } from '../../game-assets';
+import { newRendererAvailable } from '../lib.client';
+
+export const rendererNoticeRedraw = sessionState(0);
+
+const NOTICE_W = 240;
+const NOTICE_H = 20;
+const NOTICE_INSET = 5;
+const NOTICE_TRANSPARENCY = 160;
+
+const DEVICE_OPTION_RENDERER = 25;
+
+export function RendererNotice(): Component {
+  const sdBeta: Int = useServerState(Game.settings_sd_beta_enabled);
+  const hdToggle: Int = useServerState(Game.settings_hd_new_renderer_toggle);
+  const [redraw] = useState(rendererNoticeRedraw);
+  const shown: Boolean = rendererNoticeShown(sdBeta, hdToggle, redraw);
+  const bottom: Boolean = mobileGameframe(toplevelComponents());
+  return (
+    <>
+      {shown && (
+        <text
+          x="center"
+          y={bottom ? { bottom: NOTICE_INSET } : NOTICE_INSET}
+          w={NOTICE_W}
+          h={NOTICE_H}
+          font={GameFonts.font_494}
+          color={0xffffff}
+          transparency={NOTICE_TRANSPARENCY}
+          align="center"
+          valign="middle"
+          lineHeight={0}
+          text="Experimental new renderer currently enabled"
+        />
+      )}
+    </>
+  );
+}
+
+const IFTYPE_TEXT = 4;
+const SETSIZE_ABS = 0;
+const SETPOS_ABS_CENTRE = 1;
+const SETPOS_ABS_TOP = 0;
+const SETPOS_ABS_BOTTOM = 2;
+const TEXTALIGN_CENTRE = 1;
+
+export function rendererNoticeBuild(): void {
+  if (!newRendererAvailable()) {
+    return;
+  }
+  const layout: Int = toplevelComponents();
+  if (layout === ToplevelComponents.RESIZABLE) {
+    return;
+  }
+  const hud: ComponentId = gameframeSlot(GameframeSlot.OVERLAY_HUD);
+  if (hud === -1) {
+    return;
+  }
+  CS2.cc_all_delete(hud);
+  if (
+    useServerState(Game.settings_sd_beta_enabled) === 1 &&
+    useServerState(Game.settings_hd_new_renderer_toggle) === 1 &&
+    CS2.device_option_get(DEVICE_OPTION_RENDERER) === 0
+  ) {
+    CS2.cc_create(hud, IFTYPE_TEXT, 0, false);
+    if (mobileGameframe(layout)) {
+      CS2.cc_position_set(0, NOTICE_INSET, SETPOS_ABS_CENTRE, SETPOS_ABS_BOTTOM);
+    } else {
+      CS2.cc_position_set(0, NOTICE_INSET, SETPOS_ABS_CENTRE, SETPOS_ABS_TOP);
+    }
+    CS2.cc_text_align_set(TEXTALIGN_CENTRE, TEXTALIGN_CENTRE, 0);
+    CS2.cc_size_set(NOTICE_W, NOTICE_H, SETSIZE_ABS, SETSIZE_ABS);
+    CS2.cc_text_font_set(GameFonts.font_494);
+    CS2.cc_colour_set(0xffffff);
+    CS2.cc_transparency_set(NOTICE_TRANSPARENCY);
+    CS2.cc_text_set('Experimental new renderer currently enabled');
+  }
+}
+
+function rendererNoticeShown(sdBeta: Int, hdToggle: Int, redraw: Int): Boolean {
+  if (redraw < 0) {
+    return false;
+  }
+  if (!newRendererAvailable()) {
+    return false;
+  }
+  if (sdBeta === 1 && hdToggle === 1 && CS2.device_option_get(DEVICE_OPTION_RENDERER) === 0) {
+    return true;
+  }
+  return false;
+}
+
+export function newRendererToggle(): void {
+  if (useServerState(Game.settings_sd_beta_enabled) === 0) {
+    chatMessage("New renderer beta is not active, you can't toggle it now!");
+    return;
+  }
+  if (useServerState(Game.settings_hd_new_renderer_toggle) === 1) {
+    CS2.native_rt7_sd();
+    CS2.native_rt7_enabled_set(true);
+    chatMessage('New renderer enabled!');
+  } else {
+    CS2.native_rt7_enabled_set(false);
+    chatMessage('New renderer disabled!');
+  }
+  const [redraw, setRedraw] = useState(rendererNoticeRedraw);
+  setRedraw(redraw + 1);
+  rendererNoticeBuild();
+}

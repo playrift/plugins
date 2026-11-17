@@ -1,0 +1,107 @@
+import { useRef } from 'ts2';
+
+import { SteelBorderEntrypoint } from '../lib/steel-border-entrypoint.component';
+import { EquipSlot } from './equip-slot.component';
+import { EQUIPMENT_TITLE, EquipSlot as Slot, EquipmentLayout } from './equipment.constants';
+import { QuiverSlot } from './quiver-slot.component';
+import { RunWeight } from './run-weight.component';
+import { StatTable } from './stat-table.component';
+import { StatTooltip } from './stat-tooltip.component';
+import { GameSprites } from '../game-assets';
+
+export function EquipmentStats(): Component {
+  const headSlot = useRef('head');
+  const capeSlot = useRef('cape');
+  const amuletSlot = useRef('amulet');
+  const weaponSlot = useRef('weapon');
+  const bodySlot = useRef('body');
+  const shieldSlot = useRef('shield');
+  const legsSlot = useRef('legs');
+  const handsSlot = useRef('hands');
+  const feetSlot = useRef('feet');
+  const ringSlot = useRef('ring');
+  const ammoSlot = useRef('ammo');
+
+  return (
+    <>
+      <layer
+        x={EquipmentLayout.FRAME_X}
+        y={EquipmentLayout.FRAME_Y}
+        w={EquipmentLayout.FRAME_W}
+        h={EquipmentLayout.FRAME_H}
+      >
+        <sprite w={EquipmentLayout.FRAME_W} h={EquipmentLayout.FRAME_H} sprite={GameSprites.tradebacking} tiling />
+
+        <SteelBorderEntrypoint title={EQUIPMENT_TITLE} />
+
+        <model
+          x={EquipmentLayout.DOLL_X}
+          y={EquipmentLayout.DOLL_Y}
+          w={EquipmentLayout.DOLL_W}
+          h={EquipmentLayout.DOLL_H}
+          contentType={328}
+          zoom={EquipmentLayout.DOLL_ZOOM}
+        />
+
+        <sprite x={71} y={97} w={36} h={124} sprite={GameSprites.miscgraphics_2} tiling />
+        <sprite x={15} y={176} w={36} h={45} sprite={GameSprites.miscgraphics_2} tiling />
+        <sprite x={127} y={176} w={36} h={45} sprite={GameSprites.miscgraphics_2} tiling />
+        <sprite x={50} y={139} w={78} h={36} sprite={GameSprites.miscgraphics_3} tiling />
+        <sprite x={65} y={100} w={48} h={36} sprite={GameSprites.miscgraphics_3} tiling />
+
+        <layer x={71} y={62} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.HEAD} ref={headSlot} showsSlot={Slot.HEAD} />
+        </layer>
+        <layer x={30} y={101} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.CAPE} ref={capeSlot} showsSlot={Slot.CAPE} />
+        </layer>
+        <layer x={71} y={101} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.AMULET} ref={amuletSlot} showsSlot={Slot.AMULET} />
+        </layer>
+        <layer x={15} y={140} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.WEAPON} ref={weaponSlot} showsSlot={Slot.WEAPON} />
+        </layer>
+        <layer x={71} y={140} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.BODY} ref={bodySlot} showsSlot={Slot.BODY} />
+        </layer>
+        <layer x={127} y={140} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.SHIELD} ref={shieldSlot} showsSlot={Slot.SHIELD} />
+        </layer>
+        <layer x={71} y={180} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.LEGS} ref={legsSlot} showsSlot={Slot.LEGS} />
+        </layer>
+        <layer x={15} y={220} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.HANDS} ref={handsSlot} showsSlot={Slot.HANDS} />
+        </layer>
+        <layer x={71} y={220} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.FEET} ref={feetSlot} showsSlot={Slot.FEET} />
+        </layer>
+        <layer x={127} y={220} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.RING} ref={ringSlot} showsSlot={Slot.RING} />
+        </layer>
+        <layer x={112} y={101} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <EquipSlot slot={Slot.AMMO} ref={ammoSlot} showsSlot={Slot.AMMO} />
+        </layer>
+
+        <layer x={112} y={62} w={EquipmentLayout.SLOT} h={EquipmentLayout.SLOT}>
+          <QuiverSlot />
+        </layer>
+
+        <layer w={EquipmentLayout.STATS_W} h={EquipmentLayout.STATS_H}>
+          <StatTable />
+        </layer>
+
+        <sprite
+          x={EquipmentLayout.WEIGHT_ICON_X}
+          y={EquipmentLayout.WEIGHT_ICON_Y}
+          w={EquipmentLayout.WEIGHT_ICON_W}
+          h={EquipmentLayout.WEIGHT_ICON_H}
+          sprite={GameSprites.options_icons_small_0}
+        />
+        <RunWeight />
+      </layer>
+
+      <StatTooltip />
+    </>
+  );
+}

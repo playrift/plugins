@@ -1,0 +1,46 @@
+import { Game } from '../lib/game/server-states';
+
+export enum InventoryLayout {
+  ROOT_W = 190,
+  ROOT_H = 261,
+  ORIGIN_X = 16,
+  ORIGIN_Y = 8,
+  COLUMN_PITCH = 42,
+  ROW_PITCH = 36,
+  COLUMNS = 4,
+  SLOT_W = 36,
+  SLOT_H = 32,
+}
+
+export enum SlotStyle {
+  SHADOW = 0x333333,
+  OUTLINE = 1,
+  OUTLINE_TARGETED = 2,
+  DRAG_DEAD_ZONE = 5,
+  DRAG_DEAD_TIME = 6,
+}
+
+export enum Fade {
+  OPAQUE = 0,
+  PRESSED = 100,
+  EMPTY = 255,
+}
+
+export enum OpPriority {
+  NONE = -1,
+  MIN = 0,
+  MAX = 10,
+}
+
+export const SHIFT_KEY = 81;
+
+export const USE = 'Use';
+export const EXAMINE_SLOT = 10;
+export const OP_BASE_PREFIX = '<col=ff9040>';
+export const OP_BASE_SUFFIX = '</col>';
+export declare const InventoryVarbits: {
+  readonly DESKTOP_SHIFT_DROP: typeof Game.desktop_shiftclickdrop_enabled;
+  readonly MOBILE_TAP_DROP: typeof Game.settings_mobile_taptodrop_enabled;
+  readonly MOBILE_TILE_HIGHLIGHT: typeof Game.settings_mobile_tile_highlight_enabled;
+  readonly NPC_TAGGING: typeof Game.option_npc_indicators_tagging_enabled;
+};

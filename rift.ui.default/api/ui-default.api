@@ -1,0 +1,17 @@
+public final class co/playrift/ui/default/DefaultUiPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/ui/default/DefaultUiPackage;
+	public static final field TOPLEVEL Ljava/lang/String;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+
+public final class co/playrift/ui/default/RegenIndicators {
+	public static final field INSTANCE Lco/playrift/ui/default/RegenIndicators;
+	public final fun clearAllTimers (Lrift/entities/Actor;)V
+	public final fun clearHealthBlueTimer (Lrift/entities/Actor;)V
+	public final fun startHealthBlueTimer (Lrift/entities/Actor;II)V
+	public final fun startHealthTimer (Lrift/entities/Actor;II)V
+	public final fun startSpecialAttackTimer (Lrift/entities/Actor;II)V
+}
+

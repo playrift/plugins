@@ -1,0 +1,26 @@
+name = "resizable"
+ui = "toplevel_resizable"
+
+[slots]
+chat = "toplevel_resizable_chat_container"
+"chat.split" = "toplevel_resizable_pm_container"
+"tab.stats" = "toplevel_resizable_side1"
+"tab.inventory" = "toplevel_resizable_side3"
+"tab.worn" = "toplevel_resizable_side4"
+"tab.friends" = "toplevel_resizable_side9"
+"tab.logout" = "toplevel_resizable_side10"
+"tab.music" = "toplevel_resizable_side13"
+"tab.settings" = "toplevel_resizable_side11"
+modal = "toplevel_resizable_mainmodal"
+"modal.side" = "toplevel_resizable_sidemodal"
+floater = "toplevel_resizable_floater"
+"hud.hp" = "toplevel_resizable_hpbar_hud"
+"hud.xp_drops" = "toplevel_resizable_xp_drops"
+orbs = "toplevel_resizable_orbs"
+"orbs.button.extra" = { interface = "orbs", component = "orbs_extra_button" }
+"chat.modal" = { interface = "chatbox", component = "chatbox_chatmodal" }
+"chat.tab.extra" = { interface = "chatbox", component = "chatbox_extra_tab" }
+
+[[on_show]]
+script = "lib.lib.helpers.settingsClientMode"
+arguments = [1]

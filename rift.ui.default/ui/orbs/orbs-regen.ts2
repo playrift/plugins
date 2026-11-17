@@ -1,0 +1,385 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, sessionState, useServerState, useState } from 'ts2';
+
+import { onMobile } from '../lib/lib.helpers';
+import { OrbSkills, OrbsPanel } from './orbs.constants';
+
+export const regenTotals = sessionState(0);
+export const regenRedStart = sessionState(0);
+export const regenBlueStart = sessionState(0);
+export const regenSpecStart = sessionState(0);
+
+export const NO_PANEL = -1;
+
+export const hpRingsPanel = sessionState(-1);
+export const hpWatchPanel = sessionState(-1);
+export const hpWatchIndicator = sessionState(0);
+export const hpRedCycles = sessionState(0);
+export const hpRedPhase = sessionState(0);
+export const hpBlueCycles = sessionState(0);
+export const hpBluePhase = sessionState(0);
+export const hpBlueHidden = sessionState(0);
+
+export const specRingPanel = sessionState(-1);
+export const specWatchPanel = sessionState(-1);
+export const specWatchIndicator = sessionState(0);
+export const specWatchEnergy = sessionState(0);
+export const specCycles = sessionState(0);
+export const specPhase = sessionState(0);
+export const specFresh = sessionState(0);
+
+const CYCLES_PER_TICK = 30;
+const TURN = 65536;
+const SPEC_FULL = 1000;
+
+export function regenPanel(): Int {
+  if (
+    !onMobile() &&
+    useServerState(Game.minimap_toggle) === 1
+  ) {
+    return OrbsPanel.NOMAP;
+  }
+  if (onMobile() && useServerState(Game.osm_minimap_toggle) === 0) {
+    return OrbsPanel.MOBILE;
+  }
+  if (onMobile() && useServerState(Game.osm_minimap_toggle) === 1) {
+    return OrbsPanel.MOBILE_NOMAP;
+  }
+  return OrbsPanel.DESKTOP;
+}
+
+export function regenOffPanel(): Int {
+  if (
+    !onMobile() &&
+    useServerState(Game.minimap_toggle) === 1
+  ) {
+    return OrbsPanel.NOMAP;
+  }
+  if (onMobile() && useServerState(Game.osm_minimap_toggle) === 1) {
+    return OrbsPanel.MOBILE_NOMAP;
+  }
+  return OrbsPanel.DESKTOP;
+}
+
+export function regenAngle(phase: Int, cycles: Int): Int {
+  if (cycles > 0) {
+    return CS2.scale(phase, cycles, TURN) % TURN;
+  }
+  return 0;
+}
+
+export function blueRingHidden(length: Int): Boolean {
+  return length <= 0;
+}
+
+function elapsedSince(now: Int, start: Int): Int {
+  if (start > 0) {
+    return (now - start) * CYCLES_PER_TICK;
+  }
+  return 0;
+}
+
+export function healthRegenRed(): Int {
+  const [totals] = useState(regenTotals);
+  return CS2.bit_range_get(totals, 0, 10);
+}
+
+export function healthRegenRedPhase(now: Int): Int {
+  const [start] = useState(regenRedStart);
+  return elapsedSince(now, start);
+}
+
+export function healthRegenBlue(): Int {
+  const [totals] = useState(regenTotals);
+  return CS2.bit_range_get(totals, 22, 31);
+}
+
+export function healthRegenBluePhase(now: Int): Int {
+  const [start] = useState(regenBlueStart);
+  return elapsedSince(now, start);
+}
+
+function clampTotals(): void {
+  const [totals, setTotals] = useState(regenTotals);
+  if (totals < 0) {
+    setTotals(0);
+  }
+}
+
+function ringPhase(cycles: Int, elapsed: Int): Int {
+  if (cycles === 0) {
+    return 0;
+  }
+  if (elapsed >= cycles) {
+    return elapsed % cycles;
+  }
+  return elapsed;
+}
+
+export function healthRegenTimer(redTicks: Int, redElapsed: Int, blueTicks: Int, blueElapsed: Int): void {
+  const [ringsPanel, setRingsPanel] = useState(hpRingsPanel);
+  const [, setWatchPanel] = useState(hpWatchPanel);
+  const [, setWatchIndicator] = useState(hpWatchIndicator);
+  const panel: Int = regenPanel();
+  if (ringsPanel === panel) {
+    setRingsPanel(NO_PANEL);
+  }
+  setWatchPanel(panel);
+  setWatchIndicator(useServerState(Game.regen_indicator_disabled));
+  if (useServerState(Game.orbs_disabled) === 1) {
+    return;
+  }
+  if (useServerState(Game.regen_indicator_disabled) === 1) {
+    return;
+  }
+  if (CS2.stat(OrbSkills.HITPOINTS) === CS2.stat_base(OrbSkills.HITPOINTS)) {
+    return;
+  }
+  const [, setRedCycles] = useState(hpRedCycles);
+  const [, setRedPhase] = useState(hpRedPhase);
+  const [, setBlueCycles] = useState(hpBlueCycles);
+  const [, setBluePhase] = useState(hpBluePhase);
+  const [, setBlueHidden] = useState(hpBlueHidden);
+  const redCycles: Int = redTicks * CYCLES_PER_TICK;
+  const blueCycles: Int = blueTicks * CYCLES_PER_TICK;
+  setRedCycles(redCycles);
+  setRedPhase(ringPhase(redCycles, redElapsed));
+  setBlueCycles(blueCycles);
+  setBluePhase(ringPhase(blueCycles, blueElapsed));
+  setBlueHidden(blueRingHidden(blueCycles) ? 1 : 0);
+  setRingsPanel(panel);
+}
+
+export function stepHealthRegen(): void {
+  const [redCycles] = useState(hpRedCycles);
+  const [redPhase, setRedPhase] = useState(hpRedPhase);
+  const [blueCycles] = useState(hpBlueCycles);
+  const [bluePhase, setBluePhase] = useState(hpBluePhase);
+  let red: Int = redPhase + 1;
+  let blue: Int = bluePhase + 1;
+  if (blue >= blueCycles) {
+    blue = 0;
+  }
+  if (red >= redCycles) {
+    red = 0;
+  }
+  setBluePhase(blue);
+  setRedPhase(red);
+}
+
+export function hpRedAngle(): Int {
+  const [cycles] = useState(hpRedCycles);
+  const [phase] = useState(hpRedPhase);
+  return regenAngle(phase, cycles);
+}
+
+export function hpBlueAngle(): Int {
+  const [cycles] = useState(hpBlueCycles);
+  const [phase] = useState(hpBluePhase);
+  return regenAngle(phase, cycles);
+}
+
+export function specAngle(): Int {
+  const [cycles] = useState(specCycles);
+  const [phase] = useState(specPhase);
+  return regenAngle(phase, cycles);
+}
+
+export function specBuiltAngle(): Int {
+  const [fresh] = useState(specFresh);
+  if (fresh === 1) {
+    return 0;
+  }
+  return specAngle();
+}
+
+export function healthRegenRedraw(now: Int): void {
+  clampTotals();
+  healthRegenTimer(healthRegenRed(), healthRegenRedPhase(now), healthRegenBlue(), healthRegenBluePhase(now));
+}
+
+export function healthRegenOff(): void {
+  const [ringsPanel, setRingsPanel] = useState(hpRingsPanel);
+  if (ringsPanel === regenOffPanel()) {
+    setRingsPanel(NO_PANEL);
+  }
+}
+
+export function healthOrbVarTransmit(): void {
+  const [was, setWas] = useState(hpWatchIndicator);
+  const now: Int = useServerState(Game.regen_indicator_disabled);
+  if (now === was) {
+    return;
+  }
+  if (now === 1) {
+    healthRegenOff();
+  } else {
+    healthRegenRedraw(useServerState(Game.map_clock));
+  }
+  setWas(useServerState(Game.regen_indicator_disabled));
+}
+
+export function healthOrbStatTransmit(): void {
+  if (CS2.stat(OrbSkills.HITPOINTS) === CS2.stat_base(OrbSkills.HITPOINTS)) {
+    healthRegenOff();
+    return;
+  }
+  healthRegenRedraw(useServerState(Game.map_clock));
+}
+
+export function healthRegenTimerEntrypoint(ticks: Int, start: Int): void {
+  clampTotals();
+  const [, setRedStart] = useState(regenRedStart);
+  setRedStart(start);
+  const [totals, setTotals] = useState(regenTotals);
+  setTotals(CS2.bit_range_to_int_set(totals, ticks, 0, 10));
+  healthRegenTimer(ticks, 0, healthRegenBlue(), healthRegenBluePhase(start));
+}
+
+export function healthRegenRedrawEntrypoint(now: Int): void {
+  healthRegenRedraw(now);
+}
+
+export function healthRegenBlueEntrypoint(ticks: Int, start: Int): void {
+  clampTotals();
+  const [, setBlueStart] = useState(regenBlueStart);
+  setBlueStart(start);
+  const [totals, setTotals] = useState(regenTotals);
+  setTotals(CS2.bit_range_to_int_set(totals, ticks, 22, 31));
+  healthRegenTimer(healthRegenRed(), healthRegenRedPhase(start), ticks, 0);
+}
+
+export function healthRegenBlueClearEntrypoint(): void {
+  const [totals, setTotals] = useState(regenTotals);
+  setTotals(CS2.bit_range_to_int_set(totals, 0, 22, 31));
+  const now: Int = useServerState(Game.map_clock);
+  healthRegenTimer(healthRegenRed(), healthRegenRedPhase(now), 0, 0);
+}
+
+export function healthRegenBlueLengthEntrypoint(ticks: Int): void {
+  const [totals, setTotals] = useState(regenTotals);
+  setTotals(CS2.bit_range_to_int_set(totals, ticks, 22, 31));
+  const now: Int = useServerState(Game.map_clock);
+  healthRegenTimer(healthRegenRed(), healthRegenRedPhase(now), healthRegenBlue(), healthRegenBluePhase(now));
+}
+
+export function healthRegenOffEntrypoint(): void {
+  healthRegenOff();
+}
+
+export function specRegenTimer(ticks: Int, elapsed: Int): void {
+  const [ringPanel, setRingPanel] = useState(specRingPanel);
+  const [, setWatchPanel] = useState(specWatchPanel);
+  const [, setWatchIndicator] = useState(specWatchIndicator);
+  const [, setWatchEnergy] = useState(specWatchEnergy);
+  const panel: Int = regenPanel();
+  if (ringPanel === panel) {
+    setRingPanel(NO_PANEL);
+  }
+  setWatchPanel(panel);
+  setWatchIndicator(useServerState(Game.regen_indicator_disabled));
+  setWatchEnergy(useServerState(Game.sa_energy));
+  if (useServerState(Game.orbs_disabled) === 1) {
+    return;
+  }
+  if (useServerState(Game.regen_indicator_disabled) === 1) {
+    return;
+  }
+  if (useServerState(Game.sa_energy) >= SPEC_FULL) {
+    return;
+  }
+  const [, setCycles] = useState(specCycles);
+  const [, setPhase] = useState(specPhase);
+  const [, setFresh] = useState(specFresh);
+  const cycles: Int = ticks * CYCLES_PER_TICK;
+  setCycles(cycles);
+  setPhase(ringPhase(cycles, elapsed));
+  setFresh(1);
+  setRingPanel(panel);
+}
+
+export function stepSpecRegen(): void {
+  const [cycles] = useState(specCycles);
+  const [phase, setPhase] = useState(specPhase);
+  const [fresh, setFresh] = useState(specFresh);
+  let next: Int = phase + 1;
+  if (next >= cycles) {
+    next = 0;
+  }
+  setPhase(next);
+  if (fresh === 1) {
+    setFresh(0);
+  }
+}
+
+export function specRegenOff(): void {
+  const [ringPanel, setRingPanel] = useState(specRingPanel);
+  if (ringPanel === regenOffPanel()) {
+    setRingPanel(NO_PANEL);
+  }
+}
+
+export function specRegenRedraw(now: Int): void {
+  const [start] = useState(regenSpecStart);
+  if (start <= 0) {
+    return;
+  }
+  const [totals] = useState(regenTotals);
+  specRegenTimer(CS2.bit_range_get(totals, 11, 21), (now - start) * CYCLES_PER_TICK);
+}
+
+export function specRegenVarTransmit(): void {
+  const [was] = useState(specWatchIndicator);
+  const [wasEnergy] = useState(specWatchEnergy);
+  const [, setWas] = useState(specWatchIndicator);
+  const [, setWasEnergy] = useState(specWatchEnergy);
+  const indicator: Int = useServerState(Game.regen_indicator_disabled);
+  const energy: Int = useServerState(Game.sa_energy);
+  if (indicator === was && wasEnergy === energy) {
+    return;
+  }
+  if (indicator === 1 || energy >= SPEC_FULL) {
+    specRegenOff();
+  } else if (energy < SPEC_FULL) {
+    specRegenRedraw(useServerState(Game.map_clock));
+  }
+  setWas(useServerState(Game.regen_indicator_disabled));
+  setWasEnergy(useServerState(Game.sa_energy));
+}
+
+export function specRegenTimerEntrypoint(ticks: Int, start: Int): void {
+  const [, setStart] = useState(regenSpecStart);
+  setStart(start);
+  const [totals, setTotals] = useState(regenTotals);
+  setTotals(CS2.bit_range_to_int_set(totals, ticks, 11, 21));
+  specRegenTimer(ticks, 0);
+}
+
+export function specRegenRedrawEntrypoint(now: Int): void {
+  specRegenRedraw(now);
+}
+
+export function specRegenOffEntrypoint(): void {
+  specRegenOff();
+}
+
+export function healthOrbStatWatch(panel: Int): void {
+  const [bound] = useState(hpWatchPanel);
+  if (bound === panel) {
+    healthOrbStatTransmit();
+  }
+}
+
+export function healthOrbVarWatch(panel: Int): void {
+  const [bound] = useState(hpWatchPanel);
+  if (bound === panel) {
+    healthOrbVarTransmit();
+  }
+}
+
+export function specRegenVarWatch(panel: Int): void {
+  const [bound] = useState(specWatchPanel);
+  if (bound === panel) {
+    specRegenVarTransmit();
+  }
+}

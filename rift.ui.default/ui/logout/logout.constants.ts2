@@ -1,0 +1,37 @@
+export enum LogoutColors {
+  BODY = 0xff981f,
+  LABEL = 0xf7f0df,
+  SWITCHER_OVER = 0xc0c0c0,
+  LOGOUT_OVER = 0xff0000,
+}
+
+export enum LogoutLayout {
+  ROOT_W = 190,
+  ROOT_H = 261,
+
+  BUTTONS_BOTTOM = 24,
+  BUTTONS_H = 170,
+
+  BLURB_H = 40,
+  LINE_H = 18,
+
+  BUTTON_W = 144,
+  BUTTON_H = 36,
+  PLATE_MID_X = 26,
+  PLATE_MID_W = 94,
+  PLATE_CAP = 36,
+  PLATE_CAP_RIGHT_X = 108,
+}
+
+export const LogoutCopy = {
+  BLURB: 'Use the buttons below to<br>logout or switch worlds safely.',
+  SWITCHER: 'World Switcher',
+  LOGOUT_OP: 'Logout',
+  LOGOUT_DESKTOP: 'Click here to logout',
+  LOGOUT_MOBILE: 'Tap here to logout',
+};
+
+export enum LogoutContentType {
+  SWITCHER_LABEL = 206,
+  LOGOUT_LABEL = 205,
+}

@@ -1,0 +1,6 @@
+import { ThinBox } from './thin-box.component';
+
+/** A thin box. */
+export function ThinBoxEntrypoint({ children }: { children?: Children }): Component {
+  return <ThinBox>{children}</ThinBox>;
+}

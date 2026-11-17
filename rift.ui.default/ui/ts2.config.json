@@ -1,0 +1,7 @@
+{
+  "externalTypes": [
+    "./lib/game/config-params.d.ts2"
+  ],
+  "serverStateFile": "server-states.toml",
+  "assetFile": "assets.toml"
+}

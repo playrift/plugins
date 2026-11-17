@@ -1,0 +1,85 @@
+import { sessionState, useState } from 'ts2';
+
+import { textLineCount, textWidth } from '../lib/lib.engine';
+import {
+  TooltipBox,
+  TooltipChrome,
+  tooltipDown,
+  tooltipDwellElapsed,
+  tooltipHide,
+  tooltipMark,
+  tooltipRaise,
+  tooltipUp,
+} from '../lib/tooltip.component';
+import { EquipmentLayout, Tooltip } from './equipment.constants';
+import { StatTip, StatTips } from './stat-tips.data';
+import type { StatTipRow } from './stat-tips.data';
+import { GameFonts } from '../game-assets';
+import { enhancedMouseoverAvailable } from '../lib/lib.client';
+
+export const statTipRow = sessionState(StatTip.NONE);
+
+export function showStatTip(row: StatTip): void {
+  const [, setRow] = useState(statTipRow);
+  if (enhancedMouseoverAvailable()) {
+    return;
+  }
+  tooltipMark();
+  if (!tooltipDwellElapsed(Tooltip.DWELL)) {
+    return;
+  }
+  if (!tooltipDown()) {
+    return;
+  }
+  setRow(row);
+  tooltipRaise();
+}
+
+export function hideStatTip(): void {
+  const [, setRow] = useState(statTipRow);
+  tooltipHide();
+  setRow(StatTip.NONE);
+}
+
+export function StatTooltip(): Component {
+  const [key] = useState(statTipRow);
+
+  const row: StatTipRow | null = StatTips.at(key);
+  let text: String = '';
+  let anchorX: Int = 0;
+  let anchorY: Int = 0;
+  let anchorH: Int = 0;
+  if (tooltipUp() && key >= 0 && row !== null) {
+    text = row.text;
+    anchorX = row.x;
+    anchorY = row.y;
+    anchorH = row.h;
+  }
+
+  let measure: Int = Tooltip.WRAP;
+  if (measure > EquipmentLayout.ROOT_W) {
+    measure = EquipmentLayout.ROOT_W;
+  }
+  measure = measure - TooltipBox.padX;
+  const boxW: Int = TooltipBox.padX + textWidth(text, measure, GameFonts.font_495);
+  const boxH: Int = TooltipBox.padY + TooltipBox.line * textLineCount(text, measure, GameFonts.font_495);
+
+  let x: Int = anchorX + TooltipBox.nudge;
+  if (x > EquipmentLayout.ROOT_W - boxW) {
+    x = EquipmentLayout.ROOT_W - boxW;
+  }
+  let y: Int = anchorY + anchorH + TooltipBox.nudge;
+  if (y > EquipmentLayout.ROOT_H - boxH) {
+    y = anchorY - boxH - TooltipBox.nudge;
+  }
+
+  if (!tooltipUp() || key < 0 || row === null) {
+    return <layer w={EquipmentLayout.TIP_HOST_W} h={EquipmentLayout.TIP_HOST_H} />;
+  }
+
+  return (
+    <layer x={x} y={y} w={boxW} h={boxH}>
+      <TooltipChrome text={text} font={GameFonts.font_495} lineHeight={0} />
+    </layer>
+  );
+}

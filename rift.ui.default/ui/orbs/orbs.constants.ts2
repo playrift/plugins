@@ -1,0 +1,106 @@
+import { createRef } from 'ts2';
+
+export const orbsRef = createRef('orbs');
+
+export enum OrbsPanel {
+  DESKTOP = 0,
+  NOMAP = 1,
+  MOBILE = 2,
+  MOBILE_NOMAP = 3,
+}
+
+export enum SidePanel {
+  INVENTORY = 3,
+  PRAYER = 5,
+}
+
+export declare const OrbSkills: {
+  readonly HITPOINTS: SkillRef<3>;
+  readonly PRAYER: SkillRef<5>;
+};
+
+export const SpecMax = {
+  ENERGY: 100,
+} as const;
+
+export const OrbBox = {
+  H: 34,
+  METER: 26,
+  METER_Y: 4,
+  SPARE: 27,
+  HALF_W: 13,
+  TEXT_W: 23,
+  TEXT_H: 13,
+  CLICK_X: 3,
+  FILLER_ALPHA: 25,
+  DESKTOP: { W: 57, METER_X: 27, TEXT_X: 4, TEXT_Y: 16, CLICK_W: 50 },
+  MOBILE: { W: 65, METER_X: 35, TEXT_X: 8, TEXT_Y: 2, CLICK_W: 58 },
+} as const;
+
+export const ButtonBox = {
+  RING: 34,
+  FACE: 26,
+  MAP_RING: 30,
+  MAP_FACE: 22,
+  WIKI_W: 40,
+  WIKI_H: 24,
+  WIKI_SPRITE_H: 14,
+  XP: 27,
+} as const;
+
+export const OrbText = {
+  SPEC_SUBJECT: '<col=ff9040>Special Attack</col>',
+  WIKI_SUBJECT: '<col=ff9040>Wiki</col>',
+  WIKI_VERB: 'Lookup-entity',
+  WIKI_SEARCH: 'Search',
+  SHOW: 'Show',
+  HIDE: 'Hide',
+  ACTIVATE: 'Activate',
+  DEACTIVATE: 'Deactivate',
+  USE: 'Use',
+  OPEN_STORE: 'Open Store',
+  BOND_POUCH: 'Bond Pouch',
+  MAP_OPEN: 'Open <col=ff9040>World Map</col>',
+  MAP_FLOATING: 'Floating <col=ff9040>World Map</col>',
+  MAP_FULLSCREEN: 'Fullscreen <col=ff9040>World Map</col>',
+  MAP_MINIMISE: 'Minimise <col=ff9040>Minimap</col>',
+  MAP_RESTORE: 'Restore <col=ff9040>Minimap</col>',
+  MAP_CLOSE_FLOATING: 'Close <col=ff9040>Floating panel</col>',
+  GRID_MASTER: '<col=ff9040>Grid Master</col>',
+  TOGGLE: 'Toggle',
+} as const;
+
+export const MeterColour = {
+  GREEN: 0x00ff00,
+  RED: 0xff0000,
+  NUMBER: 0xffff00,
+} as const;
+
+export const GridFlash = { PERIOD: 30, HIDDEN: 20 } as const;
+
+export const orbsGridMountRef = createRef('orbs_grid1');
+
+export const extraButtonSlotRef = createRef('orbs_extra_button');
+
+export enum GridMasterScript {
+  DESKTOP = -1050819795,
+  NOMAP = 887621297,
+  MOBILE = 1104462115,
+  MOBILE_NOMAP = 1129705767,
+}
+
+export enum GridMasterStyle {
+  DESKTOP = 2,
+  MOBILE = 3,
+}
+
+export const GridMasterBox = { SIZE: 34, GLYPH_W: 33, GLYPH_H: 36 } as const;
+
+export const STORE_OPSOUND = 6;
+
+export enum RegenRing {
+  HP_BLUE = 0x024def,
+  HP_RED = 0xf00b04,
+  SPEC = 0x03cffd,
+  LINE = 2,
+}

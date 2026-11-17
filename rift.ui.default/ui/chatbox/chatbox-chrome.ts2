@@ -1,0 +1,403 @@
+import { Game } from '../lib/game/server-states';
+import {
+  CHAT_BACKDROP_MOBILE,
+  CHAT_BACKDROP_OPAQUE,
+  CHAT_BACKDROP_RAMP,
+  CHAT_CLICK_FULL,
+  CHAT_CLICK_STRIP,
+  CHAT_CLICK_WIDE,
+  SCROLLBAR_OPAQUE,
+  SCROLLBAR_SEE_THROUGH,
+  SCROLLBAR_SEE_THROUGH_MOBILE,
+  chatScrollbarStyle,
+  chatboxAreaHidden,
+  chatboxBackdrop,
+  chatboxBarFlipped,
+  chatboxBlockClick,
+  chatboxClickBox,
+  chatboxRepaint,
+  chatboxStripAlpha,
+  chatboxRebuild,
+  chatboxStripPlate,
+  chatInputTransparent,
+  chatPaneExtent,
+  chatPaneTransparent,
+} from './chatbox.state';
+import { CS2, useServerState, useState } from 'ts2';
+
+import { GameframeSlot, gameframeSlot } from '../lib/lib.gameframe';
+import {
+  chatBackgroundInvisibleTimeout,
+  chatHighlight,
+  chatView,
+  mobileChatboxDisabled,
+  mobileChatboxFiltersDisabled,
+} from '../lib/game/varcs';
+import { graphicSwapper, onMobile, toplevelComponents } from '../lib/lib.helpers';
+import { mobileGameframe } from '../lib/lib.overlay';
+import { chatAlertRepaint, chatButtonHover, chatAlertSet, chatSetFilter } from './chat-buttons';
+import { CHAT_VIEW_COLLAPSED, ChatTab } from './chatbox.data';
+import {
+  ChatboxAlpha,
+  Layout,
+  chatareaRef,
+  chatboxAreaRef,
+  chatmodalRef,
+  chatoverlayRef,
+  controlsBackgroundRef,
+  controlsRef,
+  line0Ref,
+  mesLayerRef,
+  reportGraphicRef,
+  reportRef,
+  tab0Ref,
+  tab1Ref,
+  tab2Ref,
+  tab3Ref,
+  tab4Ref,
+  extraTabSlotRef,
+  tab6Ref,
+} from './chatbox.constants';
+import { GameSprites } from '../game-assets';
+
+export function chatContainer(): ComponentId {
+  return gameframeSlot(GameframeSlot.CHAT_CONTAINER);
+}
+
+export const WINDOW_MODE_FIXED = 1;
+export const WINDOW_MODE_RESIZABLE = 2;
+
+export function chatboxPermitTransparent(): Boolean {
+  if (CS2.window_mode_get() === WINDOW_MODE_FIXED) {
+    return false;
+  }
+  if (CS2.if_sub_has(chatmodalRef) || CS2.if_sub_has(chatoverlayRef)) {
+    return false;
+  }
+  if (!CS2.if_hide_get(mesLayerRef)) {
+    return false;
+  }
+  return true;
+}
+
+export function chatboxMakeTransparent(): Boolean {
+  if (!chatboxPermitTransparent()) {
+    return false;
+  }
+  if (onMobile()) {
+    return true;
+  }
+  if (useServerState(Game.chatbox_transparency) === 0) {
+    return false;
+  }
+  return true;
+}
+
+export function chatboxControlsTransparent(): Boolean {
+  if (onMobile()) {
+    return true;
+  }
+  if (!chatboxPermitTransparent()) {
+    return false;
+  }
+  if (useServerState(Game.chatbox_transparency) === 0) {
+    return false;
+  }
+  return true;
+}
+
+export function chatboxInputReachable(): Int {
+  if (CS2.if_sub_has(chatoverlayRef) || CS2.if_sub_has(chatmodalRef) || !CS2.if_hide_get(mesLayerRef)) {
+    return 0;
+  }
+  return 1;
+}
+
+export function chatBackdropVisible(): Int {
+  const [invisibleUntil] = useState(chatBackgroundInvisibleTimeout);
+  if (CS2.clientclock() < invisibleUntil) {
+    return 0;
+  }
+  return 1;
+}
+
+export function chatboxBackground(): void {
+  const [view, setView] = useState(chatView);
+  const [chatDisabled] = useState(mobileChatboxDisabled);
+  const mobileFrame: Boolean = mobileGameframe(toplevelComponents());
+
+  const [, setAreaHidden] = useState(chatboxAreaHidden);
+  const [, setBarFlipped] = useState(chatboxBarFlipped);
+  const [, setClickBox] = useState(chatboxClickBox);
+  const [, setBlockClick] = useState(chatboxBlockClick);
+  const [, setStripAlpha] = useState(chatboxStripAlpha);
+  const [, setBackdrop] = useState(chatboxBackdrop);
+  const [, setStripPlate] = useState(chatboxStripPlate);
+  const [repaint, setRepaint] = useState(chatboxRepaint);
+  const [, setBarStyle] = useState(chatScrollbarStyle);
+
+  let hideArea: Boolean = false;
+  if (
+    view === CHAT_VIEW_COLLAPSED ||
+    (useServerState(Game.cutscene_status) === 1 && CS2.window_mode_get() !== WINDOW_MODE_FIXED) ||
+    (mobileFrame && chatDisabled === 1)
+  ) {
+    if (chatboxPermitTransparent()) {
+      hideArea = true;
+    } else if (CS2.window_mode_get() === WINDOW_MODE_FIXED) {
+      setView(ChatTab.ALL);
+      chatAlertSet(ChatTab.ALL, 0);
+    }
+  }
+  setAreaHidden(hideArea ? 1 : 0);
+
+  if (useServerState(Game.chatbox_scrollbarside) === 1 && CS2.window_mode_get() !== WINDOW_MODE_FIXED) {
+    setBarFlipped(1);
+  } else {
+    setBarFlipped(0);
+  }
+
+  let clickBox: Int = CHAT_CLICK_FULL;
+  if (chatboxInputReachable() === 1 && mobileFrame) {
+    clickBox = CHAT_CLICK_WIDE;
+  }
+
+  if (!chatboxMakeTransparent()) {
+    setBackdrop(CHAT_BACKDROP_OPAQUE);
+    setStripPlate(0);
+    setClickBox(clickBox);
+    setBlockClick(1);
+    setStripAlpha(chatboxControlsTransparent() ? ChatboxAlpha.INVISIBLE : ChatboxAlpha.OPAQUE);
+    setBarStyle(SCROLLBAR_OPAQUE);
+    setRepaint(repaint + 1);
+    return;
+  }
+
+  if (useServerState(Game.transparent_chatbox_blockclick) === 1) {
+    setBlockClick(1);
+  } else {
+    setBlockClick(0);
+  }
+
+  let stripPlate: Int = 0;
+  if (!onMobile()) {
+    setBackdrop(CHAT_BACKDROP_RAMP);
+  } else {
+    setBackdrop(CHAT_BACKDROP_MOBILE);
+    clickBox = CHAT_CLICK_STRIP;
+    if (!hideArea) {
+      stripPlate = 1;
+    }
+  }
+  setClickBox(clickBox);
+
+  setBarStyle(onMobile() ? SCROLLBAR_SEE_THROUGH_MOBILE : SCROLLBAR_SEE_THROUGH);
+
+  if (hideArea) {
+    setStripAlpha(ChatboxAlpha.INVISIBLE);
+  } else if (!onMobile()) {
+    setStripAlpha(STRIP_TRANSPARENT_ALPHA);
+  } else {
+    setStripAlpha(ChatboxAlpha.INVISIBLE);
+  }
+  setStripPlate(stripPlate);
+  setRepaint(repaint + 1);
+}
+
+const STRIP_TRANSPARENT_ALPHA = 155;
+
+const MOBILE_STRIP_W = 58;
+
+export function mobileChatboxResize(): void {
+  if (!onMobile()) {
+    return;
+  }
+  const was: Int = chatareaRef.height!;
+  let covered: Int = 0;
+  if (
+    CS2.if_sub_has(chatmodalRef) ||
+    CS2.if_sub_has(chatoverlayRef) ||
+    !CS2.if_hide_get(mesLayerRef)
+  ) {
+    covered = 1;
+  }
+  let height: Int = MOBILE_CHATAREA_H - MOBILE_CHATAREA_INSET;
+  if (covered === 0 && !CS2.if_hide_get(controlsRef)) {
+    height = MOBILE_CHATAREA_H - MOBILE_CHATAREA_INSET - MOBILE_STRIP_H;
+  }
+  CS2.if_position_set(0, 0, 2, 2, chatareaRef);
+  CS2.if_size_set(Layout.CHATAREA_W, height, 0, 0, chatareaRef);
+  settleEmptyPaneExtent();
+  rebuildChatbox();
+}
+
+export function rebuildChatbox(): void {
+  publishPaneTransparent();
+  const [count, setCount] = useState(chatboxRebuild);
+  setCount(count + 1);
+}
+
+export function publishPaneTransparent(): void {
+  const [, setTransparent] = useState(chatPaneTransparent);
+  setTransparent(chatboxMakeTransparent() ? 1 : 0);
+}
+
+export function settleEmptyPaneExtent(): void {
+  settlePaneExtent(Math.max(EMPTY_PANE_EXTENT, line0Ref.height!));
+}
+
+export function settlePaneExtent(paneExtent: Int): void {
+  CS2.if_scroll_size_set(0, paneExtent, line0Ref);
+  const [, setPaneExtent] = useState(chatPaneExtent);
+  setPaneExtent(paneExtent);
+}
+
+const EMPTY_PANE_EXTENT = 2;
+
+const MOBILE_CHATAREA_H = 165;
+const MOBILE_CHATAREA_INSET = 20;
+const MOBILE_STRIP_H = 30;
+
+/** Lays the chatbox out again when the clan tab is open. */
+export function extraTabOpen(): void {
+  if (CS2.if_sub_has(extraTabSlotRef)) {
+    chatboxRelayout();
+  }
+}
+
+export function chatboxRelayout(): void {
+  chatboxBackground();
+
+  const [chatDisabled] = useState(mobileChatboxDisabled);
+  const [filtersDisabled] = useState(mobileChatboxFiltersDisabled);
+  const [, setHighlight] = useState(chatHighlight);
+  const mobileFrame: Boolean = mobileGameframe(toplevelComponents());
+
+  if (
+    (useServerState(Game.cutscene_status) === 1 && CS2.window_mode_get() !== WINDOW_MODE_FIXED) ||
+    (mobileFrame &&
+      ((chatDisabled === 1 && useServerState(Game.settings_mobile_show_filter_stones_enabled) === 0) ||
+        filtersDisabled === 1))
+  ) {
+    controlsRef.hide = true;
+  } else {
+    controlsRef.hide = false;
+  }
+
+  const container: ComponentId = chatContainer();
+  let onPhone: Int = 0;
+
+  if (onMobile()) {
+    onPhone = 1;
+    setHighlight(-1);
+    if (container !== -1) {
+      CS2.if_size_set(Layout.CONTROLS_W, MOBILE_CHATAREA_H - MOBILE_CHATAREA_INSET, 0, 0, container);
+    }
+    CS2.if_position_set(0, 2, 2, 0, controlsRef);
+    CS2.if_size_set(Layout.CONTROLS_W - MOBILE_STRIP_W, MOBILE_STRIP_H - 2, 0, 0, controlsRef);
+    CS2.if_position_set(2, 0, 2, 0, chatboxAreaRef);
+    CS2.if_size_set(Layout.CONTROLS_W - MOBILE_STRIP_W - 4, 0, 0, 1, chatboxAreaRef);
+    mobileChatboxResize();
+    reportRef.hide = true;
+    controlsRef.noClickThrough = false;
+    controlsBackgroundRef.noClickThrough = false;
+    controlsRef.noScrollThrough = false;
+    controlsBackgroundRef.noScrollThrough = false;
+  } else {
+    if (container !== -1) {
+      CS2.if_size_set(Layout.CONTROLS_W, MOBILE_CHATAREA_H, 0, 0, container);
+    }
+    CS2.if_position_set(0, 0, 1, 1, chatboxAreaRef);
+    CS2.if_size_set(Layout.AREA_INSET_W, Layout.AREA_INSET_H, 1, 1, chatboxAreaRef);
+    CS2.if_position_set(0, 0, 0, 2, controlsRef);
+    CS2.if_size_set(Layout.CONTROLS_W, Layout.CONTROLS_H, 0, 0, controlsRef);
+    CS2.if_position_set(0, 0, 0, 0, chatareaRef);
+    CS2.if_size_set(Layout.CHATAREA_W, Layout.CHATAREA_H_INSET, 0, 1, chatareaRef);
+    reportRef.hide = false;
+    reportGraphicRef.sprite = GameSprites.report_button_0;
+    reportRef.onMouseLeave = () => graphicSwapper(reportGraphicRef, GameSprites.report_button_0);
+    reportRef.onMouseEnter = () => graphicSwapper(reportGraphicRef, GameSprites.report_button_1);
+    controlsRef.noClickThrough = true;
+    controlsBackgroundRef.noClickThrough = true;
+    controlsRef.noScrollThrough = true;
+    controlsBackgroundRef.noScrollThrough = true;
+  }
+
+  const extraTab: Boolean = CS2.if_sub_has(extraTabSlotRef);
+  extraTabSlotRef.hide = !extraTab;
+
+  let buttons: Int = BAR_TABS;
+  if (extraTab) {
+    buttons = buttons + 1;
+  }
+  let barWidth: Int = Layout.CONTROLS_W - MOBILE_STRIP_W;
+  if (onPhone === 0) {
+    buttons = buttons + 1;
+    barWidth = Layout.CONTROLS_W;
+  }
+
+  const room: Int = barWidth - Layout.BAR_EDGE * 2 - Layout.TAB_GAP * (buttons - 1);
+  const width: Int = room / buttons;
+  const spare: Int = room - width * buttons;
+
+  let x: Int = Layout.BAR_EDGE + spare / 2;
+  placeTab(tab0Ref, x, width, ChatTab.ALL, onPhone);
+  x = x + width + Layout.TAB_GAP;
+  placeTab(tab1Ref, x, width, ChatTab.GAME, onPhone);
+  x = x + width + Layout.TAB_GAP;
+  placeTab(tab2Ref, x, width, ChatTab.PUBLIC, onPhone);
+  x = x + width + Layout.TAB_GAP;
+  placeTab(tab3Ref, x, width, ChatTab.PRIVATE, onPhone);
+  x = x + width + Layout.TAB_GAP;
+  placeTab(tab4Ref, x, width, ChatTab.CHANNEL, onPhone);
+  x = x + width + Layout.TAB_GAP;
+  if (extraTab) {
+    CS2.if_position_set(x, 0, 0, 1, extraTabSlotRef);
+    CS2.if_size_set(width, 0, 0, 1, extraTabSlotRef);
+    x = x + width + Layout.TAB_GAP;
+  }
+  placeTab(tab6Ref, x, width, ChatTab.TRADE, onPhone);
+  x = x + width + Layout.TAB_GAP;
+  if (onPhone === 0) {
+    CS2.if_position_set(x, 0, 0, 1, reportRef);
+    CS2.if_size_set(width, 0, 0, 1, reportRef);
+  }
+
+  if (useServerState(Game.chatmodal_unclamp) === 1 && CS2.if_sub_has(chatmodalRef)) {
+    CS2.if_size_set(0, 0, 1, 1, chatmodalRef);
+  } else {
+    CS2.if_size_set(Layout.SUB_W, Layout.SUB_H, 0, 0, chatmodalRef);
+  }
+  if (useServerState(Game.chatoverlay_unclamp) === 1 && CS2.if_sub_has(chatoverlayRef)) {
+    CS2.if_size_set(0, 0, 1, 1, chatoverlayRef);
+  } else {
+    CS2.if_size_set(Layout.SUB_W, Layout.SUB_H, 0, 0, chatoverlayRef);
+  }
+
+  if (CS2.chat_filter_private_get() !== useServerState(Game.chat_filter_private)) {
+    chatSetFilter(ChatTab.PRIVATE, useServerState(Game.chat_filter_private));
+  }
+
+  chatAlertRepaint();
+  rebuildChatbox();
+  redrawChatInput();
+}
+
+const BAR_TABS = 6;
+
+export function redrawChatInput(): void {
+  const [, setTransparent] = useState(chatInputTransparent);
+  setTransparent(chatboxMakeTransparent() ? 1 : 0);
+}
+
+function placeTab(button: ComponentId, x: Int, width: Int, tab: Int, onPhone: Int): void {
+  CS2.if_position_set(x, 0, 0, 1, button);
+  CS2.if_size_set(width, 0, 0, 1, button);
+  if (onPhone === 1) {
+    button.onMouseEnter = null;
+    button.onMouseLeave = null;
+  } else {
+    button.onMouseEnter = () => chatButtonHover(1, tab);
+    button.onMouseLeave = () => chatButtonHover(0, tab);
+  }
+}

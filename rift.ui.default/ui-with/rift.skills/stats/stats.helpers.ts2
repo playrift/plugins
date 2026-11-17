@@ -1,0 +1,71 @@
+import { CS2, useSkillBase } from 'ts2';
+
+import { groupDigits, padGroup } from 'rift.ui.default/lib/lib.format';
+import { Skills } from './stats.constants';
+
+const BILLION = 1000000000;
+
+export function totalLevel(): Int {
+  return (
+    useSkillBase(Skills.ATTACK) +
+    useSkillBase(Skills.DEFENCE) +
+    useSkillBase(Skills.STRENGTH) +
+    useSkillBase(Skills.HITPOINTS) +
+    useSkillBase(Skills.RANGED) +
+    useSkillBase(Skills.PRAYER) +
+    useSkillBase(Skills.MAGIC) +
+    useSkillBase(Skills.COOKING) +
+    useSkillBase(Skills.WOODCUTTING) +
+    useSkillBase(Skills.FLETCHING) +
+    useSkillBase(Skills.FISHING) +
+    useSkillBase(Skills.FIREMAKING) +
+    useSkillBase(Skills.CRAFTING) +
+    useSkillBase(Skills.SMITHING) +
+    useSkillBase(Skills.MINING) +
+    useSkillBase(Skills.HERBLORE) +
+    useSkillBase(Skills.AGILITY) +
+    useSkillBase(Skills.THIEVING) +
+    useSkillBase(Skills.SLAYER) +
+    useSkillBase(Skills.FARMING) +
+    useSkillBase(Skills.RUNECRAFT) +
+    useSkillBase(Skills.HUNTER) +
+    useSkillBase(Skills.CONSTRUCTION) +
+    useSkillBase(Skills.SAILING)
+  );
+}
+
+export function totalXpText(): String {
+  let billions: Int = 0;
+  let rest: Int = 0;
+  let skill: Skill = Skills.ATTACK;
+  while (skill <= Skills.SAILING) {
+    rest = rest + CS2.skill_visible_xp(skill);
+    while (rest >= BILLION) {
+      rest = rest - BILLION;
+      billions = billions + 1;
+    }
+    skill = (skill + 1) as Skill;
+  }
+  if (billions === 0) {
+    return groupDigits(rest, ',');
+  }
+  return `${groupDigits(billions, ',')},${padGroup(rest / 1000000)},${padGroup(rest % 1000000 / 1000)},${padGroup(rest % 1000)}`;
+}
+
+export function f2pTotalLevel(): Int {
+  return useSkillBase(Skills.ATTACK) +
+    useSkillBase(Skills.STRENGTH) +
+    useSkillBase(Skills.RANGED) +
+    useSkillBase(Skills.MAGIC) +
+    useSkillBase(Skills.DEFENCE) +
+    useSkillBase(Skills.HITPOINTS) +
+    useSkillBase(Skills.PRAYER) +
+    useSkillBase(Skills.CRAFTING) +
+    useSkillBase(Skills.RUNECRAFT) +
+    useSkillBase(Skills.MINING) +
+    useSkillBase(Skills.SMITHING) +
+    useSkillBase(Skills.FISHING) +
+    useSkillBase(Skills.COOKING) +
+    useSkillBase(Skills.FIREMAKING) +
+    useSkillBase(Skills.WOODCUTTING);
+}

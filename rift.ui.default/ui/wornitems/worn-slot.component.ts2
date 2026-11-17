@@ -1,0 +1,71 @@
+import { CS2, itemOp, param, useInventory, useRef } from 'ts2';
+import { EquipSlotButton } from './equip-slot-button.component';
+import { SlotColors } from './wornitems.constants';
+import { EXAMINE, itemName, membersWorld } from '../lib/lib.engine';
+import { flashFor } from '../lib/lib.components';
+import { ExternalInventories, GameProperties } from '../game-assets';
+
+const OP_REMOVE = 'Remove';
+
+enum ItemFlash {
+  PRESSED = 100,
+  REST = 0,
+}
+
+function offersWornOps(held: Item): Boolean {
+  if (membersWorld()) {
+    return true;
+  }
+  return CS2.item_members(held) === 0;
+}
+
+export function WornSlot({ slot }: { slot: Int }): Component {
+  const worn = useInventory(ExternalInventories.worn_equipment);
+  const icon = useRef();
+
+  const held: Item = worn[slot];
+
+  return (
+    <layer
+      w="fill"
+      h="fill"
+      shows={ExternalInventories.worn_equipment}
+      optionSubject={held !== -1 ? itemName(held) : ''}
+      options={
+        held !== -1
+          ? [
+              OP_REMOVE,
+              offersWornOps(held) ? itemOp('worn', 1, held) : '',
+              offersWornOps(held) ? itemOp('worn', 2, held) : '',
+              offersWornOps(held) ? itemOp('worn', 3, held) : '',
+              offersWornOps(held) ? itemOp('worn', 4, held) : '',
+              offersWornOps(held) ? itemOp('worn', 5, held) : '',
+              offersWornOps(held) ? itemOp('worn', 6, held) : '',
+              offersWornOps(held) ? itemOp('worn', 7, held) : '',
+              offersWornOps(held) ? itemOp('worn', 8, held) : '',
+              param(held, GameProperties.has_examine) ? EXAMINE : '',
+            ]
+          : []
+      }
+      spellTarget
+      onOptionSelect={() => {
+        flashFor(icon, ItemFlash.PRESSED, ItemFlash.REST);
+      }}
+    >
+      <EquipSlotButton slot={slot} />
+      {held !== -1 && (
+        <sprite
+          ref={icon}
+          x={2}
+          y={2}
+          w={36}
+          h={32}
+          item={held}
+          itemCount={worn.count(slot)}
+          outline={1}
+          shadowColor={SlotColors.ITEM_SHADOW}
+        />
+      )}
+    </layer>
+  );
+}

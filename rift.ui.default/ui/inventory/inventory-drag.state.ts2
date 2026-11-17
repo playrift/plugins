@@ -1,0 +1,13 @@
+import { sessionState, useState } from 'ts2';
+
+export const inventoryDragging = sessionState(0);
+
+export function showEmptySlots(): void {
+  const [, setDragging] = useState(inventoryDragging);
+  setDragging(1);
+}
+
+export function hideEmptySlots(): void {
+  const [, setDragging] = useState(inventoryDragging);
+  setDragging(0);
+}

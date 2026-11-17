@@ -1,0 +1,74 @@
+import { CS2 } from 'ts2';
+import { SteelBorderProps, SteelborderFont, SteelborderSprite } from './lib.constants';
+import { closeInterface, onMobile } from './lib.helpers';
+import { hasBit } from '../lib/lib.engine';
+import { GameFonts, GameSprites } from '../game-assets';
+
+export function SteelBorder({ title, titleColor, flags, children }: SteelBorderProps): Component {
+  const mobile = onMobile();
+
+  return (
+    <layer w="fill" h="fill">
+      {hasBit(flags, 3) ? (
+        <sprite
+          x="center"
+          y="center"
+          w={{ fill: 2 }}
+          h={{ fill: 2 }}
+          sprite={GameSprites.tradebacking}
+          tiling
+          transparency={120}
+        />
+      ) : (
+        <sprite x="center" y="center" w={{ fill: 2 }} h={{ fill: 2 }} sprite={GameSprites.tradebacking} tiling />
+      )}
+
+      <text
+        x="center"
+        y={6}
+        w={{ fill: 12 }}
+        h={24}
+        text={title}
+        align="center"
+        valign="middle"
+        shadow
+        color={titleColor}
+        font={GameFonts.font_496}
+      />
+
+      <sprite x="left" y="top" w={25} h={30} sprite={GameSprites.steelborder_0} tiling />
+      <sprite x="right" y="top" w={25} h={30} sprite={GameSprites.steelborder_1} tiling />
+      <sprite x="left" y="bottom" w={25} h={30} sprite={GameSprites.steelborder_2} tiling />
+      <sprite x="right" y="bottom" w={25} h={30} sprite={GameSprites.steelborder_3} tiling />
+
+      <sprite x={{ left: -15 }} y="center" w={36} h={{ fill: 60 }} sprite={GameSprites.miscgraphics_2} tiling />
+      <sprite x={{ right: -15 }} y="center" w={36} h={{ fill: 60 }} sprite={GameSprites.steelborder2_1} tiling />
+      <sprite x="center" y={{ top: -15 }} w={{ fill: 50 }} h={36} sprite={GameSprites.steelborder2_0} tiling />
+      <sprite x="center" y={{ bottom: -15 }} w={{ fill: 50 }} h={36} sprite={GameSprites.miscgraphics_3} tiling />
+
+      {!hasBit(flags, 2) && (
+        <sprite x="center" y={14} w={{ fill: 10 }} h={26} sprite={GameSprites.steelborder_divider_0} tiling />
+      )}
+
+      {!hasBit(flags, 0) && (
+        <sprite
+          x={{ right: mobile ? 1 : 3 }}
+          y={mobile ? 1 : 6}
+          w={mobile ? 33 : 26}
+          h={mobile ? 33 : 23}
+          sprite={mobile ? GameSprites.steelborder_close_button_0 : GameSprites.close_buttons_0}
+          hover={{ sprite: mobile ? GameSprites.steelborder_close_button_0 : GameSprites.close_buttons_1 }}
+          tiling
+          options={['Close']}
+          onOptionSelect={() => closeInterface()}
+        />
+      )}
+
+      {hasBit(flags, 1) && <sprite x="right" y="bottom" w={8} h={8} sprite={GameSprites.map_resize} tiling />}
+
+      <layer w="fill" h="fill">
+        {children}
+      </layer>
+    </layer>
+  );
+}

@@ -1,0 +1,8 @@
+import { ToplevelResizable } from './toplevel-resizable.component';
+import { controlRef } from './toplevel-resizable.constants';
+
+export const toplevelResizableUi = (): UI => (
+  <ui ref={controlRef} x="center" y="center" w="fill" h="fill">
+    <ToplevelResizable />
+  </ui>
+);

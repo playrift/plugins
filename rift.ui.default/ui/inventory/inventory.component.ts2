@@ -1,0 +1,138 @@
+import { CS2, inventory, param, predictServerState, useDerived, useInventory, useState } from 'ts2';
+
+import { EXAMINE, itemName } from '../lib/lib.engine';
+import { flashFor } from '../lib/lib.components';
+import { InventoryHighlights } from './inventory-highlight.component';
+import {
+  Fade,
+  InventoryLayout,
+  OP_BASE_PREFIX,
+  OP_BASE_SUFFIX,
+  OpPriority,
+  SlotStyle,
+  USE,
+} from './inventory.constants';
+import { opPriority, opSlot, shiftClickDropActive, shiftHeld, swapSlot } from './inventory.helpers';
+import { tapToDropOn } from './inventory.drop-modes';
+import { hideEmptySlots, inventoryDragging, showEmptySlots } from './inventory-drag.state';
+import { ExternalInventories, ExternalItems, GameProperties } from '../game-assets';
+
+export function Inventory(): Component {
+  const carried = useInventory(ExternalInventories.bag);
+  const shift: Int = useDerived(() => shiftHeld());
+  const tap: Int = useDerived(() => tapToDropOn());
+  const dropSwap: Int = shiftClickDropActive(shift, tap);
+  const [dragging] = useState(inventoryDragging);
+
+  return (
+    <layer w="fill" h="fill" shows={ExternalInventories.bag}>
+      {carried.map((item, slot) => (
+        <InventorySlot
+          item={item}
+          count={carried.count(slot)}
+          slot={slot}
+          dropSwap={dropSwap}
+          dragging={dragging}
+          subject={item !== -1 ? `${OP_BASE_PREFIX}${itemName(item)}${OP_BASE_SUFFIX}` : ''}
+        />
+      ))}
+      <InventoryHighlights forEquipmentSide={0} />
+    </layer>
+  );
+}
+
+function InventorySlot({
+  item,
+  count,
+  slot,
+  dropSwap,
+  dragging,
+  subject,
+}: {
+  item: Item;
+  count: Int;
+  slot: Int;
+  dropSwap: Int;
+  dragging: Int;
+  subject: String;
+}): Component {
+  const x: Int = InventoryLayout.ORIGIN_X + slot % InventoryLayout.COLUMNS * InventoryLayout.COLUMN_PITCH;
+  const y: Int = InventoryLayout.ORIGIN_Y + slot / InventoryLayout.COLUMNS * InventoryLayout.ROW_PITCH;
+
+  if (item === -1) {
+    return (
+      <sprite
+        x={x}
+        y={y}
+        w={InventoryLayout.SLOT_W}
+        h={InventoryLayout.SLOT_H}
+        item={ExternalItems.empty_slot}
+        itemCount={1}
+        transparency={Fade.EMPTY}
+        shadowColor={SlotStyle.SHADOW}
+        outline={SlotStyle.OUTLINE}
+        dragDeadZone={SlotStyle.DRAG_DEAD_ZONE}
+        dragDeadTime={SlotStyle.DRAG_DEAD_TIME}
+        optionPriority={OpPriority.NONE}
+        dragTarget
+        hide={dragging === 0}
+      />
+    );
+  }
+
+  const swap: Int = dropSwap === 1 ? swapSlot(item) : -1;
+  return (
+    <sprite
+      x={x}
+      y={y}
+      w={InventoryLayout.SLOT_W}
+      h={InventoryLayout.SLOT_H}
+      item={item}
+      itemCount={count}
+      transparency={Fade.OPAQUE}
+      shadowColor={SlotStyle.SHADOW}
+      outline={SlotStyle.OUTLINE}
+      dragDeadZone={SlotStyle.DRAG_DEAD_ZONE}
+      dragDeadTime={SlotStyle.DRAG_DEAD_TIME}
+      interactionDepth={1}
+      dragTarget
+      targetVerb={USE}
+      optionPriority={opPriority(item)}
+      optionSubject={subject}
+      options={[
+        swap !== -1 ? inventory(swap, item) : '',
+        swap === 1 ? '' : inventory(1, item),
+        swap === 2 ? '' : inventory(2, item),
+        swap === 3 ? '' : inventory(3, item),
+        '',
+        swap === 4 ? '' : inventory(4, item),
+        swap === 5 ? '' : inventory(5, item),
+        '',
+        '',
+        param(item, GameProperties.has_examine) ? EXAMINE : '',
+      ]}
+      onDrag={() => {
+        showEmptySlots();
+      }}
+      onDragComplete={(event) => {
+        hideEmptySlots();
+
+        if (event.targetSlot !== -1) {
+          predictServerState(ExternalInventories.bag, useInventory(ExternalInventories.bag).swap(event.slot, event.targetSlot));
+        }
+      }}
+      onTargetEnter={(event) => {
+        event.self.outline = SlotStyle.OUTLINE_TARGETED;
+      }}
+      onTargetLeave={(event) => {
+        event.self.outline = SlotStyle.OUTLINE;
+      }}
+      onOptionSelect={(event) => {
+        flashFor(event.self, Fade.PRESSED, Fade.OPAQUE);
+        if (event.option === 1) {
+          CS2.cc_triggerop(opSlot(swapSlot(item)));
+        }
+      }}
+    />
+  );
+}

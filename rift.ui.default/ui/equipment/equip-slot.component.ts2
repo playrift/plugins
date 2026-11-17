@@ -1,0 +1,82 @@
+import { CS2, itemOp, param, useInventory, useRef } from 'ts2';
+
+import { flashFor } from '../lib/lib.components';
+import { EXAMINE, itemName, membersWorld } from '../lib/lib.engine';
+import {
+  Fade,
+  OP_BASE_PREFIX,
+  OP_BASE_SUFFIX,
+  OP_REMOVE,
+  SlotColors,
+  SlotOutline,
+} from './equipment.constants';
+import { SlotIcons } from './tables.data';
+import { ExternalInventories, GameProperties, GameSprites } from '../game-assets';
+
+export function EquipSlot({ slot }: { slot: Int }): Component {
+  const worn = useInventory(ExternalInventories.worn_equipment);
+  const icon = useRef();
+
+  const held: Item = worn[slot];
+
+  let offerable: Boolean = false;
+  if (held !== -1) {
+    if (membersWorld()) {
+      offerable = true;
+    }
+    if (CS2.item_members(held) === 0) {
+      offerable = true;
+    }
+  }
+
+  let subject: String = '';
+  if (held !== -1) {
+    subject = `${OP_BASE_PREFIX}${itemName(held)}${OP_BASE_SUFFIX}`;
+  }
+
+  return (
+    <layer
+      w="fill"
+      h="fill"
+      shows={ExternalInventories.worn_equipment}
+      optionSubject={subject}
+      options={
+        held !== -1
+          ? [
+              OP_REMOVE,
+              offerable ? itemOp('worn', 1, held) : '',
+              offerable ? itemOp('worn', 2, held) : '',
+              offerable ? itemOp('worn', 3, held) : '',
+              offerable ? itemOp('worn', 4, held) : '',
+              offerable ? itemOp('worn', 5, held) : '',
+              offerable ? itemOp('worn', 6, held) : '',
+              offerable ? itemOp('worn', 7, held) : '',
+              offerable ? itemOp('worn', 8, held) : '',
+              param(held, GameProperties.has_examine) ? EXAMINE : '',
+            ]
+          : []
+      }
+      onOptionSelect={() => {
+        flashFor(icon, Fade.SLOT_PRESSED, Fade.SLOT_REST);
+      }}
+    >
+      <sprite x="center" y="center" w={36} h={36} sprite={GameSprites.miscgraphics_0} />
+
+      {held === -1 && <sprite x="center" y="center" w={32} h={32} sprite={SlotIcons.get(slot) ?? -1} />}
+
+      {held !== -1 && (
+        <sprite
+          ref={icon}
+          x={2}
+          y={2}
+          w={36}
+          h={32}
+          item={held}
+          itemCount={worn.count(slot)}
+          outline={SlotOutline.ITEM}
+          shadowColor={SlotColors.ITEM_SHADOW}
+        />
+      )}
+    </layer>
+  );
+}

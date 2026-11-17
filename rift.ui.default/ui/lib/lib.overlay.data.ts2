@@ -1,0 +1,33 @@
+import { ToplevelComponents } from './lib.constants';
+import { GameframeSlot } from './lib.gameframe';
+
+export const OverlayInsetRight = mapOf<Int, Int>([
+  [ToplevelComponents.RESIZABLE, 250],
+  [ToplevelComponents.CLASSIC, 215],
+  [ToplevelComponents.MOBILE, 58],
+]);
+
+export const OverlayInsetBottom = mapOf<Int, Int>([
+  [ToplevelComponents.RESIZABLE, 165],
+  [ToplevelComponents.CLASSIC, 165],
+  [ToplevelComponents.MOBILE, 16],
+]);
+
+export const OverlayInsetLeft = mapOf<Int, Int>([[ToplevelComponents.MOBILE, 58]]);
+
+export const ToplevelPanels = listOf<GameframeSlot>([
+  GameframeSlot.SIDE0,
+  GameframeSlot.SIDE1,
+  GameframeSlot.SIDE2,
+  GameframeSlot.SIDE3,
+  GameframeSlot.SIDE4,
+  GameframeSlot.SIDE5,
+  GameframeSlot.SIDE6,
+  GameframeSlot.SIDE7,
+  GameframeSlot.SIDE8,
+  GameframeSlot.SIDE9,
+  GameframeSlot.SIDE10,
+  GameframeSlot.SIDE11,
+  GameframeSlot.SIDE12,
+  GameframeSlot.SIDE13,
+]);

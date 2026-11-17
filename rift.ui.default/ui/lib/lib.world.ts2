@@ -1,0 +1,9 @@
+import { CS2 } from 'ts2';
+
+export function titleWithWorld(title: String, joiner: String): String {
+  const world: Int = CS2.map_world();
+  if (world === 0) {
+    return title;
+  }
+  return `${title}${joiner}${CS2.tostring(world)}`;
+}

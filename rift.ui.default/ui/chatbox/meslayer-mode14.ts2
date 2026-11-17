@@ -1,0 +1,137 @@
+import { CS2, useState } from 'ts2';
+import { meslayerinput, objdialogUpdatedelay } from '../lib/game/varcs';
+import { onMobile } from '../lib/lib.helpers';
+import { scrollbarVertical, scrollTo } from '../lib/scrollbar-vertical.skins';
+import { mesLayerRef, mesListRef, mesScrollAreaRef, mesScrollBarRef, mesText2Ref } from './chatbox.constants';
+import {
+  KEYBOARD_STRING,
+  keyboardShow,
+  meslayerClose,
+  meslayerEcho,
+  meslayerOnDialogAbort,
+  meslayerOnKey,
+  meslayerOpen,
+} from './meslayer';
+import { mode14Call, mode14Filter, mode14Searched, mode14Tradeable } from './meslayer-mode14.state';
+import { GameSounds, GameSprites } from '../game-assets';
+
+const SIZE_ABS = 0;
+const SIZE_MINUS = 1;
+const KEY_ENTER = 84;
+const SEARCH_LIMIT = 25;
+export const MESLAYER_MODE_ITEM_SEARCH = 14;
+
+export const MODE14_IDLE = 0;
+export const MODE14_START = 1;
+export const MODE14_TOO_MANY = 2;
+export const MODE14_NONE = 3;
+export const MODE14_GRID = 4;
+
+export function meslayerMode14(prefix: String, tradeable: Boolean, filter: Enum): void {
+  meslayerOpen(MESLAYER_MODE_ITEM_SEARCH);
+  mesListRef.hide = false;
+  scrollbarVertical(
+    mesScrollBarRef,
+    mesScrollAreaRef,
+    GameSprites.scrollbar_dragger_v2_3,
+    GameSprites.scrollbar_dragger_v2_0,
+    GameSprites.scrollbar_dragger_v2_1,
+    GameSprites.scrollbar_dragger_v2_2,
+    GameSprites.scrollbar_v2_0,
+    GameSprites.scrollbar_v2_1,
+  );
+  meslayerEcho(prefix);
+  mesText2Ref.onKey = (event) => meslayerOnKey(event.keyCode, event.keyChar, prefix);
+  meslayerMode14Update(tradeable, filter);
+  mesLayerRef.onTimer = () => meslayerMode14UpdateEntrypoint(tradeable, filter);
+  CS2.if_on_dialog_abort_set(() => meslayerOnDialogAbort(), mesText2Ref);
+  if (onMobile()) {
+    keyboardShow(KEYBOARD_STRING, SEARCH_LIMIT);
+  }
+}
+
+export function meslayerMode14UpdateEntrypoint(tradeable: Boolean, filter: Enum): void {
+  const [delay, setDelay] = useState(objdialogUpdatedelay);
+  if (delay <= 0) {
+    return;
+  }
+  const left: Int = delay - 1;
+  setDelay(left);
+  if (left <= 0) {
+    meslayerMode14Update(tradeable, filter);
+  }
+}
+
+export function meslayerMode14Update(tradeable: Boolean, filter: Enum): void {
+  const [, setDelay] = useState(objdialogUpdatedelay);
+  setDelay(0);
+  const [typed] = useState(meslayerinput);
+  const [, setSearched] = useState(mode14Searched);
+  setSearched(typed);
+  const [, setTradeable] = useState(mode14Tradeable);
+  setTradeable(tradeable ? 1 : 0);
+  const [, setFilter] = useState(mode14Filter);
+  setFilter(filter as Int);
+  const [call, setCall] = useState(mode14Call);
+  setCall(call + 1);
+}
+
+export function meslayerMode14Apply(active: Boolean, status: Int, extent: Int): void {
+  if (!active) {
+    return;
+  }
+  if (status === MODE14_GRID && extent > mesScrollAreaRef.height!) {
+    mesScrollAreaRef.props = { scrollHeight: extent };
+    const kept: Int = mesScrollAreaRef.scrollY!;
+    scrollbarResize(kept);
+    return;
+  }
+  mesScrollAreaRef.props = { scrollY: 0, scrollHeight: 0 };
+  scrollbarResize(0);
+}
+
+export function offered(item: Item, tradeable: Boolean, filter: Enum): Boolean {
+  if (filter !== -1) {
+    const listed: Map<Item, Boolean> = filter as Map<Item, Boolean>;
+    if (!(listed.get(item) ?? false)) {
+      return false;
+    }
+  }
+  if (tradeable && deadmanRestrictedItem(item)) {
+    return false;
+  }
+  return true;
+}
+
+export function meslayerMode14Select(item: Item, keycode: Int): void {
+  if (keycode !== KEY_ENTER) {
+    return;
+  }
+  CS2.itemdialog_resume(item as Int);
+  CS2.sound_effect(GameSounds.interface_select1, 1, 0);
+  meslayerClose(true, true, true);
+}
+
+export function deadmanRestrictedItem(item: Item): Boolean {
+  return item.deadmanRestriction !== 0;
+}
+
+function scrollbarResize(to: Int): void {
+  let extent: Int = CS2.if_scroll_height_get(mesScrollAreaRef);
+  if (extent <= 0) {
+    extent = CS2.if_height_get(mesScrollAreaRef);
+  }
+  let span: Int = 0;
+  if (extent > 0) {
+    span = (CS2.if_height_get(mesScrollBarRef) - 32) * CS2.if_height_get(mesScrollAreaRef) / extent;
+  } else {
+    span = CS2.if_height_get(mesScrollBarRef) - 32;
+  }
+  if (span < 10) {
+    span = 10;
+  }
+  if (CS2.cc_find(mesScrollBarRef, 1)) {
+    CS2.cc_size_set(0, span, SIZE_MINUS, SIZE_ABS);
+    scrollTo(mesScrollBarRef, mesScrollAreaRef, to, 1);
+  }
+}

@@ -1,0 +1,78 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, useServerState, useState } from 'ts2';
+import { keybindPanel } from '../toplevel_resizable/toplevel-resizable.keys';
+import { chatmodalRef } from '../chatbox/chatbox.constants';
+import { Panel } from '../toplevel/toplevel.constants';
+import { deselectsOpenTab, switchSidePanel } from '../toplevel/toplevel.helpers';
+import { meslayermode, toplevelPanel } from '../lib/game/varcs';
+import { ToplevelComponents } from '../lib/lib.constants';
+import { dialogueMayAdvance } from '../lib/lib.dialogue';
+import { SideSlots, controlRef, floaterRef, mainmodalRef, sidemodalRef } from './toplevel-classic.constants';
+import { classicToplevelInit } from './toplevel-classic.helpers';
+import { rendererNoticeBuild } from '../lib/enhanced/renderer-notice.component';
+
+export function classicKeypress(key: Int): void {
+  if (dialogueMayAdvance(-1, -1) === false) {
+    return;
+  }
+  if (key === Keys.ESCAPE) {
+    const [mode] = useState(meslayermode);
+    if (mode === 14 || mode === 17 || mode === 18 || mode === 11) {
+      return;
+    }
+    if (useServerState(Game.keybinding_esc_to_close) === 1) {
+      if (CS2.if_sub_has(floaterRef)) {
+        return;
+      }
+      if (classicMountOpen(Panel.INVENTORY) && CS2.if_sub_has(mainmodalRef)) {
+        CS2.if_close();
+        return;
+      }
+      if (classicMountOpen(Panel.INVENTORY) && CS2.if_sub_has(sidemodalRef)) {
+        CS2.if_close();
+        return;
+      } else if (CS2.if_sub_has(chatmodalRef)) {
+        CS2.if_close();
+        return;
+      }
+    }
+  }
+  const panel: Int = keybindPanel(key);
+  if (panel === -1 || panel === useServerState(Game.flashside) - 1) {
+    return;
+  }
+  if (classicMountOpen(panel)) {
+    classicTabHotkey(panel);
+  }
+}
+
+function classicTabHotkey(panel: Int): void {
+  let target: Int = panel;
+  const [selected] = useState(toplevelPanel);
+  if (
+    useServerState(Game.hotkey_cannot_close_sidepanel) === 0 &&
+    selected === panel &&
+    deselectsOpenTab(ToplevelComponents.CLASSIC)
+  ) {
+    target = Panel.NONE;
+  }
+  switchSidePanel(target, 0, true);
+}
+
+function classicMountOpen(panel: Int): Boolean {
+  const slot: ComponentId = SideSlots.at(panel) ?? -1;
+  if (slot !== -1 && CS2.if_sub_has(slot)) {
+    return true;
+  }
+  return false;
+}
+
+enum Keys {
+  ESCAPE = 13,
+}
+
+export function classicToplevelLoad(): void {
+  classicToplevelInit();
+  controlRef.onKey = (event) => classicKeypress(event.keyCode);
+  rendererNoticeBuild();
+}

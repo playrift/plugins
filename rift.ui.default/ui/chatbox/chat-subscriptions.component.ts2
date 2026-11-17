@@ -1,0 +1,157 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, Engine, onMounted, onUpdated, useInterval, useRef, useState, useWatch } from 'ts2';
+
+import { chatForceChatboxRebuild, chatLastbroadcastTime, chatView, mobileChatboxDisabled } from '../lib/game/varcs';
+import { rebuildPmbox } from '../pm_chat/pm-chat.helpers';
+import { chatboxTimerArmed } from '../pm_chat/pm-chat.state';
+import { newestChatUid } from './chatout';
+import { chatAlertSet } from './chat-buttons';
+import { chatTransmit } from './chat-messages.helpers';
+import { chatboxRelayout, rebuildChatbox } from './chatbox-chrome';
+import { chatboxVarTransmit } from './chatbox.init';
+import { chatboxAreaRef, chatmodalRef, chatoverlayRef, crmspaceRef } from './chatbox.constants';
+import { ChatTab } from './chatbox.data';
+import { CHAT_DISABLED_UNSEEN, chatDisabledApplied } from './chatbox.state';
+
+export function ChatSubscriptions(): Component {
+  const host = useRef();
+
+  const [chatDisabled] = useState(mobileChatboxDisabled);
+  let chatOff: Boolean = false;
+  if (chatDisabled === 1) {
+    chatOff = true;
+  }
+
+  useWatch(Engine.SUB_CHANGE, () => chatMountsChanged());
+
+  useWatch(
+    [
+      Game.chat_filter_clan,
+      Game.chat_filter_assist,
+      Game.toplevel_temp,
+      Game.option_chat_colour_public_opaque,
+      Game.option_chat_colour_private_opaque,
+      Game.option_chat_colour_autochat_opaque,
+      Game.option_chat_colour_broadcast_opaque,
+      Game.option_chat_colour_friendschat_opaque,
+      Game.option_chat_colour_clanchat_opaque,
+      Game.option_chat_colour_tradereq_opaque,
+      Game.option_chat_colour_challengereq_opaque,
+      Game.option_chat_colour_clanbroadcast_opaque,
+      Game.option_chat_colour_public_transparent,
+      Game.option_chat_colour_private_transparent,
+      Game.option_chat_colour_autochat_transparent,
+      Game.option_chat_colour_broadcast_transparent,
+      Game.option_chat_colour_friendschat_transparent,
+      Game.option_chat_colour_clanchat_transparent,
+      Game.option_chat_colour_tradereq_transparent,
+      Game.option_chat_colour_challengereq_transparent,
+      Game.option_chat_colour_clanbroadcast_transparent,
+      Game.option_chat_colour_private_split,
+      Game.option_chat_colour_broadcast_split,
+      Game.option_chat_colour_didyouknow_opaque,
+      Game.option_chat_colour_didyouknow_transparent,
+    ],
+    () => chatboxVarTransmit(),
+    host,
+  );
+
+  useWatch(
+    Engine.CHAT,
+    () => {
+      rebuildChatbox();
+      rebuildPmbox();
+      chatTransmit();
+    },
+    host,
+  );
+  useWatch(
+    Engine.FRIENDS,
+    () => {
+      rebuildChatbox();
+      rebuildPmbox();
+      chatTransmit();
+    },
+    host,
+  );
+
+  useWatch(Engine.MISC, () => chatboxTimer(1), host);
+  useInterval(() => chatboxTimer(0), host);
+
+  onMounted(() => chatToggleChanged(chatOff));
+  onUpdated(() => chatToggleChanged(chatOff));
+
+  return <layer ref={host} x={0} y={0} w={1} h={1} />;
+}
+
+const CHATBOX_TIMER_PERIOD = 25;
+const BROADCAST_FRESH = 3000;
+
+function chatboxTimer(force: Int): void {
+  const clock: Int = CS2.clientclock();
+  const [forceAt] = useState(chatForceChatboxRebuild);
+  const [lastBroadcast] = useState(chatLastbroadcastTime);
+  const [armed, setArmed] = useState(chatboxTimerArmed);
+  const pending: Boolean = forceAt > clock || CS2.reboottimer() > 0 || lastBroadcast > clock - BROADCAST_FRESH;
+  if (force !== 1 && armed === 0 && !pending) {
+    return;
+  }
+  if (force !== 1 && clock !== forceAt && clock % CHATBOX_TIMER_PERIOD !== 0) {
+    return;
+  }
+  newestChatUid();
+  if (clock === forceAt) {
+    rebuildChatbox();
+  }
+  rebuildPmbox();
+  const [lastBroadcastNow] = useState(chatLastbroadcastTime);
+  const keep: Int = forceAt > clock || CS2.reboottimer() > 0 || lastBroadcastNow > clock - BROADCAST_FRESH ? 1 : 0;
+  if (keep !== armed) {
+    setArmed(keep);
+  }
+}
+
+export function chatMountsChanged(): void {
+  const modalOpen: Boolean = CS2.if_sub_has(chatmodalRef);
+  const overlayOpen: Boolean = CS2.if_sub_has(chatoverlayRef);
+
+  let hideModal: Boolean = true;
+  let hideOverlay: Boolean = true;
+  let hideChat: Boolean = true;
+  if (modalOpen) {
+    hideModal = false;
+  } else if (overlayOpen) {
+    hideOverlay = false;
+  } else {
+    hideChat = false;
+  }
+
+  chatmodalRef.hide = hideModal;
+  chatoverlayRef.hide = hideOverlay;
+  crmspaceRef.hide = hideChat;
+  chatboxAreaRef.hide = hideChat;
+}
+
+export function chatToggleChanged(off: Boolean): void {
+  const [applied, setApplied] = useState(chatDisabledApplied);
+  const [view] = useState(chatView);
+
+  let now: Int = 0;
+  if (off) {
+    now = 1;
+  }
+  if (applied === now) {
+    return;
+  }
+  const first: Boolean = applied === CHAT_DISABLED_UNSEEN;
+  setApplied(now);
+  if (first) {
+    return;
+  }
+
+  if (!off && view === ChatTab.ALL) {
+    chatAlertSet(ChatTab.ALL, 0);
+  }
+
+  chatboxRelayout();
+}

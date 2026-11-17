@@ -1,0 +1,56 @@
+export enum Panel {
+  NONE = -1,
+  COMBAT = 0,
+  SKILLS = 1,
+  JOURNAL = 2,
+  INVENTORY = 3,
+  EQUIPMENT = 4,
+  PRAYER = 5,
+  MAGIC = 6,
+  CHANNELS = 7,
+  ACCOUNT = 8,
+  FRIENDS = 9,
+  LOGOUT = 10,
+  SETTINGS = 11,
+  EMOTES = 12,
+  MUSIC = 13,
+  COUNT = 14,
+}
+
+export const Stone = {
+  H: 36,
+  NARROW: 33,
+  WIDE: 38,
+  ICON_W: 33,
+};
+
+export const Resize = {
+  DEBUG_UNDER_XPDROPS: 38,
+  MODAL_W: 512,
+  MODAL_H: 334,
+  MODAL_TALL: -2,
+  MODAL_FILL: -3,
+  MOBILE_MINIMAP: 181,
+  MOBILE_MINIMAP_COLLAPSED: 84,
+  MOBILE_DEBUG_PAD: 4,
+};
+
+export const Multiway = {
+  RIGHT: 15,
+  BOTTOM: 13,
+  BOTTOM_WITH_GRAVE: 17,
+};
+
+export const Grave = {
+  LONG: 1500,
+  TICKS_PER_UNIT: 30,
+  MAX_STEP: 90,
+  PER_SECOND: 50,
+  DIM: 0x9f9f9f,
+  ICON_SIZE: 13,
+  ICON_Y: 1,
+};
+
+export enum NoSprite {
+  NONE = -1,
+}

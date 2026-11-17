@@ -1,0 +1,60 @@
+import { GameSprites } from '../game-assets';
+export const SidePanelOps = listOf<String>([
+  'Combat Options',
+  'Skills',
+  '*',
+  'Inventory',
+  'Worn Equipment',
+  'Prayer',
+  'Magic',
+  '*',
+  'Account Management',
+  '*',
+  'Logout',
+  'Settings',
+  'Emotes',
+  'Music Player',
+]);
+
+export enum TabGroup {
+  LEFT = 0,
+  RIGHT = 1,
+  LOGOUT = 2,
+}
+
+export interface MobileTabRow {
+  readonly group: TabGroup;
+  readonly row: Int;
+  readonly icon: Sprite;
+  readonly highlight: Sprite;
+  readonly expansion: Int;
+}
+
+export const MobileTabs = listOf<MobileTabRow>([
+  { group: TabGroup.LEFT, row: 4, icon: GameSprites.side_icons_0, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 0 },
+  { group: TabGroup.RIGHT, row: 0, icon: GameSprites.side_icons_1, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+  { group: TabGroup.LEFT, row: 5, icon: GameSprites.side_icons_2, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 0 },
+  { group: TabGroup.LEFT, row: 0, icon: GameSprites.side_icons_3, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 0 },
+  { group: TabGroup.LEFT, row: 1, icon: GameSprites.side_icons_4, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 0 },
+  { group: TabGroup.LEFT, row: 2, icon: GameSprites.side_icons_5, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 0 },
+  { group: TabGroup.LEFT, row: 3, icon: GameSprites.side_icons_6, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 0 },
+  { group: TabGroup.RIGHT, row: 3, icon: GameSprites.side_icons_7, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+  { group: TabGroup.RIGHT, row: 5, icon: GameSprites.side_icons_22, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+  { group: TabGroup.RIGHT, row: 4, icon: GameSprites.side_icons_8, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+  { group: TabGroup.LOGOUT, row: 0, icon: GameSprites.side_icons_39, highlight: GameSprites.tli_button01_rectangle_58x40_2, expansion: 0 },
+  { group: TabGroup.RIGHT, row: 6, icon: GameSprites.side_icons_11, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+  { group: TabGroup.RIGHT, row: 1, icon: GameSprites.side_icons_12, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+  { group: TabGroup.RIGHT, row: 2, icon: GameSprites.side_icons_13, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+]);
+
+export const DESELECTS_OPEN_TAB = true;
+
+export const JournalTabLabels = listOf<String>([
+  'Character Summary',
+  'Quest List',
+  'Achievement Diaries',
+  'Adventure Paths',
+  'Leagues',
+]);
+
+export const JournalTabIcons = listOf<Sprite>([GameSprites.sideicons_interface_30, GameSprites.sideicons_interface_2, GameSprites.sideicons_interface_16, GameSprites.sideicons_interface_23, GameSprites.sideicons_interface_61]);

@@ -1,0 +1,96 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, useServerState, useState } from 'ts2';
+import { chatmodalRef } from '../chatbox/chatbox.constants';
+import { switchSidePanel } from '../toplevel_mobile/toplevel-mobile.helpers';
+import { meslayermode } from '../lib/game/varcs';
+import { dialogueMayAdvance } from '../lib/lib.dialogue';
+import { controlRef, floaterRef, mainmodalRef, sidemodalRef } from './toplevel-resizable.constants';
+import { mountOpen, resizableInit } from './toplevel-resizable.helpers';
+
+export function toplevelKeypress(key: Int): void {
+  if (dialogueMayAdvance(-1, -1) === false) {
+    return;
+  }
+  if (key === Keys.ESCAPE) {
+    const [mode] = useState(meslayermode);
+    if (mode === 14 || mode === 17 || mode === 18 || mode === 11) {
+      return;
+    }
+    if (useServerState(Game.keybinding_esc_to_close) === 1) {
+      if (CS2.if_sub_has(floaterRef)) {
+        return;
+      }
+      if (mountOpen(INVENTORY_PANEL) && CS2.if_sub_has(mainmodalRef)) {
+        CS2.if_close();
+        return;
+      }
+      if (mountOpen(INVENTORY_PANEL) && CS2.if_sub_has(sidemodalRef)) {
+        CS2.if_close();
+        return;
+      } else if (CS2.if_sub_has(chatmodalRef)) {
+        CS2.if_close();
+        return;
+      }
+    }
+  }
+  const panel: Int = keybindPanel(key);
+  if (panel === -1 || panel === useServerState(Game.flashside) - 1) {
+    return;
+  }
+  if (mountOpen(panel)) {
+    sideTabHotkey(panel);
+  }
+}
+
+function sideTabHotkey(panel: Int): void {
+  switchSidePanel(panel, 0);
+}
+
+export function keybindPanel(key: Int): Int {
+  if (key === keyCodeOf(useServerState(Game.stone_combat_key))) return 0;
+  if (key === keyCodeOf(useServerState(Game.stone_stats_key))) return 1;
+  if (key === keyCodeOf(useServerState(Game.stone_journal_key))) return 2;
+  if (key === keyCodeOf(useServerState(Game.stone_inv_key))) return 3;
+  if (key === keyCodeOf(useServerState(Game.stone_worn_key))) return 4;
+  if (key === keyCodeOf(useServerState(Game.stone_prayer_key))) return 5;
+  if (key === keyCodeOf(useServerState(Game.stone_magic_key))) return 6;
+  if (key === keyCodeOf(useServerState(Game.stone_clanchat_key))) return 7;
+  if (key === keyCodeOf(useServerState(Game.stone_friends_key))) return 9;
+  if (key === keyCodeOf(useServerState(Game.stone_account_key))) return 8;
+  if (key === keyCodeOf(useServerState(Game.stone_options1_key))) return 11;
+  if (key === keyCodeOf(useServerState(Game.stone_options2_key))) return 12;
+  if (key === keyCodeOf(useServerState(Game.stone_music_key))) return 13;
+  if (key === keyCodeOf(useServerState(Game.stone_logout_key))) return 10;
+  return -1;
+}
+
+function keyCodeOf(setting: Int): Int {
+  return KeybindKeyCodes.get(setting) ?? 0;
+}
+
+const KeybindKeyCodes = mapOf<Int, Int>([
+  [1, 1],
+  [2, 2],
+  [3, 3],
+  [4, 4],
+  [5, 5],
+  [6, 6],
+  [7, 7],
+  [8, 8],
+  [9, 9],
+  [10, 10],
+  [11, 11],
+  [12, 12],
+  [13, 13],
+]);
+
+enum Keys {
+  ESCAPE = 13,
+}
+
+const INVENTORY_PANEL = 3;
+
+export function resizableLoad(): void {
+  resizableInit();
+  controlRef.onKey = (event) => toplevelKeypress(event.keyCode);
+}

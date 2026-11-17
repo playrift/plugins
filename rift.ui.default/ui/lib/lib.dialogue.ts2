@@ -1,0 +1,55 @@
+import { Game } from './game/server-states';
+import { useServerState, useState } from 'ts2';
+import { CS2 } from 'ts2';
+
+import { GameframeSlot, gameframeSlot } from './lib.gameframe';
+import {
+  keyboardTimeout,
+  worldmapSearching,
+  displaynameInputListening,
+  craftingListening,
+} from './game/varcs';
+import { chatmodalRef, chatoverlayRef, mesLayerRef } from '../chatbox/chatbox.constants';
+
+enum Allowed {
+  WORLDMAP = 595,
+  BANK = 134,
+  BANK_SIDE = 621,
+  DISPLAYNAME = 558,
+  CRAFTING = 446,
+  CRAFTING_ALT = 6,
+}
+
+export function dialogueMayAdvance(top: Interface, sub: Interface): Boolean {
+  const [timeout] = useState(keyboardTimeout);
+  if (timeout > CS2.clientclock()) return false;
+
+  const [worldmap] = useState(worldmapSearching);
+  const [displayname] = useState(displaynameInputListening);
+  const [crafting] = useState(craftingListening);
+
+  if (CS2.if_sub_has(gameframeSlot(GameframeSlot.SUB_MOUNT))) {
+    if (worldmap === 1 && sub !== Allowed.WORLDMAP) return false;
+    if (
+      useServerState(Game.floater_search_listen_for_keyboard) === 1 &&
+      useServerState(Game.floater_is_searching) === 1 &&
+      sub !== Allowed.BANK &&
+      sub !== Allowed.BANK_SIDE
+    ) {
+      return false;
+    }
+  }
+
+  if (CS2.if_sub_has(gameframeSlot(GameframeSlot.VIEWPORT))) {
+    if (displayname === 1 && top !== Allowed.DISPLAYNAME) return false;
+    if (
+      CS2.if_sub_has(chatmodalRef) === false &&
+      CS2.if_sub_has(chatoverlayRef) === false &&
+      CS2.if_hide_get(mesLayerRef) === true
+    ) {
+      if (crafting === 1 && top !== Allowed.CRAFTING && top !== Allowed.CRAFTING_ALT) return false;
+    }
+  }
+
+  return true;
+}

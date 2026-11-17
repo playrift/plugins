@@ -1,0 +1,10 @@
+format = 1
+uid = "uid://178f828248df8489"
+
+[[node]]
+name = "empty_slot"
+type = "Item"
+id = 1
+
+  [node.Identity]
+  name = "Empty slot"

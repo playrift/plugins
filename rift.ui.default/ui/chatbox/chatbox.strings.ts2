@@ -1,0 +1,93 @@
+import { CS2 } from 'ts2';
+
+export function boolToInt(value: Boolean): Int {
+  return value ? 1 : 0;
+}
+
+export function stringToInt(text: String): Int {
+  return stringToIntLimit(text, -1);
+}
+
+export function stringIsNullOrEmpty(text: String): Boolean {
+  if (CS2.compare(text, 'null') === 0 || CS2.compare(text, '') === 0) {
+    return true;
+  }
+  return false;
+}
+
+export function stringTrimLeft(text: String): String {
+  let at: Int = 0;
+  const length: Int = CS2.string_length(text);
+  while (at < length) {
+    if (CS2.compare(CS2.substring(text, at, at + 1), ' ') !== 0) {
+      return CS2.substring(text, at, length);
+    }
+    at = at + 1;
+  }
+  return '';
+}
+
+export function stringTrimRight(text: String): String {
+  let at: Int = CS2.string_length(text);
+  while (at > 0) {
+    if (CS2.compare(CS2.substring(text, at - 1, at), ' ') !== 0) {
+      return CS2.substring(text, 0, at);
+    }
+    at = at - 1;
+  }
+  return '';
+}
+
+export function stringTrim(text: String): String {
+  return stringTrimLeft(stringTrimRight(text));
+}
+
+export function hasModCrown(name: String): Boolean {
+  if (CS2.string_indexof_string(name, '<img=1>', 0) === 0 || CS2.string_indexof_string(name, '<img=0>', 0) === 0) {
+    return true;
+  }
+  return false;
+}
+
+const MAX_32BIT_INT = 2147483647;
+
+export function stringToIntLimit(text: String, limit: Int): Int {
+  let negative: Boolean = false;
+  let body: String = text;
+
+  if (body.indexOf('-', 0) === 0) {
+    negative = true;
+    body = body.substring(1, body.length);
+  }
+
+  let digits: Int = body.length;
+  if (limit !== -1 && limit > 0) {
+    digits = Math.min(limit, digits);
+  }
+
+  let total: Int = 0;
+
+  if (digits > 10 || (digits === 10 && stringToIntLimit(body, 1) > 2)) {
+    total = MAX_32BIT_INT;
+  } else {
+    let at: Int = 0;
+    while (at < digits) {
+      const digit: Int = '0123456789'.indexOf(body.substring(at, at + 1), 0);
+      if (digit !== -1) {
+        const place: Int = digit * Math.pow(10, digits - 1 - at);
+        if (MAX_32BIT_INT - place < total) {
+          total = MAX_32BIT_INT;
+          at = digits;
+        } else {
+          total = total + place;
+        }
+      }
+      at = at + 1;
+    }
+  }
+
+  if (negative) {
+    return 0 - total;
+  }
+  return total;
+}

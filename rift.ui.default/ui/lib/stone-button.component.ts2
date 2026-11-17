@@ -1,0 +1,19 @@
+import { Frame } from './frame.component';
+import { GameSprites } from '../game-assets';
+
+export function StoneButton({ children }: { children?: Children }): Component {
+  return (
+    <Frame
+      topLeft={GameSprites.v2_stone_button_0}
+      topRight={GameSprites.v2_stone_button_1}
+      bottomLeft={GameSprites.v2_stone_button_2}
+      bottomRight={GameSprites.v2_stone_button_3}
+      left={GameSprites.v2_stone_button_4}
+      top={GameSprites.v2_stone_button_5}
+      right={919}
+      bottom={920}
+    >
+      {children}
+    </Frame>
+  );
+}

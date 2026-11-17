@@ -1,0 +1,715 @@
+import { Game } from './game/server-states';
+import { CS2, useServerState, useState } from 'ts2';
+
+import { scaled } from './lib.engine';
+import { onMobile, toplevelComponents } from './lib.helpers';
+import { ToplevelComponents } from './lib.constants';
+import { GameframeSlot, gameframeSlot } from './lib.gameframe';
+import { OverlayInsetBottom, OverlayInsetLeft, OverlayInsetRight, ToplevelPanels } from './lib.overlay.data';
+import {
+  buffBarDodgerUpdate,
+  chatView,
+  dodgedCornerBoxBottom,
+  dodgedCornerBoxCorner,
+  dodgedCornerBoxStep,
+  dodgerHudToDodge,
+  dodgerHudToDodgeAlign,
+  dodgerTracker,
+  mobileChatboxDisabled,
+  mobileChatboxFiltersDisabled,
+  mobileDeadsides,
+  mobileSidepanelOnLeft,
+  mobileTabExpansionDisabled,
+  mobileTlidodgersUpdate,
+  toplevelPanel,
+} from './game/varcs';
+
+import { chatmodalRef, chatoverlayRef, mesLayerRef } from '../chatbox/chatbox.constants';
+import { pmChatLinesHeight } from '../pm_chat/pm-chat.state';
+import { mobileFullscreenMode, mobileSideModalOpen } from './lib.toplevel';
+import { enhancedMouseoverAvailable } from './lib.client';
+
+/** Records the corner box that overlays dodge. */
+export function registerCornerBox(bottom: Int, corner: Int, step: Int): void {
+  const [, setBottom] = useState(dodgedCornerBoxBottom);
+  const [, setCorner] = useState(dodgedCornerBoxCorner);
+  const [, setStep] = useState(dodgedCornerBoxStep);
+  setBottom(bottom);
+  setCorner(corner);
+  setStep(step);
+}
+
+export function cornerBoxBottom(): Int {
+  const [bottom] = useState(dodgedCornerBoxBottom);
+  return bottom;
+}
+
+export function cornerBoxCorner(): Int {
+  const [corner] = useState(dodgedCornerBoxCorner);
+  return corner;
+}
+
+export function cornerBoxStep(): Int {
+  const [step] = useState(dodgedCornerBoxStep);
+  return step;
+}
+
+const enum Previous {
+  NONE = -2147483648,
+}
+
+/** Position anchors. */
+export enum Anchor {
+  LEFT = 0,
+  CENTRE = 1,
+  RIGHT = 2,
+  TOP = 0,
+  BOTTOM = 2,
+}
+
+const enum SizeMode {
+  ABS = 0,
+  MINUS = 1,
+}
+
+/** What an overlay dodges. */
+export enum OverlayDodge {
+  MOBILE_SIDE_STRIP = 2,
+  MOBILE_MINIMAP = 4,
+  MOBILE_CHATBOX = 8,
+  SAFE_AREA_CLAMPED = 16,
+  HELPER_CONTENT = 64,
+  XP_DROPS = 128,
+  XP_DROPS_IF_ENABLED = 512,
+  MOUSEOVER_TEXT = 1024,
+  GAMEFRAME_EDGES = 4096,
+  SAFE_AREA = 8192,
+  CHAT_LINES = 16384,
+  REGISTER_AS_HUD = 65536,
+  DODGE_REGISTERED_HUD = 131072,
+  EXTRA_GAP = -2147483648,
+}
+
+export enum HelperDodges {
+  DESKTOP = OverlayDodge.MOBILE_CHATBOX |
+    OverlayDodge.XP_DROPS |
+    OverlayDodge.XP_DROPS_IF_ENABLED |
+    OverlayDodge.MOUSEOVER_TEXT |
+    OverlayDodge.GAMEFRAME_EDGES |
+    OverlayDodge.CHAT_LINES |
+    OverlayDodge.DODGE_REGISTERED_HUD |
+    OverlayDodge.EXTRA_GAP,
+  MOBILE = OverlayDodge.MOBILE_CHATBOX |
+    OverlayDodge.XP_DROPS |
+    OverlayDodge.XP_DROPS_IF_ENABLED |
+    OverlayDodge.MOUSEOVER_TEXT |
+    OverlayDodge.CHAT_LINES |
+    OverlayDodge.DODGE_REGISTERED_HUD |
+    OverlayDodge.EXTRA_GAP,
+}
+
+export function dodges(flags: Int, flag: Int): Boolean {
+  return (flags & flag) !== 0;
+}
+
+/** Whether a layout is the mobile gameframe. */
+export function mobileGameframe(layout: Int): Boolean {
+  if (layout === ToplevelComponents.MOBILE) {
+    return true;
+  }
+  return false;
+}
+
+export function clampDeadSides(): void {
+  const [deadSides, setDeadSides] = useState(mobileDeadsides);
+  if (deadSides < 0 || deadSides > 2200) {
+    setDeadSides(250);
+  }
+}
+
+export function mobileFullscreenOpen(): Int {
+  if (!onMobile()) {
+    return 0;
+  }
+  const [mode] = useState(mobileFullscreenMode);
+  if (mode === 1) {
+    return 1;
+  }
+  return 0;
+}
+
+export function mobileSidePanelOnLeft(): Int {
+  if (!onMobile()) {
+    return 0;
+  }
+  const [onLeft] = useState(mobileSidepanelOnLeft);
+  if (
+    onLeft === 1 &&
+    useServerState(Game.settings_osm_hotkeys_open_sidepanels_on_left) === 1 &&
+    mobileFullscreenOpen() === 0
+  ) {
+    return 1;
+  }
+  return 0;
+}
+
+export function chatboxOpen(): Int {
+  if (CS2.if_sub_has(chatoverlayRef) || CS2.if_sub_has(chatmodalRef) || !CS2.if_hide_get(mesLayerRef)) {
+    return 0;
+  }
+  const [view] = useState(chatView);
+  if (onMobile()) {
+    const [chatDisabled] = useState(mobileChatboxDisabled);
+    const [filtersDisabled] = useState(mobileChatboxFiltersDisabled);
+    if (chatDisabled === 1) {
+      if (useServerState(Game.settings_mobile_show_filter_stones_enabled) === 1) {
+        return 1;
+      }
+      return 2;
+    } else if (view === 1337) {
+      if (filtersDisabled === 1) {
+        return 2;
+      }
+      return 1;
+    } else if (view !== 1337 && chatDisabled !== 1) {
+      return 0;
+    }
+  } else if (view !== 1337) {
+    return 0;
+  }
+  return 1;
+}
+
+/** Returns the side strip's mode on mobile. */
+export function mobileSideStripMode(): Int {
+  const layout: Int = toplevelComponents();
+  if (!mobileGameframe(layout)) {
+    return 0;
+  }
+  const [panel] = useState(toplevelPanel);
+  const [expansionDisabled] = useState(mobileTabExpansionDisabled);
+  const [sideModalOpen] = useState(mobileSideModalOpen);
+  const openPanel = ToplevelPanels.at(panel) ?? -1;
+
+  if (sideModalOpen === 1 || openPanel !== -1) {
+    if (expansionDisabled === 1) {
+      return 3;
+    }
+    return 4;
+  }
+  if (expansionDisabled !== 1) {
+    return 2;
+  }
+  return 1;
+}
+
+export function positionMultiwayIcons(multiway: ComponentId, layout: Int): void {
+  if (useServerState(Game.osm_minimap_toggle) === 0) {
+    CS2.if_position_set(140, 177, Anchor.RIGHT, Anchor.TOP, multiway);
+  } else {
+    CS2.if_position_set(111, 76, Anchor.RIGHT, Anchor.TOP, multiway);
+  }
+}
+
+/** Returns a component's screen y position. */
+export function absoluteY(component: ComponentId): Int {
+  if (component === -1) {
+    return 0;
+  }
+  let y: Int = CS2.if_y_get(component);
+  let parent: ComponentId = CS2.if_layer_get(component);
+  while (parent !== -1) {
+    y = y + CS2.if_y_get(parent);
+    parent = CS2.if_layer_get(parent);
+  }
+  return y;
+}
+
+export function absoluteX(component: ComponentId): Int {
+  if (component === -1) {
+    return 0;
+  }
+  let x: Int = CS2.if_x_get(component);
+  let parent: ComponentId = CS2.if_layer_get(component);
+  while (parent !== -1) {
+    x = x + CS2.if_x_get(parent);
+    parent = CS2.if_layer_get(parent);
+  }
+  return x;
+}
+
+export function boxesOverlap(
+  first: ComponentId,
+  firstDx: Int,
+  firstDy: Int,
+  second: ComponentId,
+  secondDx: Int,
+  secondDy: Int,
+): Boolean {
+  const firstW: Int = CS2.if_width_get(first);
+  const firstH: Int = CS2.if_height_get(first);
+  const firstX: Int = absoluteX(first) + firstDx;
+  const firstY: Int = absoluteY(first) + firstDy;
+
+  const secondW: Int = CS2.if_width_get(second);
+  const secondH: Int = CS2.if_height_get(second);
+  const secondX: Int = absoluteX(second) + secondDx;
+  const secondY: Int = absoluteY(second) + secondDy;
+
+  if (firstX >= secondX && firstX <= secondX + secondW) {
+    if (firstY >= secondY && firstY <= secondY + secondH) {
+      return true;
+    } else if (firstY + firstH >= secondY && firstY + firstH <= secondY + secondH) {
+      return true;
+    }
+  }
+  if (firstX + firstW >= secondX && firstX + firstW <= secondX + secondW) {
+    if (firstY >= secondY && firstY <= secondY + secondH) {
+      return true;
+    } else if (firstY + firstH >= secondY && firstY + firstH <= secondY + secondH) {
+      return true;
+    }
+  }
+  if (secondX >= firstX && secondX <= firstX + firstW) {
+    if (secondY >= firstY && secondY <= firstY + firstH) {
+      return true;
+    } else if (secondY + secondH >= firstY && secondY + secondH <= firstY + firstH) {
+      return true;
+    }
+  }
+  if (secondX + secondW >= firstX && secondX + secondW <= firstX + firstW) {
+    if (secondY >= firstY && secondY <= firstY + firstH) {
+      return true;
+    } else if (secondY + secondH >= firstY && secondY + secondH <= firstY + firstH) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function helperDodgedAway(): Boolean {
+  const [dodged] = useState(dodgerTracker);
+  return dodged !== 0 && CS2.if_sub_has(gameframeSlot(GameframeSlot.HELPER_CONTENT));
+}
+
+export function markDodged(dodger: ComponentId, flags: Int): void {
+  const [, setDodged] = useState(dodgerTracker);
+  if (dodges(flags, OverlayDodge.EXTRA_GAP)) {
+    setDodged(1);
+  }
+}
+
+export function markNotDodged(dodger: ComponentId, flags: Int): void {
+  const [, setDodged] = useState(dodgerTracker);
+  if (dodges(flags, OverlayDodge.EXTRA_GAP)) {
+    setDodged(0);
+  }
+}
+
+export function stackBelow(flags: Int, ran: Int, layout: Int, align: Int, content: ComponentId, top: Int): Int {
+  if (content === -1) {
+    return 0;
+  }
+  let above: ComponentId = -1;
+  let aboveBottom: Int = -1;
+
+  if (dodges(ran, OverlayDodge.HELPER_CONTENT)) {
+    if (helperDodgedAway()) {
+      if (align === Anchor.RIGHT) {
+        above = gameframeSlot(GameframeSlot.HELPER_CONTENT);
+      }
+    } else if (align === Anchor.LEFT) {
+      above = gameframeSlot(GameframeSlot.HELPER_CONTENT);
+    }
+  }
+  if (above === -1 && aboveBottom === -1 && dodges(ran, OverlayDodge.XP_DROPS)) {
+    if (cornerBoxCorner() === align) {
+      aboveBottom = cornerBoxBottom();
+    }
+  }
+
+  let extra: Int = 0;
+  if (dodges(flags, OverlayDodge.EXTRA_GAP) && dodges(ran, OverlayDodge.DODGE_REGISTERED_HUD) && CS2.window_mode_get() === 1) {
+    extra = extra + 4;
+  }
+
+  if (above !== -1) {
+    aboveBottom = absoluteY(above) + CS2.if_height_get(above);
+  }
+  if (aboveBottom === -1) {
+    return 0;
+  }
+  let gap: Int = aboveBottom;
+  gap = gap - (absoluteY(content) + top);
+  gap = gap + 2 + extra;
+  return Math.max(0, gap);
+}
+
+export const OVERLAY_THROTTLE_CYCLES = 40;
+
+export function overlayLayout(
+  dodger: ComponentId,
+  content: ComponentId,
+  flags: Int,
+  xAnchor: Int,
+  yAnchor: Int,
+  sideways: Int,
+  lastUniverseW: Int,
+  lastUniverseH: Int,
+  lastDeadSides: Int,
+  lastTliUpdate: Int,
+  lastBuffUpdate: Int,
+): void {
+  let universeW: Int = CS2.if_width_get(dodger);
+  let universeH: Int = CS2.if_height_get(dodger);
+  const parent: ComponentId = CS2.if_layer_get(dodger);
+  if (parent !== -1) {
+    universeW = CS2.if_width_get(parent);
+    universeH = CS2.if_height_get(parent);
+  }
+
+  const [deadSidesNow] = useState(mobileDeadsides);
+  const [tliUpdate] = useState(mobileTlidodgersUpdate);
+  const [buffUpdate] = useState(buffBarDodgerUpdate);
+  if (
+    tliUpdate === lastTliUpdate &&
+    lastBuffUpdate === buffUpdate &&
+    deadSidesNow === lastDeadSides &&
+    universeW === lastUniverseW &&
+    universeH === lastUniverseH &&
+    CS2.clientclock() % OVERLAY_THROTTLE_CYCLES !== 0
+  ) {
+    return;
+  }
+
+  let left: Int = 0;
+  let top: Int = 0;
+  let right: Int = 0;
+  let bottom: Int = 0;
+  let altTop: Int = 0;
+  let altBottom: Int = 0;
+  let altRight: Int = 0;
+
+  const mobile: Boolean = onMobile();
+  if (mobile) {
+    top = top + 2;
+    altTop = altTop + 2;
+  }
+  const layout: Int = toplevelComponents();
+  const align: Int = xAnchor;
+  let ran: Int = 0;
+
+  let safeArea: Int = 0;
+  if (dodges(flags, OverlayDodge.SAFE_AREA)) {
+    safeArea = 1;
+  } else if (dodges(flags, OverlayDodge.SAFE_AREA_CLAMPED)) {
+    safeArea = 2;
+  }
+
+  const safeZone: ComponentId = gameframeSlot(GameframeSlot.SAFE_ZONE);
+  if (dodger !== safeZone) {
+    CS2.if_position_set(0, 0, align, yAnchor, dodger);
+    CS2.if_size_set(0, 0, SizeMode.MINUS, SizeMode.MINUS, dodger);
+  }
+
+  if (mobile && safeArea > 0 && parent !== -1) {
+    let deadSides: Int = deadSidesNow;
+    if (safeArea === 2) {
+      deadSides = Math.min(250, deadSides);
+    }
+    clampDeadSides();
+    const side: Int = scaled(deadSides, 16384, universeW);
+    const safeLeft: Int = Math.max(CS2.safearea_minx_get(), side);
+    const safeTop: Int = CS2.safearea_miny_get();
+    const safeRight: Int = Math.min(CS2.safearea_maxx_get(), universeW - side);
+    const safeBottom: Int = CS2.safearea_maxy_get();
+
+    if (dodger === safeZone) {
+      const noClick: ComponentId = gameframeSlot(GameframeSlot.SAFE_ZONE_NOCLICK);
+      if (noClick !== -1) {
+        safeAreaBlocker(noClick, 0, Anchor.CENTRE, Anchor.TOP, 0, safeTop, SizeMode.MINUS, SizeMode.ABS);
+        safeAreaBlocker(noClick, 1, Anchor.CENTRE, Anchor.BOTTOM, 0, safeBottom, SizeMode.MINUS, SizeMode.MINUS);
+        safeAreaBlocker(noClick, 2, Anchor.LEFT, Anchor.CENTRE, safeLeft, 0, SizeMode.ABS, SizeMode.MINUS);
+        safeAreaBlocker(noClick, 3, Anchor.RIGHT, Anchor.CENTRE, safeRight, 0, SizeMode.MINUS, SizeMode.MINUS);
+      }
+      const multiway: ComponentId = gameframeSlot(GameframeSlot.MULTIWAY_ICON);
+      if (multiway !== -1) {
+        positionMultiwayIcons(multiway, layout);
+      }
+      CS2.if_position_set(safeLeft, safeTop, Anchor.LEFT, Anchor.TOP, dodger);
+      CS2.if_size_set(
+        universeW - Math.max(680, safeRight - safeLeft),
+        universeH - (safeBottom - safeTop),
+        SizeMode.MINUS,
+        SizeMode.MINUS,
+        dodger,
+      );
+      return;
+    }
+    left = left + safeLeft;
+    top = top + safeTop;
+    altTop = altTop + safeTop;
+    right = universeW - safeRight;
+    bottom = universeH - safeBottom;
+    altBottom = bottom;
+  }
+
+  if (mobile && mobileGameframe(layout)) {
+    const strip: ComponentId = gameframeSlot(GameframeSlot.SIDE_RIGHT_TABS);
+    const gameframeRight: Int = OverlayInsetRight.get(layout) ?? 0;
+    let stripRight: Int = 0;
+    let stripAltRight: Int = 0;
+    let stripMode: Int = 0;
+    let minimapFloor: Int = 0;
+
+    if (dodges(flags, OverlayDodge.MOBILE_SIDE_STRIP)) {
+      stripMode = mobileSideStripMode();
+    }
+    if (dodges(flags, OverlayDodge.MOBILE_MINIMAP)) {
+      minimapFloor = 1;
+    }
+    if (stripMode === 2) {
+      stripRight = stripRight + Math.max(0, CS2.if_width_get(strip) - gameframeRight);
+    } else if (stripMode === 3 || stripMode === 4) {
+      if (mobileSidePanelOnLeft() === 1) {
+        stripRight = stripRight + Math.max(0, CS2.if_width_get(strip) - gameframeRight);
+      } else {
+        stripRight =
+          stripRight +
+          Math.max(
+            0,
+            CS2.if_width_get(strip) + CS2.if_width_get(gameframeSlot(GameframeSlot.SIDE_CONTAINER)) - gameframeRight,
+          );
+      }
+    } else if (sideways === 1) {
+      if (stripMode === 2) {
+        stripAltRight = stripAltRight + Math.max(0, CS2.if_width_get(strip) - gameframeRight);
+      } else if (stripMode === 3 || stripMode === 4) {
+        stripAltRight =
+          stripAltRight +
+          Math.max(
+            0,
+            CS2.if_width_get(strip) + CS2.if_width_get(gameframeSlot(GameframeSlot.SIDE_CONTAINER)) - gameframeRight,
+          );
+      }
+    }
+    if (minimapFloor === 1) {
+      if (useServerState(Game.osm_minimap_toggle) === 0) {
+        stripRight = Math.max(stripRight, 181);
+      } else {
+        stripRight = Math.max(stripRight, 84);
+      }
+    } else if (sideways === 1) {
+      if (useServerState(Game.osm_minimap_toggle) === 0) {
+        stripAltRight = Math.max(stripAltRight, 181);
+      } else {
+        stripAltRight = Math.max(stripAltRight, 84);
+      }
+    }
+    if (dodges(flags, OverlayDodge.MOBILE_CHATBOX)) {
+      const chat: Int = chatboxOpen();
+      if (chat === 0) {
+        top = top + (165 - 20) + 2;
+      } else if (chat === 1) {
+        top = top + 30 + 2;
+      } else if (chat === 2) {
+        top = top + 2;
+      }
+    }
+    right = right + stripRight;
+    altRight = altRight + stripAltRight;
+  }
+
+  if (dodges(flags, OverlayDodge.GAMEFRAME_EDGES) && parent !== -1 && layout !== ToplevelComponents.NONE) {
+    left = left + (OverlayInsetLeft.get(layout) ?? 0);
+    right = right + (OverlayInsetRight.get(layout) ?? 0);
+    bottom = bottom + (OverlayInsetBottom.get(layout) ?? 0);
+    altBottom = altBottom + (OverlayInsetBottom.get(layout) ?? 0);
+  }
+
+  if (dodges(flags, OverlayDodge.MOUSEOVER_TEXT) && !mobile && (align === Anchor.LEFT || align === Anchor.CENTRE)) {
+    if (!enhancedMouseoverAvailable() || useServerState(Game.mouseover_text_enabled) === 1) {
+      top = top + 23;
+    } else {
+      top = top + 2;
+    }
+  }
+
+  if (dodges(flags, OverlayDodge.REGISTER_AS_HUD) && content !== -1) {
+    const [, setHud] = useState(dodgerHudToDodge);
+    const [, setHudAlign] = useState(dodgerHudToDodgeAlign);
+    setHud(content as Int);
+    setHudAlign(align);
+  }
+
+  const helper: ComponentId = gameframeSlot(GameframeSlot.HELPER_CONTENT);
+  if (dodges(flags, OverlayDodge.HELPER_CONTENT) && !dodges(flags, OverlayDodge.REGISTER_AS_HUD) && helper !== -1 && CS2.if_sub_has(helper)) {
+    ran = ran | OverlayDodge.HELPER_CONTENT;
+    if (!helperDodgedAway()) {
+      if (align === Anchor.LEFT) {
+        top = top + CS2.if_height_get(helper);
+      }
+    } else {
+      altTop = altTop + CS2.if_height_get(helper);
+    }
+  }
+
+  if (dodges(flags, OverlayDodge.XP_DROPS) && !dodges(flags, OverlayDodge.REGISTER_AS_HUD) && cornerBoxBottom() !== -1) {
+    ran = ran | OverlayDodge.XP_DROPS;
+    const corner: Int = cornerBoxCorner();
+    const step: Int = cornerBoxStep();
+    if (corner === align) {
+      top = top + step;
+      if (align !== Anchor.CENTRE) {
+        left = left + 2;
+      }
+    } else {
+      if (align === Anchor.LEFT && corner === Anchor.RIGHT) {
+        altTop = altTop + step;
+      }
+      top = top + 2;
+      if (align !== Anchor.CENTRE) {
+        left = left + 2;
+      }
+    }
+  }
+
+  if (dodges(flags, OverlayDodge.CHAT_LINES)) {
+    const [lines] = useState(pmChatLinesHeight);
+    if (mobile) {
+      top = top + lines;
+    } else {
+      bottom = bottom + lines;
+      altBottom = altBottom + lines;
+    }
+  }
+
+  const [registered] = useState(dodgerHudToDodge);
+  const [registeredAlign] = useState(dodgerHudToDodgeAlign);
+  const registeredHud: ComponentId = registered as ComponentId;
+  if (dodges(flags, OverlayDodge.DODGE_REGISTERED_HUD) && registered !== -1 && CS2.if_find(registeredHud) && !CS2.if_hide_get(registeredHud)) {
+    ran = ran | OverlayDodge.DODGE_REGISTERED_HUD;
+    const hudHeight: Int = CS2.if_height_get(registeredHud);
+    const hudTop: Int = absoluteY(registeredHud);
+    if (registeredAlign === align) {
+      top = top + hudHeight + 2;
+    } else if (boxesOverlap(content, left, top, registeredHud, 0, 0) && top < hudHeight + hudTop) {
+      top = top + (hudHeight + hudTop - top) + 2;
+    }
+    const mirroredLeft: Int = universeW - CS2.if_width_get(content) - right - 2 * 2;
+    if (registeredAlign === Anchor.RIGHT) {
+      altTop = altTop + hudHeight + 2;
+    } else if (boxesOverlap(content, mirroredLeft, altTop, registeredHud, 0, 0) && altTop < hudHeight + hudTop) {
+      altTop = altTop + (hudHeight + hudTop - altTop) + 2;
+    }
+  }
+
+  if (sideways === 1 && content !== -1 && align !== Anchor.RIGHT) {
+    const contentW: Int = CS2.if_width_get(content);
+    const contentH: Int = CS2.if_height_get(content);
+    top = top + stackBelow(flags, ran, layout, align, content, top);
+    altTop = altTop + stackBelow(flags, ran, layout, Anchor.RIGHT, content, altTop);
+    if (contentW <= universeW - (left + right) && contentH <= universeH - (top + bottom)) {
+      CS2.if_position_set(left, top, Anchor.LEFT, Anchor.TOP, dodger);
+      CS2.if_size_set(left + right, top + bottom, SizeMode.MINUS, SizeMode.MINUS, dodger);
+      markNotDodged(dodger, flags);
+    } else {
+      const mirroredLeft: Int = universeW - contentW - right - altRight - 2 * 2;
+      CS2.if_position_set(mirroredLeft, altTop + 2, Anchor.LEFT, Anchor.TOP, dodger);
+      CS2.if_size_set(mirroredLeft + (right + altRight), altTop + altBottom, SizeMode.MINUS, SizeMode.MINUS, dodger);
+      markDodged(dodger, flags);
+    }
+  } else {
+    top = top + stackBelow(flags, ran, layout, align, content, top);
+    CS2.if_position_set(left, top, Anchor.LEFT, Anchor.TOP, dodger);
+    CS2.if_size_set(left + right, top + bottom, SizeMode.MINUS, SizeMode.MINUS, dodger);
+  }
+
+  CS2.if_on_timer_set(
+    () =>
+      overlayLayout(
+        dodger,
+        content,
+        flags,
+        xAnchor,
+        yAnchor,
+        sideways,
+        universeW,
+        universeH,
+        deadSidesNow,
+        tliUpdate,
+        buffUpdate,
+      ),
+    dodger,
+  );
+  CS2.if_on_sub_change_set(
+    () =>
+      overlayLayout(
+        dodger,
+        content,
+        flags,
+        xAnchor,
+        yAnchor,
+        sideways,
+        universeW,
+        universeH,
+        deadSidesNow,
+        tliUpdate,
+        buffUpdate,
+      ),
+    dodger,
+  );
+  CS2.if_on_resize_set(
+    () =>
+      overlayLayout(
+        dodger,
+        content,
+        flags,
+        xAnchor,
+        yAnchor,
+        sideways,
+        universeW,
+        universeH,
+        deadSidesNow,
+        tliUpdate,
+        buffUpdate,
+      ),
+    dodger,
+  );
+}
+
+function safeAreaBlocker(
+  parent: ComponentId,
+  index: Int,
+  xAnchor: Int,
+  yAnchor: Int,
+  w: Int,
+  h: Int,
+  wMode: Int,
+  hMode: Int,
+): void {
+  if (!CS2.cc_find(parent, index)) {
+    CS2.cc_create(parent, 4, index, false);
+    CS2.cc_no_click_through_set(true);
+  }
+  CS2.cc_position_set(0, 0, xAnchor, yAnchor);
+  CS2.cc_size_set(w, h, wMode, hMode);
+}
+
+/** Sets up an overlay's layout. */
+export function overlayInit(
+  dodger: ComponentId,
+  content: ComponentId,
+  flags: Int,
+  xAnchor: Int,
+  yAnchor: Int,
+  sideways: Int,
+): void {
+  if (flags === 0) {
+    CS2.if_size_set(0, 0, SizeMode.MINUS, SizeMode.MINUS, dodger);
+    return;
+  }
+  if (CS2.if_layer_get(dodger) !== -1) {
+    overlayLayout(dodger, content, flags, xAnchor, yAnchor, sideways, 0, 0, 0, Previous.NONE, Previous.NONE);
+  }
+}

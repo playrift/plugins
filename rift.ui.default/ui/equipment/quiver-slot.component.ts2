@@ -1,0 +1,95 @@
+import { param, useInventory, useRef, useServerState } from 'ts2';
+
+import { flashFor } from '../lib/lib.components';
+import { itemName } from '../lib/lib.engine';
+import {
+  EquipSlot,
+  Fade,
+  OP_BASE_PREFIX,
+  OP_BASE_SUFFIX,
+  OP_FILL,
+  OP_QUIVER_REMOVE,
+  OP_SWAP,
+  SlotColors,
+  SlotOutline,
+} from './equipment.constants';
+import { SlotIcons } from './tables.data';
+import { ExternalInventories, GameProperties, GameSprites } from '../game-assets';
+import { Quiver } from '../lib/game/server-states';
+
+export function QuiverSlot(): Component {
+  const worn = useInventory(ExternalInventories.worn_equipment);
+  const ammo = useServerState(Quiver.quiver_ammo);
+  const amount: Int = useServerState(Quiver.quiver_ammo_amount);
+  const emptyIcon = useRef();
+  const itemIcon = useRef();
+
+  const cape: Item = worn[EquipSlot.CAPE];
+  if (cape === -1) {
+    return null;
+  }
+
+  const hasQuiver: Boolean = param(cape, GameProperties.ui_default_quiver);
+  if (!hasQuiver) {
+    return null;
+  }
+
+  const subject: String = `${OP_BASE_PREFIX}${itemName(cape)}${OP_BASE_SUFFIX}`;
+
+  return (
+    <>
+      <layer x="center" y="center" w="fill" h="fill">
+        <sprite x="center" y="center" w={36} h={36} sprite={GameSprites.miscgraphics_0} transparency={Fade.PLATE_LIT} />
+      </layer>
+
+      {ammo === -1 ? (
+        <layer
+          x="center"
+          y="center"
+          w="fill"
+          h="fill"
+          optionSubject={subject}
+          options={['', OP_FILL]}
+          onOptionSelect={() => {
+            flashFor(emptyIcon, Fade.QUIVER_PRESSED_MAX, Fade.QUIVER_LIT);
+          }}
+        >
+          <sprite
+            ref={emptyIcon}
+            x="center"
+            y="center"
+            w={32}
+            h={32}
+            sprite={SlotIcons.get(EquipSlot.AMMO)}
+            transparency={Fade.QUIVER_LIT}
+          />
+        </layer>
+      ) : (
+        <layer
+          x="center"
+          y="center"
+          w="fill"
+          h="fill"
+          optionSubject={`${OP_BASE_PREFIX}${itemName(ammo)}${OP_BASE_SUFFIX}`}
+          options={[OP_QUIVER_REMOVE, OP_SWAP]}
+          onOptionSelect={() => {
+            flashFor(itemIcon, Fade.QUIVER_PRESSED_MAX, Fade.QUIVER_LIT);
+          }}
+        >
+          <sprite
+            ref={itemIcon}
+            x={2}
+            y={2}
+            w={36}
+            h={32}
+            item={ammo}
+            itemCount={amount}
+            outline={SlotOutline.ITEM}
+            shadowColor={SlotColors.ITEM_SHADOW}
+            transparency={Fade.QUIVER_LIT}
+          />
+        </layer>
+      )}
+    </>
+  );
+}

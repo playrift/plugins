@@ -1,0 +1,85 @@
+import { Game } from '../lib/game/server-states';
+
+export enum EquipmentLayout {
+  ROOT_W = 512,
+  ROOT_H = 334,
+  FRAME_X = 6,
+  FRAME_Y = 5,
+  FRAME_W = 500,
+  FRAME_H = 324,
+  DOLL_X = 180,
+  DOLL_Y = 200,
+  DOLL_W = 136,
+  DOLL_H = 168,
+  DOLL_ZOOM = 550,
+  STATS_W = 501,
+  STATS_H = 324,
+  WEIGHT_ICON_X = 61,
+  WEIGHT_ICON_Y = 266,
+  WEIGHT_ICON_W = 17,
+  WEIGHT_ICON_H = 18,
+  WEIGHT_TEXT_X = 82,
+  WEIGHT_TEXT_Y = 266,
+  WEIGHT_TEXT_W = 62,
+  WEIGHT_TEXT_H = 17,
+  TIP_HOST_W = 1,
+  TIP_HOST_H = 1,
+  SLOT = 36,
+}
+
+export enum SlotColors {
+  ITEM_SHADOW = 0x333333,
+}
+
+export enum EquipmentColor {
+  LABEL = 0xff981f,
+  WEIGHT = 0xff9800,
+}
+
+export enum SlotOutline {
+  NORMAL = 0,
+  ITEM = 1,
+  GRAPPLE = 2,
+}
+
+export enum Fade {
+  SLOT_PRESSED = 100,
+  SLOT_REST = 0,
+  QUIVER_PRESSED_MAX = 200,
+  QUIVER_LIT = 0,
+  PLATE_LIT = 0,
+}
+
+export enum Tooltip {
+  DWELL = 25,
+  WRAP = 250,
+}
+
+export const EQUIPMENT_TITLE = 'Equip Your Character...';
+export const OP_BASE_PREFIX = '<col=ff9040>';
+export const OP_BASE_SUFFIX = '</col>';
+export const WEIGHT_SUFFIX = ' kg';
+
+export const OP_REMOVE = 'Remove';
+export const OP_BANK = 'Bank';
+export const OP_FILL = 'Fill';
+export const OP_QUIVER_REMOVE = 'Quiver-Remove';
+export const OP_SWAP = 'Swap';
+
+export enum EquipSlot {
+  HEAD = 0,
+  CAPE = 1,
+  AMULET = 2,
+  WEAPON = 3,
+  BODY = 4,
+  SHIELD = 5,
+  LEGS = 7,
+  HANDS = 9,
+  FEET = 10,
+  RING = 12,
+  AMMO = 13,
+}
+
+export declare const ClientVarbits: {
+  readonly SIMULATE_MOBILE: typeof Game.osm_simulate;
+};

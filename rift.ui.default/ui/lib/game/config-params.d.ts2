@@ -1,0 +1,18 @@
+interface ItemParams {
+  readonly wearOp1: PropertyField<'game', 'property_451', 'string'>;
+  readonly wearOp2: PropertyField<'game', 'property_452', 'string'>;
+  readonly wearOp3: PropertyField<'game', 'property_453', 'string'>;
+  readonly wearOp4: PropertyField<'game', 'property_454', 'string'>;
+  readonly wearOp5: PropertyField<'game', 'property_455', 'string'>;
+  readonly wearOp6: PropertyField<'game', 'property_456', 'string'>;
+  readonly wearOp7: PropertyField<'game', 'property_457', 'string'>;
+  readonly wearOp8: PropertyField<'game', 'property_458', 'string'>;
+  readonly deadmanRestriction: PropertyField<'game', 'property_568', 'int'>;
+  readonly opPriorityGroup: PropertyField<'game', 'property_2226', 'int'>;
+}
+
+interface NpcParams {
+}
+
+interface ObjectParams {
+}

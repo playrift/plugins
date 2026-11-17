@@ -1,0 +1,6 @@
+import { SteelFrame } from './steel-frame.component';
+
+/** A steel frame without a backdrop. */
+export function SteelFrameEntrypoint({ children }: { children?: Children }): Component {
+  return <SteelFrame backdrop={false}>{children}</SteelFrame>;
+}

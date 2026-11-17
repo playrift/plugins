@@ -1,0 +1,70 @@
+import { totalLevel } from './stats.helpers';
+import { onMobile } from 'rift.ui.default/lib/lib.helpers';
+import { StatsColor, StatsLayout } from './stats.constants';
+import { TOTAL_ROW, hideStatsTip, showStatsTip, toggleStatsTip } from './stats-tooltip.component';
+import { GameFonts, GameSprites } from 'rift.ui.default/game-assets';
+
+export function StatsTotalBar(): Component {
+  const total: Int = totalLevel();
+  const mobile: Boolean = onMobile();
+
+  let toggle: String = '';
+  if (mobile) {
+    toggle = 'Toggle Total XP';
+  }
+
+  return (
+    <layer x={0} y={StatsLayout.TOTAL_Y} w={StatsLayout.PANEL_W} h={StatsLayout.TOTAL_H}>
+      <sprite x={72} y={0} w={StatsLayout.TOTAL_TILE} h={StatsLayout.TOTAL_TILE} sprite={GameSprites.miscgraphics2_6} />
+      <sprite x={108} y={0} w={StatsLayout.TOTAL_TILE} h={StatsLayout.TOTAL_TILE} sprite={GameSprites.miscgraphics2_6} />
+      <sprite x={144} y={0} w={StatsLayout.TOTAL_TILE} h={StatsLayout.TOTAL_TILE} sprite={GameSprites.miscgraphics2_6} />
+      <sprite x={36} y={0} w={StatsLayout.TOTAL_TILE} h={StatsLayout.TOTAL_TILE} sprite={GameSprites.miscgraphics2_6} />
+      <sprite
+        x={StatsLayout.TOTAL_CAP_X}
+        y={0}
+        w={StatsLayout.TOTAL_TILE}
+        h={StatsLayout.TOTAL_TILE}
+        sprite={GameSprites.miscgraphics2_4}
+      />
+      <sprite
+        x={{ right: StatsLayout.TOTAL_CAP_X }}
+        y={0}
+        w={StatsLayout.TOTAL_TILE}
+        h={StatsLayout.TOTAL_TILE}
+        sprite={GameSprites.miscgraphics2_5}
+      />
+      <text
+        x={StatsLayout.TOTAL_TEXT_X}
+        y={StatsLayout.TOTAL_TEXT_Y}
+        w="fill"
+        h={{ fill: StatsLayout.TOTAL_TEXT_INSET_H }}
+        text={`Total level: ${total}`}
+        font={GameFonts.font_494}
+        color={StatsColor.LEVEL}
+        align="center"
+        valign="middle"
+        shadow
+        options={[toggle]}
+        onMouseRepeat={() =>
+          showStatsTip(TOTAL_ROW, totalAnchorX(), totalAnchorY(), StatsLayout.TOTAL_H - StatsLayout.TOTAL_TEXT_INSET_H)
+        }
+        onMouseLeave={() => hideStatsTip()}
+        onOptionSelect={(event) => selectTotalOption(event.option)}
+      />
+    </layer>
+  );
+}
+
+function totalAnchorX(): Int {
+  return StatsLayout.TOTAL_TEXT_X;
+}
+
+function totalAnchorY(): Int {
+  return StatsLayout.TOTAL_Y + StatsLayout.TOTAL_TEXT_Y;
+}
+
+function selectTotalOption(option: Int): void {
+  if (option === 1) {
+    toggleStatsTip(TOTAL_ROW, totalAnchorX(), totalAnchorY(), StatsLayout.TOTAL_H - StatsLayout.TOTAL_TEXT_INSET_H);
+  }
+}

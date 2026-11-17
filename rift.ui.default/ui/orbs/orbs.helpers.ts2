@@ -1,0 +1,146 @@
+import { Game } from '../lib/game/server-states';
+import { CS2, predictServerState, useServerState } from 'ts2';
+
+import { ToplevelComponents } from '../lib/lib.constants';
+import { playSound } from '../lib/lib.engine';
+import { onMobile, opsound, toplevelComponents } from '../lib/lib.helpers';
+import { mobileGameframe } from '../lib/lib.overlay';
+import { ToplevelPanels } from '../lib/lib.overlay.data';
+import { GameframeSlot, gameframeSlot } from '../lib/lib.gameframe';
+import { rgbToHex } from '../lib/colour-tag';
+import { MeterColour, OrbBox } from './orbs.constants';
+import { GameSounds, GameSprites } from '../game-assets';
+
+export function deviceSprite(desktop: Sprite, mobile: Sprite): Sprite {
+  if (onMobile()) {
+    return mobile;
+  }
+  return desktop;
+}
+
+export function plateSprite(): Sprite {
+  return deviceSprite(GameSprites.orb_frame_0, GameSprites.tli_button01_orbinfo_65x34_0);
+}
+
+export function plateHoverSprite(): Sprite {
+  return deviceSprite(GameSprites.orb_frame_1, GameSprites.tli_button01_orbinfo_65x34_1);
+}
+
+export function sidePanelOpen(panel: Int): Boolean {
+  const tab = ToplevelPanels.at(panel) ?? -1;
+  if (tab === -1) {
+    return false;
+  }
+  const slot: ComponentId = gameframeSlot(tab);
+  if (slot === -1) {
+    return false;
+  }
+  return CS2.if_sub_has(slot);
+}
+
+export function floatingPanelOpen(): Boolean {
+  const slot: ComponentId = gameframeSlot(GameframeSlot.SUB_MOUNT);
+  if (slot === -1) {
+    return false;
+  }
+  return CS2.if_sub_has(slot);
+}
+
+export function onMobileFrame(): Boolean {
+  return mobileGameframe(toplevelComponents());
+}
+
+export function noFrame(): Boolean {
+  return toplevelComponents() === ToplevelComponents.NONE;
+}
+
+function meterTop(max: Int): Int {
+  if (max <= 0) {
+    return 1;
+  }
+  return max;
+}
+
+function meterValue(value: Int, max: Int): Int {
+  const top: Int = meterTop(max);
+  if (value <= 0) {
+    return 0;
+  }
+  if (value > top) {
+    return top;
+  }
+  return value;
+}
+
+export function meterText(value: Int): String {
+  if (value <= 0) {
+    return '0';
+  }
+  return `${value}`;
+}
+
+export function meterEmptyH(value: Int, max: Int): Int {
+  const top: Int = meterTop(max);
+  return (OrbBox.METER * (top - meterValue(value, max))) / top;
+}
+
+export function meterColour(value: Int, max: Int): Int {
+  const top: Int = meterTop(max);
+  const v: Int = meterValue(value, max);
+  const half: Int = top / 2;
+  if (half <= 0) {
+    if (v >= top) {
+      return MeterColour.GREEN;
+    }
+    return MeterColour.RED;
+  }
+  if (v > half) {
+    return rgbToHex(255 - (255 * (v - half)) / half, 255, 0);
+  }
+  return rgbToHex(255, (v * 255) / half, 0);
+}
+
+export function storeButtonShown(): Boolean {
+  if (onMobile()) {
+    return useServerState(Game.tli_storebutton_toggle_mobile) === 1;
+  }
+  return useServerState(Game.tli_storebutton_toggle_desktop) === 1;
+}
+
+export function mapGlobe(): Sprite {
+  if (onMobileFrame()) {
+    return deviceSprite(GameSprites.worldmap_icon_large_0, GameSprites.orb_icon_13);
+  }
+  return GameSprites.worldmap_icon_0;
+}
+
+export function mapGlobeHover(): Sprite {
+  if (onMobileFrame()) {
+    return deviceSprite(GameSprites.worldmap_icon_large_0, GameSprites.orb_icon_13);
+  }
+  return GameSprites.worldmap_icon_1;
+}
+
+export function quickPrayerOp(option: Int): void {
+  if (option !== 1) {
+    return;
+  }
+  playSound(GameSounds.interface_select1);
+  predictServerState(Game.quickprayer_active, 1 - useServerState(Game.quickprayer_active));
+}
+
+export function specOp(option: Int): void {
+  if (option !== 1) {
+    return;
+  }
+  const armed: Int = useServerState(Game.sa_attack);
+  if (armed === 0) {
+    predictServerState(Game.sa_attack, 1);
+  } else if (armed !== 2) {
+    predictServerState(Game.sa_attack, 0);
+  }
+}
+
+export function buttonOp(option: Int, mask: Int): void {
+  opsound(option, mask);
+}
