@@ -1,0 +1,5 @@
+format = 1
+uid = "uid://4780fa3b1cff9f3a"
+sprite = "base:sprite/headicons_prayer"
+frame = 23
+slot = "prayer"

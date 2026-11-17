@@ -1,0 +1,148 @@
+public final class co/playrift/default/combatvisuals/CombatVisuals {
+	public static final field INSTANCE Lco/playrift/default/combatvisuals/CombatVisuals;
+}
+
+public final class co/playrift/default/combatvisuals/CombatVisuals$Family : java/lang/Enum {
+	public static final field armour Lco/playrift/default/combatvisuals/CombatVisuals$Family;
+	public static final field charge Lco/playrift/default/combatvisuals/CombatVisuals$Family;
+	public static final field health Lco/playrift/default/combatvisuals/CombatVisuals$Family;
+	public static final field shield Lco/playrift/default/combatvisuals/CombatVisuals$Family;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lco/playrift/default/combatvisuals/CombatVisuals$Family;
+	public static fun values ()[Lco/playrift/default/combatvisuals/CombatVisuals$Family;
+}
+
+public final class co/playrift/default/combatvisuals/CombatVisuals$HealthBar : java/lang/Enum {
+	public static final field Companion Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar$Companion;
+	public static final field armour100 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field armour120 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field armour140 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field armour30 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field armour40 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field armour50 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field armour60 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field armour80 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge100 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge120 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge140 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge30 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge40 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge50 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge60 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field charge80 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health100 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health120 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health140 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health30 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health40 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health50 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health60 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field health80 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield100 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield120 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield140 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield30 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield40 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield50 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield60 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static final field shield80 Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public final fun getBaseName ()Ljava/lang/String;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getFamily ()Lco/playrift/default/combatvisuals/CombatVisuals$Family;
+	public final fun getHealthBar ()Lrift/assets/HealthBarDefinition;
+	public final fun getSize ()I
+	public static fun valueOf (Ljava/lang/String;)Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+	public static fun values ()[Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+}
+
+public final class co/playrift/default/combatvisuals/CombatVisuals$HealthBar$Companion {
+	public final fun of (Lco/playrift/default/combatvisuals/CombatVisuals$Family;I)Lco/playrift/default/combatvisuals/CombatVisuals$HealthBar;
+}
+
+public final class co/playrift/default/combatvisuals/CombatVisuals$Hitsplat : java/lang/Enum {
+	public static final field block Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field block_others Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field damage Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field damage_max Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field damage_others Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field disease Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field disease_blocked Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field heal Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field poison Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field poison_max Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field poison_others Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static final field venom Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public final fun getBaseName ()Ljava/lang/String;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getHitsplat ()Lrift/assets/HitsplatDefinition;
+	public static fun valueOf (Ljava/lang/String;)Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+	public static fun values ()[Lco/playrift/default/combatvisuals/CombatVisuals$Hitsplat;
+}
+
+public final class co/playrift/default/combatvisuals/CombatVisuals$Overhead : java/lang/Enum {
+	public static final field deadman_skull Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deadman_skull_keys_1 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deadman_skull_keys_2 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deadman_skull_keys_3 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deadman_skull_keys_4 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deadman_skull_keys_5 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deflect_magic Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deflect_melee Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field deflect_ranged Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field forinthry_surge_skull Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field high_risk_skull Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_15 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_16 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_17 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_18 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_19 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_20 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_21 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_22 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field prayer_23 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field protect_all Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field protect_magic Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field protect_melee Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field protect_melee_magic Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field protect_melee_ranged Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field protect_ranged Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field protect_ranged_magic Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field red_skull Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field redemption Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field retribution Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_14 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_15 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_16 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_17 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_18 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_19 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_21 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_22 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_23 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_24 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_25 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_28 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_29 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_30 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_31 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field skull_32 Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field smite Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field soul_split Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field white_skull Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static final field wrath Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public final fun getBaseName ()Ljava/lang/String;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getOverhead ()Lrift/assets/OverheadSpriteDefinition;
+	public final fun getSlot ()Lrift/assets/OverheadSlot;
+	public static fun valueOf (Ljava/lang/String;)Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+	public static fun values ()[Lco/playrift/default/combatvisuals/CombatVisuals$Overhead;
+}
+
+public final class co/playrift/default/combatvisuals/CombatVisualsPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/default/combatvisuals/CombatVisualsPackage;
+	public fun getComponents ()Ljava/util/List;
+	public final fun getSPRITES ()Ljava/util/Map;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+

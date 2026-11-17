@@ -1,0 +1,5 @@
+format = 1
+uid = "uid://bbc4d7569d195b2d"
+sprite = "base:sprite/headicons_prayer"
+frame = 9
+slot = "prayer"

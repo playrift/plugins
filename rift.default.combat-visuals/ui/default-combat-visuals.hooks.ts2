@@ -1,0 +1,11 @@
+import { defineEngineHooks } from 'ts2';
+
+export default defineEngineHooks({
+  assets: {
+    sprites: {
+      head_icons_pk: 'headicons_pk',
+      head_icons_prayer: 'headicons_prayer',
+      head_icons_hint: 'headicons_hint',
+    },
+  },
+});

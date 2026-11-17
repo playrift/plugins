@@ -1,0 +1,5 @@
+format = 1
+uid = "uid://bf3d5b28f5a87f90"
+sprite = "base:sprite/headicons_pk"
+frame = 2
+slot = "skull"

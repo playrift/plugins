@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 5,
+  "seq": 6,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -105,6 +105,26 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.default.bodyparts-1.0.0/rift.default.bodyparts-1.0.0.jar",
           "sha256": "ac543055d44207aab28d96f761a39aac13bb0062d8366bf02c6fc5d56a6a3433",
           "size": 18790
+        }
+      ]
+    },
+    {
+      "id": "rift.default.combat-visuals",
+      "name": "Combat visuals",
+      "author": "Rift",
+      "description": "Provides the basic combat feedback elements: hitsplats, health bars, prayer icons, and skulls.",
+      "licence": "MIT",
+      "source": "https://github.com/playrift/plugins/tree/rift.default.combat-visuals-1.0.0/rift.default.combat-visuals",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.default.combat-visuals-1.0.0/rift.default.combat-visuals-1.0.0.jar",
+          "sha256": "98039435be019bb6afe72dc4506801d6dd5076a744fd714db01f8e7fdc1f8d14",
+          "size": 42430
         }
       ]
     }
