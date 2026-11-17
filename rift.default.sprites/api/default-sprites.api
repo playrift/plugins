@@ -1,0 +1,9 @@
+public final class co/playrift/default/sprites/DefaultSpritesPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/default/sprites/DefaultSpritesPackage;
+	public fun getComponents ()Ljava/util/List;
+	public final fun getMODELS ()Ljava/util/Map;
+	public final fun getSPRITES ()Ljava/util/Map;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+

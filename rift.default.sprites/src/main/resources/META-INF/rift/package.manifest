@@ -1,0 +1,23 @@
+id      = rift.default.sprites
+name    = Default sprites
+author  = Rift
+description = Sprites which are basically mandatory: compass, map icons, click feedback, crowns, minimap hint arrow and so on.
+version = 1.0.0
+engine  = "^1.0.0"
+entry   = co.playrift.default.sprites.DefaultSpritesPackage
+
+ts2     = META-INF/rift/ts2/
+
+persisted =
+
+import = sprite compass
+import = sprite mapedge
+import = sprite mapscene
+import = sprite mapmarker
+import = sprite cross
+import = sprite mapdots
+import = sprite scrollbar
+import = sprite mod_icons
+
+import = model heading_marker_hover
+import = model heading_marker_active

@@ -1,0 +1,25 @@
+import { defineEngineHooks, requireAssets } from 'ts2';
+
+const HeadingMarkers = requireAssets('game', {
+  heading_marker_hover: Model,
+  heading_marker_active: Model,
+});
+
+export default defineEngineHooks({
+  assets: {
+    sprites: {
+      compass: 'compass',
+      minimap_hint_arrow: 'mapedge',
+      map_scenes: 'mapscene',
+      map_marker: 'mapmarker',
+      click_cross: 'cross',
+      minimap_dots: 'mapdots',
+      scrollbar: 'scrollbar',
+      mod_icons: 'mod_icons',
+    },
+  },
+  models: {
+    heading_marker_hover: HeadingMarkers.heading_marker_hover,
+    heading_marker_active: HeadingMarkers.heading_marker_active,
+  },
+});
