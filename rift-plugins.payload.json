@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 9,
+  "seq": 10,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -185,6 +185,25 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.pathfinding.bfs-1.0.0/rift.movement.pathfinding.bfs-1.0.0.jar",
           "sha256": "39b5a9f19907b079942a29fb20991ed6db24c539ed16beca98ce0bab49976b73",
           "size": 20816
+        }
+      ]
+    },
+    {
+      "id": "rift.actions.queue",
+      "name": "Action queue",
+      "author": "Rift",
+      "description": "A rules-based action queue with composable actions, written like async code and chainable like promises. The queue was designed to cover everything OSRS-style gameplay asks of an action.",
+      "licence": "Free to use in Rift games; no redistribution.",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.actions.queue-1.0.0/rift.actions.queue-1.0.0.jar",
+          "sha256": "91877c7644906b420d912a94b2c85a9d4a673e53550cb156cf3e6d0ef96de273",
+          "size": 78363
         }
       ]
     }
