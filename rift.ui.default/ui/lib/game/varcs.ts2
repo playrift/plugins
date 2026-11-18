@@ -1,5 +1,6 @@
 import { persistedState, sessionState } from 'ts2';
 
+/** When the tooltip's wait ends. */
 export const tooltipTime = sessionState(-1);
 /** Whether the tooltip is built. */
 export const tooltipBuilt = sessionState(0);
@@ -35,6 +36,7 @@ export const cameraZoomSmall = persistedState(-1, 'camera_zoom_small');
 export const cameraZoomBig = persistedState(-1, 'camera_zoom_big');
 /** Whether XP drops are set up. */
 export const xpdropsFirstinit = sessionState(-1);
+/** Whether the player is a member. */
 export const playermember = sessionState(-1);
 export const toplevelPanel = sessionState(-1);
 export const toplevelMainmodalBgColour = sessionState(-1);

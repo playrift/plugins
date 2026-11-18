@@ -81,7 +81,7 @@ class DefaultUiTest {
   }
 
   @Test
-  fun `a player with no frame gets resizable, the chatbox, the orbs and five side panels opened by slot`() {
+  fun `a player with no frame gets resizable, the chatbox, the orbs and four side panels opened by slot`() {
     val sent = HeadlessWorld.login().also { player = it }.sent()
     val root = UI.ToplevelResizable
 
@@ -92,7 +92,6 @@ class DefaultUiTest {
         Sent.Opened(UI.Chatbox.interfaceName, root.interfaceName, root.chatContainer.name),
         Sent.Opened(UI.PmChat.interfaceName, root.interfaceName, root.pmContainer.name),
         Sent.Opened(UI.Orbs.interfaceName, root.interfaceName, root.orbs.name),
-        Sent.Opened(UI.Stats.interfaceName, root.interfaceName, root.side1.name),
         Sent.Opened(UI.Inventory.interfaceName, root.interfaceName, root.side3.name),
         Sent.Opened(UI.Wornitems.interfaceName, root.interfaceName, root.side4.name),
         Sent.Opened(UI.Friends.interfaceName, root.interfaceName, root.side9.name),
@@ -114,9 +113,8 @@ class DefaultUiTest {
   }
 
   @Test
-  fun `the Skills slot holds the stats panel, because the game has rift-skills and so the served build has it`() {
-    assertTrue(UI.Stats.isBuilt, "the served build has the stats panel")
-    assertEquals(UI.Stats, userInterface.getSlotContent("tab.stats")?.ui)
+  fun `the Skills slot is left for the game to fill, though the game has rift-skills`() {
+    assertNull(userInterface.getSlotContent("tab.stats"))
   }
 
   @Test

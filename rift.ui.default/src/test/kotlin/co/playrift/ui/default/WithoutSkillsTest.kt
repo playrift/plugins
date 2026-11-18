@@ -6,7 +6,6 @@ import rift.ts2.UI
 import rift.ui.UserInterface
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import org.junit.jupiter.api.BeforeAll
 
@@ -24,8 +23,7 @@ class WithoutSkillsTest {
   }
 
   @Test
-  fun `the served build has no stats panel, and that is not a missing interface`() {
-    assertFalse(UI.Stats.isBuilt)
+  fun `every name its code uses is in a served build without rift-skills`() {
     assertEquals(emptyList(), Ts2.missingNames())
   }
 

@@ -9,6 +9,7 @@ export function playSound(sound: Sound): void {
   CS2.sound_effect(sound, 1, 0);
 }
 
+/** Scales a value into a range. */
 export function scaled(value: Int, ofMax: Int, intoRange: Int): Int {
   return CS2.scale(value, ofMax, intoRange);
 }
@@ -32,6 +33,7 @@ export function textWidth(text: String, maxWidth: Int, font: Font): Int {
   return CS2.parawidth(text, maxWidth, font);
 }
 
+/** Whether the world is a members' world. */
 export function membersWorld(): Boolean {
   return CS2.map_members();
 }

@@ -20,7 +20,6 @@ public object DefaultUiPackage : RiftPackage {
 
   private const val CHAT_SLOT: String = "chat"
   private const val PRIVATE_CHAT_SLOT: String = "chat.split"
-  private const val STATS_SLOT: String = "tab.stats"
   private const val INVENTORY_SLOT: String = "tab.inventory"
   private const val WORN_ITEMS_SLOT: String = "tab.worn"
   private const val FRIENDS_SLOT: String = "tab.friends"
@@ -61,10 +60,6 @@ public object DefaultUiPackage : RiftPackage {
     openInSlot(userInterface, CHAT_SLOT, UI.Chatbox)
     openInSlot(userInterface, PRIVATE_CHAT_SLOT, UI.PmChat)
     openInSlot(userInterface, ORBS_SLOT, UI.Orbs)
-
-    if (UI.Stats.isBuilt) {
-      openInSlot(userInterface, STATS_SLOT, UI.Stats)
-    }
 
     openInSlot(userInterface, INVENTORY_SLOT, UI.Inventory)
     openInSlot(userInterface, WORN_ITEMS_SLOT, UI.Wornitems)

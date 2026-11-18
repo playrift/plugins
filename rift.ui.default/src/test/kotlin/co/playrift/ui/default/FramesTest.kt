@@ -22,7 +22,7 @@ class FramesTest {
   }
 
   private val panels = mapOf(
-    UI.Chatbox to "chat_container", UI.PmChat to "pm_container", UI.Orbs to "orbs", UI.Stats to "side1", UI.Inventory to "side3",
+    UI.Chatbox to "chat_container", UI.PmChat to "pm_container", UI.Orbs to "orbs", UI.Inventory to "side3",
     UI.Wornitems to "side4", UI.Friends to "side9", UI.Logout to "side10",
   )
 

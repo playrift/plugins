@@ -2,14 +2,11 @@ id      = rift.ui.default
 name    = Default UI
 author  = Rift
 description = Provides a bulk of the basic game UI. Top-level interfaces `resizable`, `classic` and `mobile`. The chat box, equipment, friends list, inventory, logout and minimap orbs.
-version = 1.0.0
+version = 1.0.3
 engine  = "^1.0.0"
 entry   = co.playrift.ui.default.DefaultUiPackage
 
 ts2     = META-INF/rift/ts2/
-
-optional = rift.skills 1.0.0
-ts2_with = rift.skills META-INF/rift/ts2-with/rift.skills/
 
 asset_field = item.quiver boolean false   Whether this item, worn, gives the extra ammo slot.
 

@@ -27,6 +27,7 @@ export const SkillIcons = mapOf<Skill, Sprite>([
   [23, GameSprites.staticons2_13],
 ]);
 
+/** The skill silhouettes. */
 export const SkillIconsAlt = mapOf<Skill, Sprite>([
   [0, GameSprites.stat_silhouette_0],
   [1, GameSprites.stat_silhouette_2],
