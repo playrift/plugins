@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 13,
+  "seq": 14,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -64,7 +64,7 @@
       "author": "Rift",
       "description": "Sprites which are basically mandatory: compass, map icons, click feedback, crowns, minimap hint arrow and so on.",
       "licence": "MIT",
-      "source": "https://github.com/playrift/plugins/tree/rift.default.sprites-1.0.0/rift.default.sprites",
+      "source": "https://github.com/playrift/plugins/tree/rift.default.sprites-1.0.1/rift.default.sprites",
       "versions": [
         {
           "version": "1.0.0",
@@ -75,6 +75,16 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.default.sprites-1.0.0/rift.default.sprites-1.0.0.jar",
           "sha256": "ca3e58ec4b98f534be262d4bffc7a6abf990d4edc2f6dda915d5fa8d86c1f432",
           "size": 7420
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.default.sprites-1.0.1/rift.default.sprites-1.0.1.jar",
+          "sha256": "c38c1ee909f07e094c00674f4b6d082513e111ddf41cd8324b6a7a8da6ef165e",
+          "size": 7421
         }
       ]
     },

@@ -2,7 +2,7 @@ id      = rift.default.sprites
 name    = Default sprites
 author  = Rift
 description = Sprites which are basically mandatory: compass, map icons, click feedback, crowns, minimap hint arrow and so on.
-version = 1.0.0
+version = 1.0.1
 engine  = "^1.0.0"
 entry   = co.playrift.default.sprites.DefaultSpritesPackage
 
