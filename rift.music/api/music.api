@@ -1,0 +1,154 @@
+public final class co/playrift/music/MusicAvailability : rift/ecs/Component {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBits ()Lrift/ecs/SyncedBits;
+	public final fun getUnavailable ()Ljava/util/Set;
+	public final fun isAvailable (Lrift/assets/MusicDefinition;)Z
+	public final fun setBits (Lrift/ecs/SyncedBits;)V
+}
+
+public final class co/playrift/music/MusicHints : rift/ecs/Component {
+	public fun <init> ()V
+	public final fun getBits ()Lrift/ecs/SyncedBits;
+	public final fun setBits (Lrift/ecs/SyncedBits;)V
+}
+
+public final class co/playrift/music/MusicKt {
+	public static final fun getMusicAvailability (Lrift/entities/Entity;)Lco/playrift/music/MusicAvailability;
+	public static final fun getMusicUnlocks (Lrift/entities/Entity;)Lco/playrift/music/MusicUnlocks;
+	public static final fun markMusicAvailable (Lrift/entities/Entity;Lrift/assets/MusicDefinition;)Z
+	public static final fun markMusicUnavailable (Lrift/entities/Entity;Lrift/assets/MusicDefinition;)Z
+	public static final fun playTrack (Lrift/entities/Entity;Lrift/assets/MusicDefinition;)V
+	public static final fun refreshMusicHints (Lrift/entities/Actor;)V
+	public static final fun stopTrack (Lrift/entities/Entity;)V
+}
+
+public final class co/playrift/music/MusicMode : java/lang/Enum {
+	public static final field Area Lco/playrift/music/MusicMode;
+	public static final field Shuffle Lco/playrift/music/MusicMode;
+	public static final field Single Lco/playrift/music/MusicMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lco/playrift/music/MusicMode;
+	public static fun values ()[Lco/playrift/music/MusicMode;
+}
+
+public final class co/playrift/music/MusicPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/music/MusicPackage;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+
+public final class co/playrift/music/MusicPlayer : rift/ecs/Component {
+	public fun <init> ()V
+	public fun <init> (IILjava/lang/String;)V
+	public synthetic fun <init> (IILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getModeNumber ()I
+	public final fun getRequested ()Ljava/lang/String;
+	public final fun getShownPlaylist ()I
+	public final fun setModeNumber (I)V
+	public final fun setRequested (Ljava/lang/String;)V
+	public final fun setShownPlaylist (I)V
+}
+
+public final class co/playrift/music/MusicPlayerKt {
+	public static final field PLAYLISTS I
+	public static final field PLAYLIST_SIZE I
+	public static final fun chooseMusic (Lrift/entities/Entity;Lrift/assets/MusicDefinition;)V
+	public static final fun getMode (Lco/playrift/music/MusicPlayer;)Lco/playrift/music/MusicMode;
+	public static final fun getMusicPlayer (Lrift/entities/Entity;)Lco/playrift/music/MusicPlayer;
+	public static final fun getMusicPlaylists (Lrift/entities/Entity;)Lco/playrift/music/MusicPlaylists;
+	public static final fun lockMusicNamed (Lrift/entities/Entity;Ljava/lang/String;)V
+	public static final fun playMusic (Lrift/entities/Entity;Lrift/assets/MusicDefinition;)V
+	public static final fun playMusicNamed (Lrift/entities/Entity;Ljava/lang/String;)V
+	public static final fun sayMusicHint (Lrift/entities/Actor;Lrift/assets/MusicDefinition;)V
+	public static final fun setMode (Lco/playrift/music/MusicPlayer;Lco/playrift/music/MusicMode;)V
+	public static final fun setMusicMode (Lrift/entities/Entity;Lco/playrift/music/MusicMode;)V
+	public static final fun showPlaylist (Lrift/entities/Entity;I)V
+	public static final fun skipMusic (Lrift/entities/Entity;)V
+	public static final fun stopMusic (Lrift/entities/Entity;)V
+	public static final fun togglePlaylistTrack (Lrift/entities/Actor;ILrift/assets/MusicDefinition;)V
+	public static final fun unlockMusic (Lrift/entities/Entity;Lrift/assets/MusicDefinition;)Z
+	public static final fun unlockMusicNamed (Lrift/entities/Entity;Ljava/lang/String;)V
+}
+
+public final class co/playrift/music/MusicPlaylists : rift/ecs/Component {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getFirst ()Ljava/util/List;
+	public final fun getFirstNumbers ()Ljava/util/List;
+	public final fun getSecond ()Ljava/util/List;
+	public final fun getSecondNumbers ()Ljava/util/List;
+	public final fun getThird ()Ljava/util/List;
+	public final fun getThirdNumbers ()Ljava/util/List;
+	public final fun holds (ILrift/assets/MusicDefinition;)Z
+	public final fun setFirstNumbers (Ljava/util/List;)V
+	public final fun setSecondNumbers (Ljava/util/List;)V
+	public final fun setThirdNumbers (Ljava/util/List;)V
+	public final fun tracks (I)Ljava/util/List;
+}
+
+public final class co/playrift/music/MusicRules {
+	public static final field INSTANCE Lco/playrift/music/MusicRules;
+	public final fun getDEFAULT_UNLOCKED_MESSAGE ()Lkotlin/jvm/functions/Function1;
+	public final fun getHint ()Lkotlin/jvm/functions/Function2;
+	public final fun getLockedMessage ()Ljava/lang/String;
+	public final fun getMayPlayAnyTrack ()Lkotlin/jvm/functions/Function1;
+	public final fun getPlaylistFullMessage ()Lkotlin/jvm/functions/Function1;
+	public final fun getUnavailableMessage ()Ljava/lang/String;
+	public final fun getUnlockedMessage ()Lkotlin/jvm/functions/Function1;
+	public final fun setHint (Lkotlin/jvm/functions/Function2;)V
+	public final fun setLockedMessage (Ljava/lang/String;)V
+	public final fun setMayPlayAnyTrack (Lkotlin/jvm/functions/Function1;)V
+	public final fun setPlaylistFullMessage (Lkotlin/jvm/functions/Function1;)V
+	public final fun setUnavailableMessage (Ljava/lang/String;)V
+	public final fun setUnlockedMessage (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class co/playrift/music/MusicTab {
+	public static final field AREA_BUTTON Ljava/lang/String;
+	public static final field INSTANCE Lco/playrift/music/MusicTab;
+	public static final field INTERFACE Ljava/lang/String;
+	public static final field PLAYING_TRACK Ljava/lang/String;
+	public static final field PLAYLIST_MENU Ljava/lang/String;
+	public static final field SHUFFLE_BUTTON Ljava/lang/String;
+	public static final field SINGLE_BUTTON Ljava/lang/String;
+	public static final field SKIP_BUTTON Ljava/lang/String;
+	public static final field SLOT Ljava/lang/String;
+	public static final field TRACK_LIST Ljava/lang/String;
+	public final fun trackAt (Lrift/ui/UIComponentClick;Lrift/entities/Entity;)Lrift/assets/MusicDefinition;
+	public final fun trackList ()Lrift/ui/Ts2Component;
+}
+
+public final class co/playrift/music/MusicUnlocks : rift/ecs/Component {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBits ()Lrift/ecs/SyncedBits;
+	public final fun getUnlocked ()Ljava/util/Set;
+	public final fun isUnlocked (Ljava/lang/String;)Z
+	public final fun isUnlocked (Lrift/assets/MusicDefinition;)Z
+	public final fun lock (Ljava/lang/String;)Z
+	public final fun lock (Lrift/assets/MusicDefinition;)Z
+	public final fun setBits (Lrift/ecs/SyncedBits;)V
+	public final fun unlock (Ljava/lang/String;)Z
+	public final fun unlock (Lrift/assets/MusicDefinition;)Z
+}
+
+public final class co/playrift/music/NowPlaying : rift/ecs/Component {
+	public static final field Companion Lco/playrift/music/NowPlaying$Companion;
+	public static final field NONE I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getName ()Ljava/lang/String;
+	public final fun getTrack ()I
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setTrack (I)V
+}
+
+public final class co/playrift/music/NowPlaying$Companion {
+}
+

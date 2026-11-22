@@ -1,0 +1,9 @@
+import music from './music.toml';
+
+export type MusicRow = {
+  name: String;
+  title: String;
+  track: Int;
+};
+
+export const MusicTracks = listOf<MusicRow>(music.tracks);

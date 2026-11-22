@@ -1,0 +1,13 @@
+import { requireServerStates } from 'ts2';
+
+export const MusicStates = requireServerStates('rift.music', {
+  unlocked: Bits,
+  unavailable: Bits,
+  hinted: Bits,
+  current_track: Int,
+  mode: Int,
+  shown_playlist: Int,
+  playlist_1: IntList,
+  playlist_2: IntList,
+  playlist_3: IntList,
+});

@@ -1,0 +1,446 @@
+import { useRef, useServerState, useState, useUniverse } from 'ts2';
+
+import {
+  Dropdown,
+  Layout,
+  Mode,
+  ModeIcon,
+  MusicColour,
+  PlaylistNames,
+  playingTrackRef,
+  playlistMenuRef,
+  Row,
+  Skin,
+  trackListRef,
+} from './music.constants';
+import { MusicRow, MusicTracks } from './music.list';
+import { MusicStates } from './music.states';
+import { MusicFonts, MusicSprites } from './music.assets';
+import { MusicScrollbar, MusicSteelFrame } from './music.scrollbar.component';
+
+export function Music(): Component {
+  return (
+    <layer x="center" y="center" w={Layout.panel.w} h={Layout.panel.h}>
+      <layer x={Layout.playing.x} y={Layout.playing.y} w={Layout.playing.w} h={Layout.playing.h}>
+        <text
+          w={Layout.playingLabel.w}
+          h={Layout.playingLabel.h}
+          text="Playing:"
+          font={MusicFonts.font_495}
+          color={MusicColour.ORANGE}
+          shadow
+        />
+        <TrackName />
+      </layer>
+
+      <Unlocked />
+
+      <layer x="center" y={Layout.listBox.y} w={Layout.listBox.w} h={Layout.listBox.h}>
+        <rect
+          x="center"
+          y={0}
+          w={{ fill: Layout.backdrop.inset }}
+          h={{ fill: Layout.backdrop.inset }}
+          fill
+          transparency={Layout.backdrop.trans}
+        />
+
+        <layer x={Layout.inner.x} y="center" w={{ fill: Layout.inner.inset }} h={{ fill: Layout.inner.inset }}>
+          <TrackPane />
+        </layer>
+
+        <MusicSteelFrame />
+      </layer>
+
+      <layer x={{ right: 0 }} y={0} w="fill" h={Layout.strip.h}>
+        <ModeButtons />
+      </layer>
+
+      <PlaylistDropdown />
+    </layer>
+  );
+}
+
+function TrackName(): Component {
+  const playing: Int = useServerState(MusicStates.current_track);
+  const hinted = useServerState(MusicStates.hinted);
+  const first = useServerState(MusicStates.playlist_1);
+  const second = useServerState(MusicStates.playlist_2);
+  const third = useServerState(MusicStates.playlist_3);
+
+  const position: Int = positionOf(playing);
+  const known: Boolean = position !== -1;
+  const title: String = known ? titleAt(position) : ' ';
+
+  return (
+    <text
+      ref={playingTrackRef}
+      y={Layout.trackName.y}
+      w={Layout.trackName.w}
+      h={Layout.trackName.h}
+      text={title}
+      font={MusicFonts.font_495}
+      color={MusicColour.PLAYING}
+      shadow
+      valign="middle"
+      optionSubject={known ? `<col=ff9040>${title}</col>` : ''}
+      options={[
+        '',
+        known && hinted.get(position) ? 'Unlock hint' : '',
+        known ? playlistOption(1, first.includes(playing)) : '',
+        known ? playlistOption(2, second.includes(playing)) : '',
+        known ? playlistOption(3, third.includes(playing)) : '',
+      ]}
+      onMouseEnter={(event) => {
+        event.self.color = MusicColour.WHITE;
+      }}
+      onMouseLeave={(event) => {
+        event.self.color = MusicColour.PLAYING;
+      }}
+    />
+  );
+}
+
+function Unlocked(): Component {
+  const unlocked = useServerState(MusicStates.unlocked);
+  const unavailable = useServerState(MusicStates.unavailable);
+
+  const total: Int = MusicTracks.length;
+  let count: Int = 0;
+  let position: Int = 0;
+  while (position < total) {
+    if (unlocked.get(position) && !unavailable.get(position)) {
+      count = count + 1;
+    }
+    position = position + 1;
+  }
+
+  return (
+    <text
+      x="center"
+      y={{ bottom: Layout.unlocked.bottom }}
+      w="fill"
+      h={{ fill: Layout.unlocked.insetH }}
+      text={`Unlocked: ${count} / ${total}`}
+      font={MusicFonts.font_494}
+      color={MusicColour.ORANGE}
+      shadow
+      align="center"
+      valign="bottom"
+    />
+  );
+}
+
+function TrackPane(): Component {
+  const shown: Int = useServerState(MusicStates.shown_playlist);
+  const first = useServerState(MusicStates.playlist_1);
+  const second = useServerState(MusicStates.playlist_2);
+  const third = useServerState(MusicStates.playlist_3);
+  const box = useUniverse();
+  const pane = useRef();
+
+  let count: Int = MusicTracks.length;
+  if (shown === 1) {
+    count = first.length;
+  }
+  if (shown === 2) {
+    count = second.length;
+  }
+  if (shown === 3) {
+    count = third.length;
+  }
+  const content: Int = Row.TOP + count * Row.PITCH + Row.END_PAD;
+
+  return (
+    <>
+      <layer
+        ref={pane}
+        x={Layout.pane.x}
+        y="center"
+        w={{ fill: Layout.pane.insetW }}
+        h="fill"
+        scrollHeight={content > box.height ? content : 0}
+      >
+        <layer ref={trackListRef} w="fill" h="fill">
+          {shown === 0 && MusicTracks.map((row, position) => <TrackRow position={position} y={Row.TOP + position * Row.PITCH} />)}
+          {shown === 1 && first.map((track, index) => <TrackRow position={positionOf(track)} y={Row.TOP + index * Row.PITCH} />)}
+          {shown === 2 && second.map((track, index) => <TrackRow position={positionOf(track)} y={Row.TOP + index * Row.PITCH} />)}
+          {shown === 3 && third.map((track, index) => <TrackRow position={positionOf(track)} y={Row.TOP + index * Row.PITCH} />)}
+        </layer>
+      </layer>
+
+      <layer x={{ right: 0 }} y="center" w={Layout.scrollbar.w} h="fill" hide={count <= 0}>
+        <MusicScrollbar content={pane} />
+      </layer>
+    </>
+  );
+}
+
+function TrackRow({ position, y }: { position: Int; y: Int }): Component {
+  const unlocked = useServerState(MusicStates.unlocked);
+  const unavailable = useServerState(MusicStates.unavailable);
+  const hinted = useServerState(MusicStates.hinted);
+  const playing: Int = useServerState(MusicStates.current_track);
+  const first = useServerState(MusicStates.playlist_1);
+  const second = useServerState(MusicStates.playlist_2);
+  const third = useServerState(MusicStates.playlist_3);
+
+  const track: Int = trackAt(position);
+  const title: String = titleAt(position);
+
+  let colour: Int = MusicColour.LOCKED;
+  if (unlocked.get(position)) {
+    colour = MusicColour.UNLOCKED;
+  }
+  if (track === playing) {
+    colour = MusicColour.PLAYING;
+  }
+  if (unavailable.get(position)) {
+    colour = MusicColour.UNAVAILABLE;
+  }
+
+  return (
+    <text
+      x="center"
+      y={y}
+      w="fill"
+      h={Row.PITCH}
+      text={title}
+      font={MusicFonts.font_495}
+      color={colour}
+      shadow
+      align="left"
+      valign="middle"
+      options={[
+        'Play',
+        hinted.get(position) ? 'Unlock hint' : '',
+        playlistOption(1, first.includes(track)),
+        playlistOption(2, second.includes(track)),
+        playlistOption(3, third.includes(track)),
+      ]}
+      optionSubject={`<col=ff9040>${title}</col>`}
+      onMouseEnter={(event) => {
+        event.self.color = MusicColour.WHITE;
+      }}
+      onMouseLeave={(event) => {
+        event.self.color = colour;
+      }}
+    />
+  );
+}
+
+function playlistOption(playlist: Int, holds: Boolean): String {
+  if (holds) {
+    return `Remove from playlist ${playlist}`;
+  }
+  return `Add to playlist ${playlist}`;
+}
+
+function positionOf(track: Int): Int {
+  let position: Int = 0;
+  while (position < MusicTracks.length) {
+    const row: MusicRow | null = MusicTracks.at(position);
+    if (row !== null) {
+      if (row.track === track) {
+        return position;
+      }
+    }
+    position = position + 1;
+  }
+  return -1;
+}
+
+function trackAt(position: Int): Int {
+  const row: MusicRow | null = MusicTracks.at(position);
+  if (row === null) {
+    return -1;
+  }
+  return row.track;
+}
+
+function titleAt(position: Int): String {
+  const row: MusicRow | null = MusicTracks.at(position);
+  if (row === null) {
+    return ' ';
+  }
+  return row.title;
+}
+
+function ModeButtons(): Component {
+  const mode: Int = useServerState(MusicStates.mode);
+  const areaButton = useRef('area');
+  const shuffleButton = useRef('shuffle');
+  const singleButton = useRef('single');
+  const skipButton = useRef('skip');
+
+  return (
+    <>
+      <ModeButton ref={areaButton} x={Layout.mode.area} anchorRight={0} icon={ModeIcon.AREA} option="Area Mode" pressed={mode === Mode.AREA} />
+      <ModeButton ref={shuffleButton} x={Layout.mode.shuffle} anchorRight={0} icon={ModeIcon.SHUFFLE} option="Shuffle Mode" pressed={mode === Mode.SHUFFLE} />
+      <ModeButton ref={singleButton} x={Layout.mode.single} anchorRight={0} icon={ModeIcon.SINGLE} option="Single Mode" pressed={mode === Mode.SINGLE} />
+      <ModeButton ref={skipButton} x={Layout.mode.skip} anchorRight={1} icon={ModeIcon.SKIP} option="Skip Track" pressed={mode !== Mode.SHUFFLE} />
+    </>
+  );
+}
+
+function ModeButton({
+  x,
+  anchorRight,
+  icon,
+  option,
+  pressed,
+}: {
+  x: Int;
+  anchorRight: Int;
+  icon: Sprite;
+  option: String;
+  pressed: Boolean;
+}): Component {
+  const [hovered, setHovered] = useState(0);
+
+  return (
+    <layer
+      x={anchorRight === 1 ? { right: x } : x}
+      y={Layout.mode.y}
+      w={Layout.mode.w}
+      h={Layout.mode.h}
+      options={pressed ? [] : [option]}
+      onMouseRepeat={() => setHovered(1)}
+      onMouseLeave={() => setHovered(0)}
+    >
+      {pressed || hovered === 1 ? <StoneSmallPressed /> : <StoneSmallRaised />}
+      <sprite x="center" y="center" w={Skin.ICON_W} h={Skin.ICON_H} sprite={icon} />
+    </layer>
+  );
+}
+
+function StoneSmallRaised(): Component {
+  return (
+    <>
+      <sprite
+        x="center"
+        y="center"
+        w={{ fill: Skin.BACKDROP_INSET }}
+        h={{ fill: Skin.BACKDROP_INSET }}
+        sprite={MusicSprites.tradebacking}
+        tiling
+      />
+      <sprite w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_0} tiling />
+      <sprite x={{ right: 0 }} w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_1} tiling />
+      <sprite y={{ bottom: 0 }} w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_2} tiling />
+      <sprite x={{ right: 0 }} y={{ bottom: 0 }} w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_3} tiling />
+      <sprite y={Skin.CORNER} w={Skin.CORNER} h={{ fill: Skin.EDGE }} sprite={MusicSprites.v2_stone_button_small_4} tiling />
+      <sprite x={Skin.CORNER} w={{ fill: Skin.EDGE }} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_5} tiling />
+      <sprite x={{ right: 0 }} y={Skin.CORNER} w={Skin.CORNER} h={{ fill: Skin.EDGE }} sprite={MusicSprites.v2_stone_button_small_6} tiling />
+      <sprite x={Skin.CORNER} y={{ bottom: 0 }} w={{ fill: Skin.EDGE }} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_7} tiling />
+    </>
+  );
+}
+
+function StoneSmallPressed(): Component {
+  return (
+    <>
+      <sprite
+        x="center"
+        y="center"
+        w={{ fill: Skin.BACKDROP_INSET }}
+        h={{ fill: Skin.BACKDROP_INSET }}
+        sprite={MusicSprites.tradebacking_dark}
+        tiling
+      />
+      <sprite w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_16} tiling />
+      <sprite x={{ right: 0 }} w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_17} tiling />
+      <sprite y={{ bottom: 0 }} w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_18} tiling />
+      <sprite x={{ right: 0 }} y={{ bottom: 0 }} w={Skin.CORNER} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_19} tiling />
+      <sprite y={Skin.CORNER} w={Skin.CORNER} h={{ fill: Skin.EDGE }} sprite={MusicSprites.v2_stone_button_small_20} tiling />
+      <sprite x={Skin.CORNER} w={{ fill: Skin.EDGE }} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_21} tiling />
+      <sprite x={{ right: 0 }} y={Skin.CORNER} w={Skin.CORNER} h={{ fill: Skin.EDGE }} sprite={MusicSprites.v2_stone_button_small_22} tiling />
+      <sprite x={Skin.CORNER} y={{ bottom: 0 }} w={{ fill: Skin.EDGE }} h={Skin.CORNER} sprite={MusicSprites.v2_stone_button_small_23} tiling />
+    </>
+  );
+}
+
+function PlaylistDropdown(): Component {
+  const shown: Int = useServerState(MusicStates.shown_playlist);
+  const [open, setOpen] = useState(0);
+  const arrow = useRef();
+
+  const arrowInset: Int = (Layout.dropdown.h - Dropdown.ARROW) / 2;
+  const menuHeight: Int = PlaylistNames.length * Row.PITCH + Layout.menu.padding * 2;
+
+  return (
+    <>
+      <layer
+        x={{ right: Layout.dropdown.x }}
+        y={Layout.dropdown.y}
+        w={Layout.dropdown.w}
+        h={Layout.dropdown.h}
+        options={['Expand']}
+        onOptionSelect={() => setOpen(open === 1 ? 0 : 1)}
+        onMouseEnter={() => {
+          arrow.transparency = Dropdown.ARROW_HOVER;
+        }}
+        onMouseLeave={() => {
+          arrow.transparency = 0;
+        }}
+      >
+        <sprite w="fill" h="fill" sprite={MusicSprites.tradebacking} tiling />
+        <ThinBoxOutline />
+        <sprite
+          ref={arrow}
+          x={{ right: arrowInset }}
+          y={arrowInset}
+          w={Dropdown.ARROW}
+          h={Dropdown.ARROW}
+          sprite={MusicSprites.scrollbar_v2_1}
+          tiling
+        />
+        <text
+          x={Dropdown.LABEL_INSET}
+          y={{ bottom: Dropdown.LABEL_INSET }}
+          w={{ fill: Layout.dropdown.h }}
+          h={{ fill: Dropdown.LABEL_INSET_H }}
+          text={PlaylistNames.at(shown) ?? ''}
+          font={MusicFonts.font_494}
+          color={MusicColour.ORANGE}
+          shadow
+          align="center"
+          valign="middle"
+        />
+      </layer>
+
+      <layer x={{ right: Layout.dropdown.x }} y={Layout.menu.y} w={Layout.dropdown.w} h={menuHeight} hide={open === 0} noClickThrough>
+        <sprite w="fill" h="fill" sprite={MusicSprites.tradebacking} tiling />
+        <ThinBoxOutline />
+
+        <layer ref={playlistMenuRef} x={Layout.menu.padding} y={Layout.menu.padding} w={{ fill: Layout.menu.padding * 2 }} h={{ fill: Layout.menu.padding * 2 }}>
+          {PlaylistNames.map((name, playlist) => (
+            <text
+              y={playlist * Row.PITCH}
+              w="fill"
+              h={Row.PITCH}
+              text={name}
+              font={MusicFonts.font_494}
+              color={playlist === shown ? MusicColour.WHITE : MusicColour.ORANGE}
+              shadow
+              align="center"
+              valign="middle"
+              options={['Select']}
+              optionSubject={`<col=ff9040>${name}</col>`}
+              onOptionSelect={() => setOpen(0)}
+            />
+          ))}
+        </layer>
+      </layer>
+    </>
+  );
+}
+
+function ThinBoxOutline(): Component {
+  return (
+    <>
+      <rect x="center" y="center" w="fill" h="fill" color={0x0e0e0c} />
+      <rect x="center" y="center" w={{ fill: 2 }} h={{ fill: 2 }} color={0x474745} />
+    </>
+  );
+}

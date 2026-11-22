@@ -1,0 +1,81 @@
+import { createRef } from 'ts2';
+
+import { MusicSprites } from './music.assets';
+
+export const musicRef = createRef('music');
+
+export const trackListRef = createRef('music_track_list');
+
+export const playingTrackRef = createRef('music_playing_track');
+
+export const playlistMenuRef = createRef('music_playlist_menu');
+
+export const Layout = {
+  panel: { w: 190, h: 261 },
+  playing: { x: 7, y: 44, w: 183, h: 38 },
+  playingLabel: { w: 47, h: 18 },
+  trackName: { y: 16, w: 160, h: 19 },
+  unlocked: { bottom: 1, insetH: 248 },
+  listBox: { y: 80, w: 186, h: 166 },
+  backdrop: { inset: 2, trans: 212 },
+  inner: { x: 6, inset: 12 },
+  pane: { x: 3, insetW: 20 },
+  scrollbar: { w: 16 },
+  strip: { h: 62 },
+  mode: { y: 5, w: 37, h: 26, area: 6, shuffle: 49, single: 92, skip: 6 },
+  dropdown: { x: 6, y: 37, w: 120, h: 20 },
+  menu: { y: 57, padding: 3 },
+} as const;
+
+export const MusicColour = {
+  ORANGE: 0xff981f,
+  WHITE: 0xffffff,
+  LOCKED: 0xff0000,
+  UNLOCKED: 0x0dc10d,
+  PLAYING: 0x3ce6e6,
+  UNAVAILABLE: 0x9f9f9f,
+} as const;
+
+export const Row = {
+  PITCH: 15,
+  TOP: 3,
+  END_PAD: 3,
+} as const;
+
+export const Scroll = {
+  ARROW: 16,
+  STEP: 4,
+  WHEEL: 45,
+  CAP: 5,
+  MIN_THUMB: 10,
+} as const;
+
+export const Skin = {
+  CORNER: 5,
+  EDGE: 10,
+  BACKDROP_INSET: 2,
+  ICON_W: 23,
+  ICON_H: 18,
+} as const;
+
+export const Dropdown = {
+  ARROW: 16,
+  ARROW_HOVER: 125,
+  LABEL_INSET: 2,
+  LABEL_INSET_H: 4,
+} as const;
+
+export const ModeIcon = {
+  AREA: MusicSprites.music_icons_0,
+  SHUFFLE: MusicSprites.music_icons_1,
+  SINGLE: MusicSprites.music_icons_2,
+  SKIP: MusicSprites.music_icons_3,
+} as const;
+
+export enum Mode {
+  AREA = 0,
+  SHUFFLE = 1,
+  SINGLE = 2,
+}
+
+export const PlaylistNames = listOf<String>(['All music', 'Playlist 1', 'Playlist 2', 'Playlist 3']);

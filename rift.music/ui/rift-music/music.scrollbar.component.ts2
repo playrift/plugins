@@ -1,0 +1,135 @@
+import { useRef } from 'ts2';
+
+import { Scroll } from './music.constants';
+import { MusicSprites } from './music.assets';
+
+function thumbHeightOf(barHeight: Int, contentHeight: Int, extent: Int): Int {
+  return Math.max(
+    Scroll.MIN_THUMB,
+    extent > 0 ? (barHeight - Scroll.ARROW * 2) * contentHeight / extent : barHeight - Scroll.ARROW * 2,
+  );
+}
+
+function trackScroll(gutter: Ref, thumb: Ref, capTop: Ref, capBottom: Ref, content: Ref): void {
+  const range: Int = Math.max(1, content.scrollHeight - content.height);
+  const travel: Int = gutter.height - thumb.height;
+  const y: Int = Scroll.ARROW + travel * content.scrollY / range;
+
+  thumb.y = y;
+  capTop.y = y;
+  capBottom.y = y + thumb.height - Scroll.CAP;
+}
+
+export function MusicScrollbar({ content }: { content: Ref }): Component {
+  const bar = useRef();
+  const gutter = useRef();
+  const thumb = useRef();
+  const capTop = useRef();
+  const capBottom = useRef();
+
+  const scrollExtent: Int = content.scrollHeight;
+  const extent: Int = scrollExtent > 0 ? scrollExtent : content.height;
+
+  content.onScrollWheel = (event) => {
+    content.scrollY = content.scrollY + event.mouseY * Scroll.WHEEL;
+    trackScroll(gutter, thumb, capTop, capBottom, content);
+  };
+
+  return (
+    <layer ref={bar} w="fill" h="fill">
+      <sprite
+        ref={gutter}
+        y="center"
+        w="fill"
+        h={{ fill: Scroll.ARROW * 2 }}
+        sprite={MusicSprites.scrollbar_dragger_v2_3}
+        noClickThrough
+        onScrollWheel={(event) => {
+          content.scrollY = content.scrollY + event.mouseY * Scroll.WHEEL;
+          trackScroll(gutter, thumb, capTop, capBottom, content);
+        }}
+        onClick={(event) => {
+          const travel: Int = Math.max(1, gutter.height - thumb.height);
+          const offset: Int = Math.clamp(0, travel, event.mouseY - thumb.height / 2);
+          const range: Int = content.scrollHeight - content.height;
+          content.scrollY = offset * range / travel;
+          trackScroll(gutter, thumb, capTop, capBottom, content);
+        }}
+      />
+      <sprite
+        ref={thumb}
+        y={
+          Scroll.ARROW +
+          (gutter.height - thumbHeightOf(bar.height, content.height, extent)) * content.scrollY /
+            Math.max(1, content.scrollHeight - content.height)
+        }
+        w="fill"
+        h={thumbHeightOf(bar.height, content.height, extent)}
+        sprite={MusicSprites.scrollbar_dragger_v2_1}
+        noClickThrough
+        draggable={gutter}
+        dragMoves
+        onDrag={(event) => {
+          const offset: Int = event.mouseY;
+          thumb.y = offset + Scroll.ARROW;
+          capTop.y = offset + Scroll.ARROW;
+          capBottom.y = offset + Scroll.ARROW + thumb.height - Scroll.CAP;
+
+          const travel: Int = Math.max(1, gutter.height - thumb.height);
+          const range: Int = content.scrollHeight - content.height;
+          content.scrollY = offset * range / travel;
+        }}
+      />
+      <sprite ref={capTop} y={thumb.y} w="fill" h={Scroll.CAP} sprite={MusicSprites.scrollbar_dragger_v2_0} />
+      <sprite
+        ref={capBottom}
+        y={thumb.y + thumb.height - Scroll.CAP}
+        w="fill"
+        h={Scroll.CAP}
+        sprite={MusicSprites.scrollbar_dragger_v2_2}
+      />
+      <sprite
+        y="top"
+        w="fill"
+        h={Scroll.ARROW}
+        sprite={MusicSprites.scrollbar_v2_0}
+        noClickThrough
+        onHold={() => {
+          content.scrollY = content.scrollY - Scroll.STEP;
+          trackScroll(gutter, thumb, capTop, capBottom, content);
+        }}
+      />
+      <sprite
+        y="bottom"
+        w="fill"
+        h={Scroll.ARROW}
+        sprite={MusicSprites.scrollbar_v2_1}
+        noClickThrough
+        onHold={() => {
+          content.scrollY = content.scrollY + Scroll.STEP;
+          trackScroll(gutter, thumb, capTop, capBottom, content);
+        }}
+      />
+    </layer>
+  );
+}
+
+export function MusicSteelFrame({ children }: { children?: Children }): Component {
+  return (
+    <layer w="fill" h="fill">
+      <sprite x="left" y="top" w={25} h={30} sprite={MusicSprites.steelborder_0} tiling />
+      <sprite x="right" y="top" w={25} h={30} sprite={MusicSprites.steelborder_1} tiling />
+      <sprite x="left" y="bottom" w={25} h={30} sprite={MusicSprites.steelborder_2} tiling />
+      <sprite x="right" y="bottom" w={25} h={30} sprite={MusicSprites.steelborder_3} tiling />
+
+      <sprite x={{ left: -15 }} y="center" w={36} h={{ fill: 60 }} sprite={MusicSprites.miscgraphics_2} tiling />
+      <sprite x={{ right: -15 }} y="center" w={36} h={{ fill: 60 }} sprite={MusicSprites.steelborder2_1} tiling />
+      <sprite x="center" y={{ top: -15 }} w={{ fill: 50 }} h={36} sprite={MusicSprites.steelborder2_0} tiling />
+      <sprite x="center" y={{ bottom: -15 }} w={{ fill: 50 }} h={36} sprite={MusicSprites.miscgraphics_3} tiling />
+
+      <layer w="fill" h="fill">
+        {children}
+      </layer>
+    </layer>
+  );
+}

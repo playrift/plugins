@@ -1,0 +1,11 @@
+id      = rift.music
+name    = Music
+author  = Rift
+description = A music UI and music player system. Plays your project's music, tracks which songs each player has unlocked.
+version = 1.0.0
+engine  = "^1.0.0"
+entry   = co.playrift.music.MusicPackage
+
+ts2     = META-INF/rift/ts2/
+
+persisted = rift.music:MusicUnlocks, rift.music:MusicAvailability, rift.music:NowPlaying, rift.music:MusicPlayer, rift.music:MusicPlaylists
