@@ -4,7 +4,9 @@ The world map UI, linked with your games world maps files.
 
 ## Usage
 
-Install it beside the default UI. Then open it from your scripts:
+Install it beside the default UI. Installing doesn't hook up the world map button: add the **open-world-map** template for that (**Project › Project Settings… › Plugins › Installed**, select **World map**, **Use template…**, then **Build**). The button's **Floating World Map** and **Fullscreen World Map** then open the map.
+
+Or open it from your scripts:
 
 ```kotlin
 import co.playrift.ui.worldmap.*
@@ -15,5 +17,3 @@ player.closeWorldMap()
 ```
 
 Close the interface with the esc key, or by clicking the `x`.
-
-See `templates/open-world-map.rift.template` if you want the minimap orb to open this interface.

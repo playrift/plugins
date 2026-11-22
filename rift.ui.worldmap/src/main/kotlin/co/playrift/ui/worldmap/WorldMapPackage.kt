@@ -9,11 +9,8 @@ import rift.ts2.Ts2
 import rift.ts2.UI
 import rift.ui.UserInterface
 
-/** The world map. */
 public object WorldMapPackage : RiftPackage {
-  /** The slot the floating world map opens in. */
   public const val FLOATING_SLOT: String = "floater"
-  /** The fullscreen world map's toplevel. */
   public const val FULLSCREEN_TOPLEVEL: String = "worldmap-fullscreen"
 
   private const val CLOSE_OPTION = 1
@@ -45,7 +42,6 @@ public object WorldMapPackage : RiftPackage {
   }
 }
 
-/** Opens the world map. */
 public fun Entity.openWorldMap() {
   val userInterface = findComponent<UserInterface>()
   if (userInterface == null) return
@@ -55,7 +51,6 @@ public fun Entity.openWorldMap() {
   WorldMapPackage.openFloating(userInterface)
 }
 
-/** Opens the world map fullscreen. */
 public fun Entity.openWorldMapFullscreen() {
   val userInterface = findComponent<UserInterface>()
   if (userInterface == null) return
@@ -68,7 +63,6 @@ public fun Entity.openWorldMapFullscreen() {
   userInterface.gameplayToplevel = WorldMapPackage.FULLSCREEN_TOPLEVEL
 }
 
-/** Closes the world map. */
 public fun Entity.closeWorldMap() {
   val userInterface = findComponent<UserInterface>()
   if (userInterface == null) return

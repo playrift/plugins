@@ -7,4 +7,5 @@ dependencies {
     implementation("co.playrift:cfg:$engineVersion")
     implementation("co.playrift:rift-project:$engineVersion")
     testRuntimeOnly(project(":ui-default"))
+    testRuntimeOnly(project(":skills"))
 }

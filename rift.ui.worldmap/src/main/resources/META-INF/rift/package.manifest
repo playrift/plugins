@@ -2,7 +2,7 @@ id      = rift.ui.worldmap
 name    = World map
 author  = Rift
 description = The world map UI, linked with your games world maps files.
-version = 1.0.0
+version = 1.0.1
 engine  = "^1.0.0"
 entry   = co.playrift.ui.worldmap.WorldMapPackage
 

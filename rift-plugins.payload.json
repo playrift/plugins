@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 19,
+  "seq": 20,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -52,7 +52,7 @@
       "author": "Rift",
       "description": "The world map UI, linked with your games world maps files.",
       "licence": "MIT",
-      "source": "https://github.com/playrift/plugins/tree/rift.ui.worldmap-1.0.0/rift.ui.worldmap",
+      "source": "https://github.com/playrift/plugins/tree/rift.ui.worldmap-1.0.1/rift.ui.worldmap",
       "versions": [
         {
           "version": "1.0.0",
@@ -65,6 +65,18 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.ui.worldmap-1.0.0/rift.ui.worldmap-1.0.0.jar",
           "sha256": "99481886c1bebe6fe7a827cc753a109e1c3ca8d12e36be6c2efd029c4840fe8f",
           "size": 51651
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.0.0",
+          "depends": {
+            "rift.ui.default": "^1.0.0"
+          },
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.ui.worldmap-1.0.1/rift.ui.worldmap-1.0.1.jar",
+          "sha256": "94b265850cf2595df98879f20644a0c9d5d0195420d942089cdebc7ffe49913e",
+          "size": 51752
         }
       ]
     },
