@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 15,
+  "seq": 16,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -124,7 +124,7 @@
       "author": "Rift",
       "description": "Provides all of the default body parts.",
       "licence": "MIT",
-      "source": "https://github.com/playrift/plugins/tree/rift.default.bodyparts-1.0.0/rift.default.bodyparts",
+      "source": "https://github.com/playrift/plugins/tree/rift.default.bodyparts-1.0.1/rift.default.bodyparts",
       "versions": [
         {
           "version": "1.0.0",
@@ -134,6 +134,16 @@
           "ts2_binding": "ts2-kotlin/2",
           "jar": "https://github.com/playrift/plugins/releases/download/rift.default.bodyparts-1.0.0/rift.default.bodyparts-1.0.0.jar",
           "sha256": "ac543055d44207aab28d96f761a39aac13bb0062d8366bf02c6fc5d56a6a3433",
+          "size": 18790
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.default.bodyparts-1.0.1/rift.default.bodyparts-1.0.1.jar",
+          "sha256": "6e383377b2d46c8355c0b55683201e5b801aa5d7c33d49dd7f20eafd5e45474d",
           "size": 18790
         }
       ]
