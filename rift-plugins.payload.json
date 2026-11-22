@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 25,
+  "seq": 26,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -320,6 +320,19 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.actions.movement-1.0.0/rift.actions.movement-1.0.0.jar",
           "sha256": "5faedac3d40ec0febe2a9a06ef1f1345e5372bec92a8f202d7e2ffc2c9aec8a4",
           "size": 39950
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.0.0",
+          "depends": {
+            "rift.actions.queue": "^1.0.0",
+            "rift.movement.pathfinding": "^1.0.0"
+          },
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.actions.movement-1.0.1/rift.actions.movement-1.0.1.jar",
+          "sha256": "3d25749dab43b96e68f6e679f24d94d1a2ac8b592dc26e06fc3cf6087869d4ed",
+          "size": 40024
         }
       ]
     },

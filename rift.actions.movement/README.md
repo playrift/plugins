@@ -6,13 +6,15 @@ Sends walk intent through the action queue. A new click replaces a walk, and a w
 
 ### Setup
 
-1. In Project Settings → Plugins, turn on **Click movement**, **BFS pathfinding**, **Action queue** and **Actions: movement**.
-2. Give players a pathfinder: select the **Player** node → **Add Component** → **BfsPathfinding**. Or choose **Use template…** → `players-pathfind.rift`.
+1. In **Project › Project Settings… › Plugins**, turn on **Click to move**, **BFS pathfinding**, **Action queue** and **Actions: movement**.
+2. Give players a pathfinder: select the **Player** node → **Add Component** → **BfsPathfinding**. Or add BFS pathfinding's **players-pathfind** template.
 3. Build, Play, and click the ground.
 
-With Action movement on, every click on the ground goes through the player's queue.
+With **Actions: movement** on, every click on the ground goes through the player's queue.
 
 ### Walk, then act
+
+Each walk-then-act is a script of your own. To start from one, add the **walk-then-act** template (**Project › Project Settings… › Plugins › Installed**, select **Actions: movement**, **Use template…**), swap in your own object and option, then **Build**.
 
 Pass `WalkTo()` the thing to walk to. It works out the rest:
 
