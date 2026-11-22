@@ -1,0 +1,79 @@
+import { Game } from 'rift.ui.default/lib/game/server-states';
+import { createRef } from 'ts2';
+export const statsRef = createRef('stats');
+
+export const statsTooltipRef = createRef();
+
+export const statsSkillsRef = createRef('stats_skills');
+
+export const statsPinnedRef = createRef('stats_pinned');
+
+export const statsScrollbarRef = createRef('stats_scrollbar');
+
+export declare const StatsVarbits: {
+  readonly HIDE_XP_TO_LEVEL: typeof Game.option_hidexptolevel;
+};
+
+export enum StatsColor {
+  LEVEL = 0xffff00,
+}
+
+export enum StatsLayout {
+  PANEL_W = 190,
+  PANEL_H = 261,
+  CELL_W = 62,
+  CELL_H = 30,
+  CELL_H_BOTTOM = 32,
+  BOX_H = 31,
+  SPRITE_SIZE = 36,
+  HALF = 36,
+  HALF_X = 31,
+  ICON = 25,
+  ICON_X = 3,
+  ICON_Y = 4,
+  LEVEL_X = 32,
+  LEVEL_Y = 4,
+  LEVEL_W = 15,
+  LEVEL_H = 12,
+  BASE_X = 44,
+  BASE_Y = 16,
+  TOTAL_H = 19,
+  TOTAL_TILE = 36,
+  TOTAL_CAP_X = 1,
+  TOTAL_TEXT_X = 2,
+  TOTAL_TEXT_Y = 2,
+  TOTAL_TEXT_INSET_H = 1,
+  TOOLTIP_W = 1,
+  TOOLTIP_H = 1,
+  MIDDLE_SOURCE_X = 5,
+  MIDDLE_W = 26,
+  SLASH_W = 24,
+  RIGHT_EDGE_W = 7,
+  WIDENED_GAP_DIVISOR = 2,
+}
+
+export const StatsMiddlePieces = [0, 1, 2, 3, 4] as const;
+
+export enum StatsTotalBox {
+  CORNER_W = 37,
+  CORNER_H = 9,
+  FILL_X = 2,
+  OUTER = 0x2e2b23,
+  INNER = 0x726451,
+  FILL = 0x000000,
+}
+
+export const StatsTooltipBox = {
+  line: 12,
+  gap: 4,
+  padX: 4,
+  padY: 7,
+  nudge: 5,
+  fill: 0xffffa0,
+  ink: 0x000000,
+  unwrapped: 2147483647,
+} as const;
+
+export const STATS_TOOLTIP_DWELL = 5;
+
+export const TOTAL_ROW = 64;

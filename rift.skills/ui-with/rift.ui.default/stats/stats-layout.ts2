@@ -1,0 +1,307 @@
+import { StatsLayout } from './stats.constants';
+
+export enum StatsTabLayout {
+  REFLOW = 0,
+  STRETCH = 1,
+}
+
+export enum TotalLevelPlacement {
+  LAST_ROW = 0,
+  OWN_ROW = 1,
+}
+
+export enum TotalBoxShape {
+  SHORT_BAR = 0,
+  TALL = 1,
+  ONE_CELL = 2,
+  CELLS = 3,
+}
+
+export enum StatsGrid {
+  COLUMNS = 3,
+  FEWEST_STRETCH_COLUMNS = 2,
+  MAXIMUM_SKILLS = 64,
+  ORIGIN_X = 1,
+  ORIGIN_Y = 1,
+  COLUMN_STEP = 63,
+  COLUMN_GAP = 1,
+  EDGE = 1,
+  MAXIMUM_STEP = 32,
+  SCROLLBAR_W = 16,
+  NONE = -1,
+}
+
+function lastRowExtra(): Int {
+  return StatsLayout.CELL_H_BOTTOM - StatsLayout.CELL_H;
+}
+
+function skillsShown(count: Int): Int {
+  if (count < 0) {
+    return 0;
+  }
+  if (count > StatsGrid.MAXIMUM_SKILLS) {
+    return StatsGrid.MAXIMUM_SKILLS;
+  }
+  return count;
+}
+
+function columnsOf(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  if (layout !== StatsTabLayout.STRETCH) {
+    return StatsGrid.COLUMNS;
+  }
+
+  const fitting: Int = (panelWidth - StatsGrid.ORIGIN_X - StatsGrid.EDGE - StatsLayout.CELL_W) / StatsGrid.COLUMN_STEP + 1;
+  if (fitting < 1) {
+    return 1;
+  }
+
+  const wanted: Int = fewestColumns(count, panelHeight);
+  if (fitting < wanted) {
+    return fitting;
+  }
+  return wanted;
+}
+
+function fewestColumns(count: Int, panelHeight: Int): Int {
+  const rows: Int = rowsThatFit(panelHeight);
+  if (skillsShown(count) <= rows * StatsGrid.FEWEST_STRETCH_COLUMNS) {
+    return StatsGrid.FEWEST_STRETCH_COLUMNS;
+  }
+  return StatsGrid.COLUMNS;
+}
+
+function columnWidth(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  if (layout !== StatsTabLayout.STRETCH) {
+    return StatsLayout.CELL_W;
+  }
+
+  const columns: Int = columnsOf(count, panelWidth, panelHeight, layout);
+  return (panelWidth - StatsGrid.ORIGIN_X - StatsGrid.EDGE - (columns - 1) * StatsGrid.COLUMN_GAP) / columns;
+}
+
+function columnX(column: Int, count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  return StatsGrid.ORIGIN_X + column * (columnWidth(count, panelWidth, panelHeight, layout) + StatsGrid.COLUMN_GAP);
+}
+
+function lastColumnWidth(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  if (layout !== StatsTabLayout.STRETCH) {
+    return StatsLayout.CELL_W;
+  }
+
+  const columns: Int = columnsOf(count, panelWidth, panelHeight, layout);
+  return panelWidth - StatsGrid.EDGE - columnX(columns - 1, count, panelWidth, panelHeight, layout);
+}
+
+function rowsOf(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  const columns: Int = columnsOf(count, panelWidth, panelHeight, layout);
+  return (skillsShown(count) + columns - 1) / columns;
+}
+
+function freeCells(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  return rowsOf(count, panelWidth, panelHeight, layout) * columnsOf(count, panelWidth, panelHeight, layout) - skillsShown(count);
+}
+
+function rowsThatFit(panelHeight: Int): Int {
+  return (panelHeight - StatsGrid.ORIGIN_Y - StatsGrid.EDGE - StatsLayout.TOTAL_H) / StatsLayout.CELL_H;
+}
+
+function totalSharesLastRow(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Boolean {
+  if (placement === TotalLevelPlacement.OWN_ROW) {
+    return false;
+  }
+  return rowsOf(count, panelWidth, panelHeight, layout) === rowsThatFit(panelHeight) && freeCells(count, panelWidth, panelHeight, layout) > 0;
+}
+
+function totalIsTall(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Boolean {
+  return rowsOf(count, panelWidth, panelHeight, layout) < rowsThatFit(panelHeight);
+}
+
+function tallTotalHeight(panelHeight: Int): Int {
+  const rowsAbove: Int = rowsThatFit(panelHeight) - 1;
+  return panelHeight - StatsGrid.EDGE - (StatsGrid.ORIGIN_Y + (rowsAbove - 1) * StatsLayout.CELL_H + StatsLayout.CELL_H_BOTTOM);
+}
+
+function pinnedTotalHeight(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  if (totalIsTall(count, panelWidth, panelHeight, layout)) {
+    return tallTotalHeight(panelHeight);
+  }
+  return StatsLayout.TOTAL_H;
+}
+
+function skillsBottom(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    return panelHeight - StatsGrid.EDGE;
+  }
+  return panelHeight - StatsGrid.EDGE - pinnedTotalHeight(count, panelWidth, panelHeight, layout) + lastRowExtra();
+}
+
+function rowStep(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  const rows: Int = rowsOf(count, panelWidth, panelHeight, layout);
+  if (rows === 0) {
+    return StatsLayout.CELL_H;
+  }
+
+  const available: Int = skillsBottom(count, panelWidth, panelHeight, layout, placement) - StatsGrid.ORIGIN_Y - lastRowExtra();
+  const step: Int = available / rows;
+  if (step < StatsLayout.CELL_H) {
+    return StatsLayout.CELL_H;
+  }
+  if (step > StatsGrid.MAXIMUM_STEP) {
+    return StatsGrid.MAXIMUM_STEP;
+  }
+  return step;
+}
+
+function lastRowY(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  return StatsGrid.ORIGIN_Y + (rowsOf(count, panelWidth, panelHeight, layout) - 1) * rowStep(count, panelWidth, panelHeight, layout, placement);
+}
+
+function isShown(index: Int, count: Int): Boolean {
+  return index >= 0 && index < skillsShown(count);
+}
+
+function besideScrollbarWidth(count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  const columns: Int = columnsOf(count, panelWidth, panelHeight, layout);
+  const area: Int = panelWidth - StatsGrid.SCROLLBAR_W;
+  return (area - StatsGrid.ORIGIN_X - StatsGrid.EDGE - (columns - 1) * StatsGrid.COLUMN_GAP) / columns;
+}
+
+function besideScrollbarX(column: Int, count: Int, panelWidth: Int, panelHeight: Int, layout: Int): Int {
+  return StatsGrid.ORIGIN_X + column * (besideScrollbarWidth(count, panelWidth, panelHeight, layout) + StatsGrid.COLUMN_GAP);
+}
+
+export function scrollbarShown(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Boolean {
+  return scrollExtent(count, panelWidth, panelHeight, layout, placement) > 0;
+}
+
+export function skillAreaWidth(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (scrollbarShown(count, panelWidth, panelHeight, layout, placement)) {
+    return panelWidth - StatsGrid.SCROLLBAR_W;
+  }
+  return panelWidth;
+}
+
+export function skillBoxX(index: Int, count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (!isShown(index, count)) {
+    return StatsGrid.NONE;
+  }
+
+  const column: Int = index % columnsOf(count, panelWidth, panelHeight, layout);
+  if (scrollbarShown(count, panelWidth, panelHeight, layout, placement)) {
+    return besideScrollbarX(column, count, panelWidth, panelHeight, layout);
+  }
+  return columnX(column, count, panelWidth, panelHeight, layout);
+}
+
+export function skillBoxY(index: Int, count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (!isShown(index, count)) {
+    return StatsGrid.NONE;
+  }
+  return StatsGrid.ORIGIN_Y + (index / columnsOf(count, panelWidth, panelHeight, layout)) * rowStep(count, panelWidth, panelHeight, layout, placement);
+}
+
+export function skillBoxWidth(index: Int, count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (!isShown(index, count)) {
+    return StatsGrid.NONE;
+  }
+
+  const columns: Int = columnsOf(count, panelWidth, panelHeight, layout);
+  const last: Boolean = index % columns === columns - 1;
+  if (scrollbarShown(count, panelWidth, panelHeight, layout, placement)) {
+    if (last) {
+      return skillAreaWidth(count, panelWidth, panelHeight, layout, placement) - StatsGrid.EDGE - besideScrollbarX(columns - 1, count, panelWidth, panelHeight, layout);
+    }
+    return besideScrollbarWidth(count, panelWidth, panelHeight, layout);
+  }
+  if (last) {
+    return lastColumnWidth(count, panelWidth, panelHeight, layout);
+  }
+  return columnWidth(count, panelWidth, panelHeight, layout);
+}
+
+export function skillBoxHeight(index: Int, count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (!isShown(index, count)) {
+    return StatsGrid.NONE;
+  }
+
+  const step: Int = rowStep(count, panelWidth, panelHeight, layout, placement);
+  if (index / columnsOf(count, panelWidth, panelHeight, layout) === rowsOf(count, panelWidth, panelHeight, layout) - 1) {
+    return step + lastRowExtra();
+  }
+  return step;
+}
+
+export function skillBackgroundHeight(index: Int, count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (!isShown(index, count)) {
+    return StatsGrid.NONE;
+  }
+  return rowStep(count, panelWidth, panelHeight, layout, placement) + StatsLayout.BOX_H - StatsLayout.CELL_H;
+}
+
+export function totalInLastRow(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Boolean {
+  return totalSharesLastRow(count, panelWidth, panelHeight, layout, placement);
+}
+
+export function totalBoxShape(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    if (freeCells(count, panelWidth, panelHeight, layout) === 1) {
+      return TotalBoxShape.ONE_CELL;
+    }
+    return TotalBoxShape.CELLS;
+  }
+  if (totalIsTall(count, panelWidth, panelHeight, layout)) {
+    return TotalBoxShape.TALL;
+  }
+  return TotalBoxShape.SHORT_BAR;
+}
+
+export function totalBoxX(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    const columns: Int = columnsOf(count, panelWidth, panelHeight, layout);
+    return columnX(columns - freeCells(count, panelWidth, panelHeight, layout), count, panelWidth, panelHeight, layout);
+  }
+  return 0;
+}
+
+export function totalBoxY(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    return lastRowY(count, panelWidth, panelHeight, layout, placement);
+  }
+  return panelHeight - StatsGrid.EDGE - pinnedTotalHeight(count, panelWidth, panelHeight, layout);
+}
+
+export function totalBoxWidth(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    return panelWidth - StatsGrid.EDGE - totalBoxX(count, panelWidth, panelHeight, layout, placement);
+  }
+  return panelWidth;
+}
+
+export function totalBoxHeight(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    return rowStep(count, panelWidth, panelHeight, layout, placement) + lastRowExtra();
+  }
+  return pinnedTotalHeight(count, panelWidth, panelHeight, layout);
+}
+
+export function totalBarHeight(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    return rowStep(count, panelWidth, panelHeight, layout, placement) + StatsLayout.BOX_H - StatsLayout.CELL_H;
+  }
+  return pinnedTotalHeight(count, panelWidth, panelHeight, layout);
+}
+
+export function scrollAreaHeight(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  if (totalSharesLastRow(count, panelWidth, panelHeight, layout, placement)) {
+    return panelHeight;
+  }
+  return skillsBottom(count, panelWidth, panelHeight, layout, placement);
+}
+
+export function scrollExtent(count: Int, panelWidth: Int, panelHeight: Int, layout: Int, placement: Int): Int {
+  const content: Int = StatsGrid.ORIGIN_Y + rowsOf(count, panelWidth, panelHeight, layout) * rowStep(count, panelWidth, panelHeight, layout, placement) + lastRowExtra();
+  if (content > scrollAreaHeight(count, panelWidth, panelHeight, layout, placement)) {
+    return content;
+  }
+  return 0;
+}

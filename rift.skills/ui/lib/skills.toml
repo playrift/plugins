@@ -1,0 +1,188 @@
+[[skills]]
+key = "attack"
+title = "Attack"
+stat = 0
+icon = 197
+icon_x_offset = 0
+
+[[skills]]
+key = "hitpoints"
+title = "Hitpoints"
+stat = 3
+icon = 203
+icon_x_offset = 1
+
+[[skills]]
+key = "mining"
+title = "Mining"
+stat = 14
+icon = 209
+icon_x_offset = 2
+
+[[skills]]
+key = "strength"
+title = "Strength"
+stat = 2
+icon = 198
+icon_x_offset = 0
+
+[[skills]]
+key = "agility"
+title = "Agility"
+stat = 16
+icon = 204
+icon_x_offset = 1
+
+[[skills]]
+key = "smithing"
+title = "Smithing"
+stat = 13
+icon = 210
+icon_x_offset = 2
+
+[[skills]]
+key = "defence"
+title = "Defence"
+stat = 1
+icon = 199
+icon_x_offset = 0
+
+[[skills]]
+key = "herblore"
+title = "Herblore"
+stat = 15
+icon = 205
+icon_x_offset = 1
+
+[[skills]]
+key = "fishing"
+title = "Fishing"
+stat = 10
+icon = 211
+icon_x_offset = 1
+
+[[skills]]
+key = "ranged"
+title = "Ranged"
+stat = 4
+icon = 200
+icon_x_offset = 1
+
+[[skills]]
+key = "thieving"
+title = "Thieving"
+stat = 17
+icon = 206
+icon_x_offset = 2
+
+[[skills]]
+key = "cooking"
+title = "Cooking"
+stat = 7
+icon = 212
+icon_x_offset = 3
+
+[[skills]]
+key = "prayer"
+title = "Prayer"
+stat = 5
+icon = 201
+icon_x_offset = 1
+
+[[skills]]
+key = "crafting"
+title = "Crafting"
+stat = 12
+icon = 207
+icon_x_offset = 2
+
+[[skills]]
+key = "firemaking"
+title = "Firemaking"
+stat = 11
+icon = 213
+icon_x_offset = 2
+
+[[skills]]
+key = "magic"
+title = "Magic"
+stat = 6
+icon = 202
+icon_x_offset = 1
+
+[[skills]]
+key = "fletching"
+title = "Fletching"
+stat = 9
+icon = 208
+icon_x_offset = 2
+
+[[skills]]
+key = "woodcutting"
+title = "Woodcutting"
+stat = 8
+icon = 214
+icon_x_offset = 2
+
+[[skills]]
+key = "runecrafting"
+title = "Runecraft"
+stat = 20
+icon = 215
+icon_x_offset = 1
+
+[[skills]]
+key = "slayer"
+title = "Slayer"
+stat = 18
+icon = 216
+icon_x_offset = -1
+
+[[skills]]
+key = "farming"
+title = "Farming"
+stat = 19
+icon = 217
+icon_x_offset = 1
+
+[[skills]]
+key = "construction"
+title = "Construction"
+stat = 22
+icon = 221
+icon_x_offset = 0
+
+[[skills]]
+key = "hunter"
+title = "Hunter"
+stat = 21
+icon = 220
+icon_x_offset = 0
+
+[[skills]]
+key = "sailing"
+title = "Sailing"
+stat = 23
+icon = 228
+icon_x_offset = 1
+
+[curve]
+max_level = 99
+max_xp = 200000000
+virtual_levels = false
+xp = [
+  0, 83, 174, 276, 388, 512, 650, 801, 969, 1154,
+  1358, 1584, 1833, 2107, 2411, 2746, 3115, 3523, 3973, 4470,
+  5018, 5624, 6291, 7028, 7842, 8740, 9730, 10824, 12031, 13363,
+  14833, 16456, 18247, 20224, 22406, 24815, 27473, 30408, 33648, 37224,
+  41171, 45529, 50339, 55649, 61512, 67983, 75127, 83014, 91721, 101333,
+  111945, 123660, 136594, 150872, 166636, 184040, 203254, 224466, 247886, 273742,
+  302288, 333804, 368599, 407015, 449428, 496254, 547953, 605032, 668051, 737627,
+  814445, 899257, 992895, 1096278, 1210421, 1336443, 1475581, 1629200, 1798808, 1986068,
+  2192818, 2421087, 2673114, 2951373, 3258594, 3597792, 3972294, 4385776, 4842295, 5346332,
+  5902831, 6517253, 7195629, 7944614, 8771558, 9684577, 10692629, 11805606, 13034431,
+]
+
+[settings]
+stats_tab_layout = "reflow"
+total_level = "last_row"

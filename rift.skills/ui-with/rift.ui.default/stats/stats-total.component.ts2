@@ -1,0 +1,148 @@
+import { useDerived } from 'ts2';
+
+import { totalLevel } from 'rift.skills/lib/skills';
+import { onMobile } from 'rift.ui.default/lib/lib.helpers';
+import { TotalBoxShape } from './stats-layout';
+import { StatsColor, StatsLayout, StatsTotalBox, TOTAL_ROW } from './stats.constants';
+import { hideStatsTip, showStatsTip, toggleStatsTip } from './stats-tooltip.component';
+import { GameFonts, GameSprites } from 'rift.ui.default/game-assets';
+
+export function StatsTotalBar({
+  x,
+  y,
+  width,
+  height,
+  barHeight,
+  shape,
+  scroll,
+}: {
+  x: Int;
+  y: Int;
+  width: Int;
+  height: Int;
+  barHeight: Int;
+  shape: Int;
+  scroll: Ref;
+}): Component {
+  const total: Int = useDerived(() => totalLevel());
+  const mobile: Boolean = onMobile();
+  const shortBar: Boolean = shape === TotalBoxShape.SHORT_BAR;
+
+  let font: Font = GameFonts.font_494;
+  if (shape === TotalBoxShape.TALL) {
+    font = GameFonts.font_495;
+  }
+
+  let label: String = `Total level: ${total}`;
+  if (shape === TotalBoxShape.ONE_CELL) {
+    label = `Total lvl:<br>${total}`;
+  }
+
+  let toggle: String = '';
+  if (mobile) {
+    toggle = 'Toggle Total XP';
+  }
+
+  return (
+    <layer x={x} y={y} w={width} h={height}>
+      {shortBar && <StatsTotalShortBar />}
+      {!shortBar && <StatsTotalPieces width={width} height={barHeight} inset={shape === TotalBoxShape.TALL ? StatsLayout.TOTAL_CAP_X : 0} />}
+      <text
+        x={StatsLayout.TOTAL_TEXT_X}
+        y={StatsLayout.TOTAL_TEXT_Y}
+        w="fill"
+        h={{ fill: StatsLayout.TOTAL_TEXT_INSET_H }}
+        text={label}
+        font={font}
+        color={StatsColor.LEVEL}
+        align="center"
+        valign="middle"
+        shadow
+        options={[toggle]}
+        onMouseRepeat={() => showTotalTip(x, y, height, scroll)}
+        onMouseLeave={() => hideStatsTip()}
+        onOptionSelect={(event) => selectTotalOption(event.option, x, y, height, scroll)}
+      />
+    </layer>
+  );
+}
+
+function showTotalTip(x: Int, y: Int, height: Int, scroll: Ref): void {
+  const shownY: Int = y - scroll.scrollY;
+  showStatsTip(TOTAL_ROW, x + StatsLayout.TOTAL_TEXT_X, shownY + StatsLayout.TOTAL_TEXT_Y, height - StatsLayout.TOTAL_TEXT_INSET_H);
+}
+
+function selectTotalOption(option: Int, x: Int, y: Int, height: Int, scroll: Ref): void {
+  const shownY: Int = y - scroll.scrollY;
+  if (option === 1) {
+    toggleStatsTip(TOTAL_ROW, x + StatsLayout.TOTAL_TEXT_X, shownY + StatsLayout.TOTAL_TEXT_Y, height - StatsLayout.TOTAL_TEXT_INSET_H);
+  }
+}
+
+function StatsTotalShortBar(): Component {
+  return (
+    <>
+      <sprite
+        x={StatsLayout.TOTAL_TILE}
+        y={0}
+        w={{ fill: StatsLayout.TOTAL_TILE * 2 }}
+        h={StatsLayout.SPRITE_SIZE}
+        sprite={GameSprites.miscgraphics2_6}
+      />
+      <sprite
+        x={StatsLayout.TOTAL_CAP_X}
+        y={0}
+        w={StatsLayout.TOTAL_TILE}
+        h={StatsLayout.SPRITE_SIZE}
+        sprite={GameSprites.miscgraphics2_4}
+      />
+      <sprite
+        x={{ right: StatsLayout.TOTAL_CAP_X }}
+        y={0}
+        w={StatsLayout.TOTAL_TILE}
+        h={StatsLayout.SPRITE_SIZE}
+        sprite={GameSprites.miscgraphics2_5}
+      />
+    </>
+  );
+}
+
+function StatsTotalCorner({ x, y, spriteX, spriteY, sprite }: { x: Int; y: Int; spriteX: Int; spriteY: Int; sprite: Sprite }): Component {
+  return (
+    <layer x={x} y={y} w={StatsTotalBox.CORNER_W} h={StatsTotalBox.CORNER_H}>
+      <sprite x={spriteX} y={spriteY} w={StatsLayout.TOTAL_TILE} h={StatsLayout.SPRITE_SIZE} sprite={sprite} />
+    </layer>
+  );
+}
+
+function StatsTotalPieces({ width, height, inset }: { width: Int; height: Int; inset: Int }): Component {
+  const gapX: Int = inset + StatsLayout.TOTAL_TILE;
+  const gapWidth: Int = Math.max(width - gapX * 2, 0);
+  const fillX: Int = inset + StatsTotalBox.FILL_X;
+  const middleHeight: Int = height - StatsTotalBox.CORNER_H * 2;
+  const rightX: Int = width - StatsTotalBox.CORNER_W;
+  const rightSpriteX: Int = StatsTotalBox.CORNER_W - StatsLayout.TOTAL_TILE - inset;
+  const bottomY: Int = height - StatsTotalBox.CORNER_H;
+  const bottomSpriteY: Int = StatsTotalBox.CORNER_H - StatsLayout.TOTAL_H;
+
+  return (
+    <>
+      <rect x={gapX} y={0} w={gapWidth} h={height} color={StatsTotalBox.FILL} fill />
+      <rect x={gapX} y={0} w={gapWidth} h={1} color={StatsTotalBox.OUTER} fill />
+      <rect x={gapX} y={1} w={gapWidth} h={1} color={StatsTotalBox.INNER} fill />
+      <rect x={gapX} y={height - 2} w={gapWidth} h={1} color={StatsTotalBox.INNER} fill />
+      <rect x={gapX} y={height - 1} w={gapWidth} h={1} color={StatsTotalBox.OUTER} fill />
+
+      <rect x={fillX} y={StatsTotalBox.CORNER_H} w={width - fillX * 2} h={middleHeight} color={StatsTotalBox.FILL} fill />
+      <rect x={inset} y={StatsTotalBox.CORNER_H} w={1} h={middleHeight} color={StatsTotalBox.OUTER} fill />
+      <rect x={inset + 1} y={StatsTotalBox.CORNER_H} w={1} h={middleHeight} color={StatsTotalBox.INNER} fill />
+      <rect x={width - 2 - inset} y={StatsTotalBox.CORNER_H} w={1} h={middleHeight} color={StatsTotalBox.INNER} fill />
+      <rect x={width - 1 - inset} y={StatsTotalBox.CORNER_H} w={1} h={middleHeight} color={StatsTotalBox.OUTER} fill />
+
+      <StatsTotalCorner x={0} y={0} spriteX={inset} spriteY={0} sprite={GameSprites.miscgraphics2_4} />
+      <StatsTotalCorner x={rightX} y={0} spriteX={rightSpriteX} spriteY={0} sprite={GameSprites.miscgraphics2_5} />
+      <StatsTotalCorner x={0} y={bottomY} spriteX={inset} spriteY={bottomSpriteY} sprite={GameSprites.miscgraphics2_4} />
+      <StatsTotalCorner x={rightX} y={bottomY} spriteX={rightSpriteX} spriteY={bottomSpriteY} sprite={GameSprites.miscgraphics2_5} />
+    </>
+  );
+}

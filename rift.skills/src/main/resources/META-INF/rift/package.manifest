@@ -1,0 +1,44 @@
+id      = rift.skills
+name    = Skills
+author  = Rift
+description = Provides the classic 24 skills, Attack to Sailing, plus the stats tab. Which skills are on, and the XP curve, are your project's skills settings.
+version = 1.0.1
+engine  = "^1.1.0"
+entry   = co.playrift.skills.SkillsPackage
+
+ts2     = META-INF/rift/ts2/
+
+optional = rift.ui.default 1.0.3
+ts2_with = rift.ui.default META-INF/rift/ts2-with/rift.ui.default/
+
+setting = stats_tab_layout choice reflow="Reflow"|stretch="Stretch" reflow  How the stats tab fits its skill boxes: Reflow keeps each box its size; Stretch widens them to fill the tab.
+setting = total_level choice last_row="In the last row"|own_row="Own row" last_row  Where the stats tab shows Total level: in the last row beside the skills, or on a row of its own.
+
+defaults = skills META-INF/rift/package/skills.default.toml
+
+persisted = rift.skills:AttackSkill, rift.skills:DefenceSkill, rift.skills:StrengthSkill, rift.skills:HitpointsSkill, rift.skills:RangedSkill, rift.skills:PrayerSkill, rift.skills:MagicSkill, rift.skills:CookingSkill, rift.skills:WoodcuttingSkill, rift.skills:FletchingSkill, rift.skills:FishingSkill, rift.skills:FiremakingSkill, rift.skills:CraftingSkill, rift.skills:SmithingSkill, rift.skills:MiningSkill, rift.skills:HerbloreSkill, rift.skills:AgilitySkill, rift.skills:ThievingSkill, rift.skills:SlayerSkill, rift.skills:FarmingSkill, rift.skills:RunecraftingSkill, rift.skills:HunterSkill, rift.skills:ConstructionSkill, rift.skills:SailingSkill
+
+import = sprite staticons2_0 the stats tab's Runecraft icon
+import = sprite staticons2_1 the stats tab's Slayer icon
+import = sprite staticons2_13 the stats tab's Sailing icon
+import = sprite staticons2_2 the stats tab's Farming icon
+import = sprite staticons2_5 the stats tab's Hunter icon
+import = sprite staticons2_6 the stats tab's Construction icon
+import = sprite staticons_0 the stats tab's Attack icon
+import = sprite staticons_1 the stats tab's Strength icon
+import = sprite staticons_10 the stats tab's Crafting icon
+import = sprite staticons_11 the stats tab's Fletching icon
+import = sprite staticons_12 the stats tab's Mining icon
+import = sprite staticons_13 the stats tab's Smithing icon
+import = sprite staticons_14 the stats tab's Fishing icon
+import = sprite staticons_15 the stats tab's Cooking icon
+import = sprite staticons_16 the stats tab's Firemaking icon
+import = sprite staticons_17 the stats tab's Woodcutting icon
+import = sprite staticons_2 the stats tab's Defence icon
+import = sprite staticons_3 the stats tab's Ranged icon
+import = sprite staticons_4 the stats tab's Prayer icon
+import = sprite staticons_5 the stats tab's Magic icon
+import = sprite staticons_6 the stats tab's Hitpoints icon
+import = sprite staticons_7 the stats tab's Agility icon
+import = sprite staticons_8 the stats tab's Herblore icon
+import = sprite staticons_9 the stats tab's Thieving icon

@@ -1,0 +1,119 @@
+import { CS2 } from 'ts2';
+
+import skills from './skills.toml';
+
+export { default as SkillTable } from './skills.toml';
+
+export type SkillRow = { key: String; title: String; stat: Int; icon: Int; icon_x_offset: Int };
+
+export const SkillRows = listOf<SkillRow>(skills.skills);
+
+export const XpCurve = listOf<Int>(skills.curve.xp);
+
+export const NO_SKILL = -1;
+
+export function maxLevel(): Int {
+  return skills.curve.max_level;
+}
+
+export function topLevel(): Int {
+  return XpCurve.length;
+}
+
+export function statsTabStretches(): Boolean {
+  return CS2.compare(skills.settings.stats_tab_layout, 'stretch') === 0;
+}
+
+export function totalLevelOnOwnRow(): Boolean {
+  return CS2.compare(skills.settings.total_level, 'own_row') === 0;
+}
+
+function rowIndexOf(stat: Int): Int {
+  let index: Int = 0;
+  while (index < SkillRows.length) {
+    const row = SkillRows.at(index);
+    if (row !== null) {
+      if (row.stat === stat) {
+        return index;
+      }
+    }
+    index = index + 1;
+  }
+  return NO_SKILL;
+}
+
+export function skillTitle(stat: Int): String {
+  const row = SkillRows.at(rowIndexOf(stat));
+  if (row === null) {
+    return 'Skill';
+  }
+  return row.title;
+}
+
+export function skillIcon(stat: Int): Sprite {
+  const row = SkillRows.at(rowIndexOf(stat));
+  if (row === null) {
+    return -1;
+  }
+  return row.icon as Sprite;
+}
+
+export function xpForLevel(level: Int): Int {
+  if (level < 1) {
+    return 0;
+  }
+  return XpCurve.at(level - 1) ?? 0;
+}
+
+export function levelStartingAt(xp: Int): Int {
+  let level: Int = 1;
+  while (level <= XpCurve.length) {
+    if (xpForLevel(level) === xp) {
+      return level;
+    }
+    level = level + 1;
+  }
+  return 0;
+}
+
+export function skillListed(order: Int): Int {
+  const row = SkillRows.at(order - 1);
+  if (order < 1 || row === null) {
+    return NO_SKILL;
+  }
+  return row.stat;
+}
+
+function countedLevel(stat: Int): Int {
+  return Math.min(CS2.stat_base(stat as Skill), maxLevel());
+}
+
+export function totalLevel(): Int {
+  let total: Int = 0;
+  let index: Int = 0;
+  while (index < SkillRows.length) {
+    const row = SkillRows.at(index);
+    if (row !== null) {
+      total = total + countedLevel(row.stat);
+    }
+    index = index + 1;
+  }
+  return total;
+}
+
+export function totalXp(): Long {
+  let total: Long = CS2.int_to_long(0);
+  let index: Int = 0;
+  while (index < SkillRows.length) {
+    const row = SkillRows.at(index);
+    if (row !== null) {
+      total = CS2.long_add(total, CS2.int_to_long(CS2.skill_visible_xp(row.stat as Skill)));
+    }
+    index = index + 1;
+  }
+  return total;
+}
+
+export function totalXpText(): String {
+  return CS2.tostring_spacer_long(totalXp(), ',');
+}

@@ -1,0 +1,155 @@
+public final class co/playrift/skills/AgilitySkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/AttackSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/ConstructionSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/CookingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/CraftingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/DefenceSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/FarmingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/FiremakingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/FishingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/FletchingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/HerbloreSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/HitpointsSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Double;)V
+	public synthetic fun <init> (Ljava/lang/Double;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCurrentLevel ()I
+	public fun getLevel ()I
+	public fun setCurrentLevel (I)V
+	public fun setLevel (I)V
+}
+
+public final class co/playrift/skills/HunterSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/MagicSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/MiningSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/PrayerSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/RangedSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/RunecraftingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/SailingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/SkillsPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/skills/SkillsPackage;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+
+public final class co/playrift/skills/SlayerSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/SmithingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/StrengthSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/ThievingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class co/playrift/skills/WoodcuttingSkill : rift/components/Skill {
+	public fun <init> ()V
+	public fun <init> (DLjava/lang/Integer;)V
+	public synthetic fun <init> (DLjava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+

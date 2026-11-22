@@ -1,0 +1,145 @@
+import { onMobile } from 'rift.ui.default/lib/lib.helpers';
+import { StatsColor, StatsLayout, StatsMiddlePieces } from './stats.constants';
+import { showStatsTip, hideStatsTip, toggleStatsTip } from './stats-tooltip.component';
+import { GameFonts, GameSprites } from 'rift.ui.default/game-assets';
+
+export function StatsCell({
+  stat,
+  title,
+  icon,
+  iconXOffset,
+  level,
+  base,
+  x,
+  y,
+  width,
+  height,
+  backgroundHeight,
+  scroll,
+}: {
+  stat: Int;
+  title: String;
+  icon: Sprite;
+  iconXOffset: Int;
+  level: Int;
+  base: Int;
+  x: Int;
+  y: Int;
+  width: Int;
+  height: Int;
+  backgroundHeight: Int;
+  scroll: Ref;
+}): Component {
+  const mobile: Boolean = onMobile();
+  const spriteHeight: Int = (backgroundHeight * StatsLayout.SPRITE_SIZE) / StatsLayout.BOX_H;
+  const extra: Int = Math.max(width - StatsLayout.CELL_W, 0);
+  const gap: Int = extra / StatsLayout.WIDENED_GAP_DIVISOR;
+  const outer: Int = (extra - gap) / 2;
+  const rightHalfX: Int = width - (StatsLayout.CELL_W - StatsLayout.HALF_X) - extra + outer + gap;
+  const rightEdgeX: Int = width - StatsLayout.RIGHT_EDGE_W;
+  const afterSlashX: Int = rightHalfX + StatsLayout.SLASH_W;
+  const levelX: Int = rightHalfX + StatsLayout.LEVEL_X - StatsLayout.HALF_X;
+  const baseX: Int = rightHalfX + StatsLayout.BASE_X - StatsLayout.HALF_X;
+  const centring: Int = (backgroundHeight - StatsLayout.BOX_H) / 2;
+
+  let toggle: String = '';
+  if (mobile) {
+    toggle = `Toggle <col=ff981f>${title}</col> XP`;
+  }
+
+  return (
+    <layer
+      x={x}
+      y={y}
+      w={width}
+      h={height}
+      options={[toggle, `View <col=ff981f>${title}</col> guide`]}
+      onMouseRepeat={() => showCellTip(stat, x, y, height, scroll)}
+      onMouseLeave={() => hideStatsTip()}
+      onOptionSelect={(event) => selectCellOption(event.option, stat, x, y, height, scroll)}
+    >
+      <sprite x={0} y={0} w={StatsLayout.HALF} h={spriteHeight} sprite={GameSprites.miscgraphics2_2} />
+      <StatsCellMiddle x={StatsLayout.HALF_X} width={rightHalfX - StatsLayout.HALF_X} height={spriteHeight} />
+      <sprite x={rightHalfX} y={0} w={StatsLayout.HALF} h={spriteHeight} sprite={GameSprites.miscgraphics2_3} />
+      {extra > 0 && (
+        <>
+          <StatsCellMiddle x={afterSlashX} width={rightEdgeX - afterSlashX} height={spriteHeight} />
+          <layer x={rightEdgeX} y={0} w={StatsLayout.RIGHT_EDGE_W} h={spriteHeight}>
+            <sprite
+              x={StatsLayout.RIGHT_EDGE_W - StatsLayout.HALF_X}
+              y={0}
+              w={StatsLayout.HALF}
+              h={spriteHeight}
+              sprite={GameSprites.miscgraphics2_3}
+            />
+          </layer>
+        </>
+      )}
+
+      <sprite
+        x={StatsLayout.ICON_X + iconXOffset + outer}
+        y={StatsLayout.ICON_Y + centring}
+        w={StatsLayout.ICON}
+        h={StatsLayout.ICON}
+        sprite={icon}
+      />
+
+      <text
+        x={levelX}
+        y={StatsLayout.LEVEL_Y + centring}
+        w={StatsLayout.LEVEL_W}
+        h={StatsLayout.LEVEL_H}
+        text={`${level}`}
+        font={GameFonts.font_494}
+        color={StatsColor.LEVEL}
+        align="center"
+        valign="top"
+        shadow
+      />
+      <text
+        x={baseX}
+        y={StatsLayout.BASE_Y + centring}
+        w={StatsLayout.LEVEL_W}
+        h={StatsLayout.LEVEL_H}
+        text={`${base}`}
+        font={GameFonts.font_494}
+        color={StatsColor.LEVEL}
+        align="center"
+        valign="top"
+        shadow
+      />
+    </layer>
+  );
+}
+
+function showCellTip(stat: Int, x: Int, y: Int, height: Int, scroll: Ref): void {
+  const shownY: Int = y - scroll.scrollY;
+  showStatsTip(stat, x, shownY, height);
+}
+
+function selectCellOption(option: Int, stat: Int, x: Int, y: Int, height: Int, scroll: Ref): void {
+  const shownY: Int = y - scroll.scrollY;
+  if (option === 1) {
+    toggleStatsTip(stat, x, shownY, height);
+  }
+}
+
+function StatsCellMiddle({ x, width, height }: { x: Int; width: Int; height: Int }): Component {
+  return (
+    <>
+      {StatsMiddlePieces.map(
+        (piece) =>
+          piece * StatsLayout.MIDDLE_W < width && (
+            <layer
+              x={x + piece * StatsLayout.MIDDLE_W}
+              y={0}
+              w={Math.min(StatsLayout.MIDDLE_W, width - piece * StatsLayout.MIDDLE_W)}
+              h={height}
+            >
+              <sprite x={-StatsLayout.MIDDLE_SOURCE_X} y={0} w={StatsLayout.HALF} h={height} sprite={GameSprites.miscgraphics2_2} />
+            </layer>
+          ),
+      )}
+    </>
+  );
+}

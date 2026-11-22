@@ -1,0 +1,191 @@
+[skills.curve]
+kind = "classic"
+max_level = 99
+max_xp = 200000000
+
+[[skills.skill]]
+key = "attack"
+title = "Attack"
+stat = 0
+icon = "staticons_0"
+on = true
+
+[[skills.skill]]
+key = "hitpoints"
+title = "Hitpoints"
+stat = 3
+icon = "staticons_6"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "mining"
+title = "Mining"
+stat = 14
+icon = "staticons_12"
+icon_x_offset = 2
+on = true
+
+[[skills.skill]]
+key = "strength"
+title = "Strength"
+stat = 2
+icon = "staticons_1"
+on = true
+
+[[skills.skill]]
+key = "agility"
+title = "Agility"
+stat = 16
+icon = "staticons_7"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "smithing"
+title = "Smithing"
+stat = 13
+icon = "staticons_13"
+icon_x_offset = 2
+on = true
+
+[[skills.skill]]
+key = "defence"
+title = "Defence"
+stat = 1
+icon = "staticons_2"
+on = true
+
+[[skills.skill]]
+key = "herblore"
+title = "Herblore"
+stat = 15
+icon = "staticons_8"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "fishing"
+title = "Fishing"
+stat = 10
+icon = "staticons_14"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "ranged"
+title = "Ranged"
+stat = 4
+icon = "staticons_3"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "thieving"
+title = "Thieving"
+stat = 17
+icon = "staticons_9"
+icon_x_offset = 2
+on = true
+
+[[skills.skill]]
+key = "cooking"
+title = "Cooking"
+stat = 7
+icon = "staticons_15"
+icon_x_offset = 3
+on = true
+
+[[skills.skill]]
+key = "prayer"
+title = "Prayer"
+stat = 5
+icon = "staticons_4"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "crafting"
+title = "Crafting"
+stat = 12
+icon = "staticons_10"
+icon_x_offset = 2
+on = true
+
+[[skills.skill]]
+key = "firemaking"
+title = "Firemaking"
+stat = 11
+icon = "staticons_16"
+icon_x_offset = 2
+on = true
+
+[[skills.skill]]
+key = "magic"
+title = "Magic"
+stat = 6
+icon = "staticons_5"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "fletching"
+title = "Fletching"
+stat = 9
+icon = "staticons_11"
+icon_x_offset = 2
+on = true
+
+[[skills.skill]]
+key = "woodcutting"
+title = "Woodcutting"
+stat = 8
+icon = "staticons_17"
+icon_x_offset = 2
+on = true
+
+[[skills.skill]]
+key = "runecrafting"
+title = "Runecraft"
+stat = 20
+icon = "staticons2_0"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "slayer"
+title = "Slayer"
+stat = 18
+icon = "staticons2_1"
+icon_x_offset = -1
+on = true
+
+[[skills.skill]]
+key = "farming"
+title = "Farming"
+stat = 19
+icon = "staticons2_2"
+icon_x_offset = 1
+on = true
+
+[[skills.skill]]
+key = "construction"
+title = "Construction"
+stat = 22
+icon = "staticons2_6"
+on = true
+
+[[skills.skill]]
+key = "hunter"
+title = "Hunter"
+stat = 21
+icon = "staticons2_5"
+on = true
+
+[[skills.skill]]
+key = "sailing"
+title = "Sailing"
+stat = 23
+icon = "staticons2_13"
+icon_x_offset = 1
+on = true

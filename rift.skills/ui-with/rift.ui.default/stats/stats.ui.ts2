@@ -1,0 +1,121 @@
+import { onMounted, useSkill, useSkillBase, useUniverse } from 'ts2';
+
+import { SkillRows, SkillTable, statsTabStretches, totalLevelOnOwnRow } from 'rift.skills/lib/skills';
+import { StatsCell } from './stats-cell.component';
+import { StatsTotalBar } from './stats-total.component';
+import { StatsTooltip, hideStatsTip } from './stats-tooltip.component';
+import { ScrollbarVertical } from 'rift.ui.default/lib/scrollbar-vertical.component';
+import { GameSprites } from 'rift.ui.default/game-assets';
+import {
+  scrollAreaHeight,
+  scrollbarShown,
+  scrollExtent,
+  skillAreaWidth,
+  skillBackgroundHeight,
+  skillBoxHeight,
+  skillBoxWidth,
+  skillBoxX,
+  skillBoxY,
+  StatsGrid,
+  StatsTabLayout,
+  TotalLevelPlacement,
+  totalBarHeight,
+  totalBoxHeight,
+  totalBoxShape,
+  totalBoxWidth,
+  totalBoxX,
+  totalBoxY,
+  totalInLastRow,
+} from './stats-layout';
+import { StatsLayout, statsPinnedRef, statsRef, statsScrollbarRef, statsSkillsRef, statsTooltipRef } from './stats.constants';
+
+export const statsUi = (): UI => (
+  <ui ref={statsRef} w={StatsLayout.PANEL_W} h={StatsLayout.PANEL_H}>
+    <Stats />
+  </ui>
+);
+
+function Stats(): Component {
+  const root = useUniverse();
+  const count: Int = SkillRows.length;
+  const width: Int = StatsLayout.PANEL_W;
+  const height: Int = StatsLayout.PANEL_H;
+  const layout: Int = statsTabStretches() ? StatsTabLayout.STRETCH : StatsTabLayout.REFLOW;
+  const placement: Int = totalLevelOnOwnRow() ? TotalLevelPlacement.OWN_ROW : TotalLevelPlacement.LAST_ROW;
+  const inLastRow: Boolean = totalInLastRow(count, width, height, layout, placement);
+  const extent: Int = scrollExtent(count, width, height, layout, placement);
+  const scrolls: Boolean = scrollbarShown(count, width, height, layout, placement);
+  const areaHeight: Int = scrollAreaHeight(count, width, height, layout, placement);
+
+  onMounted(() => hideStatsTip());
+
+  return (
+    <>
+      <layer
+        ref={statsSkillsRef}
+        x={0}
+        y={0}
+        w={skillAreaWidth(count, width, height, layout, placement)}
+        h={areaHeight}
+        scrollHeight={extent}
+      >
+        {SkillTable.skills.map((row, index) => (
+          <StatsCell
+            stat={row.stat}
+            title={row.title}
+            icon={row.icon as Sprite}
+            iconXOffset={row.icon_x_offset}
+            level={useSkill(row.stat)}
+            base={useSkillBase(row.stat)}
+            x={skillBoxX(index, count, width, height, layout, placement)}
+            y={skillBoxY(index, count, width, height, layout, placement)}
+            width={skillBoxWidth(index, count, width, height, layout, placement)}
+            height={skillBoxHeight(index, count, width, height, layout, placement)}
+            backgroundHeight={skillBackgroundHeight(index, count, width, height, layout, placement)}
+            scroll={statsSkillsRef}
+          />
+        ))}
+        {inLastRow && (
+          <StatsTotalBar
+            x={totalBoxX(count, width, height, layout, placement)}
+            y={totalBoxY(count, width, height, layout, placement)}
+            width={totalBoxWidth(count, width, height, layout, placement)}
+            height={totalBoxHeight(count, width, height, layout, placement)}
+            barHeight={totalBarHeight(count, width, height, layout, placement)}
+            shape={totalBoxShape(count, width, height, layout, placement)}
+            scroll={statsSkillsRef}
+          />
+        )}
+      </layer>
+      {scrolls && (
+        <layer ref={statsScrollbarRef} x={{ right: 0 }} y={0} w={StatsGrid.SCROLLBAR_W} h={areaHeight}>
+          <ScrollbarVertical
+            content={statsSkillsRef}
+            track={GameSprites.scrollbar_dragger_v2_3}
+            capTopSprite={GameSprites.scrollbar_dragger_v2_0}
+            thumbSprite={GameSprites.scrollbar_dragger_v2_1}
+            capBottomSprite={GameSprites.scrollbar_dragger_v2_2}
+            arrowUp={GameSprites.scrollbar_v2_0}
+            arrowDown={GameSprites.scrollbar_v2_1}
+          />
+        </layer>
+      )}
+      <layer ref={statsPinnedRef} w="fill" h="fill">
+        {!inLastRow && (
+          <StatsTotalBar
+            x={totalBoxX(count, width, height, layout, placement)}
+            y={totalBoxY(count, width, height, layout, placement)}
+            width={totalBoxWidth(count, width, height, layout, placement)}
+            height={totalBoxHeight(count, width, height, layout, placement)}
+            barHeight={totalBarHeight(count, width, height, layout, placement)}
+            shape={totalBoxShape(count, width, height, layout, placement)}
+            scroll={root}
+          />
+        )}
+      </layer>
+      <layer ref={statsTooltipRef} x={0} y={0} w="fill" h="fill">
+        <StatsTooltip root={root} />
+      </layer>
+    </>
+  );
+}
