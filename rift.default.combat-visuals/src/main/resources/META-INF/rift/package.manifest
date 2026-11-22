@@ -2,7 +2,7 @@ id      = rift.default.combat-visuals
 name    = Combat visuals
 author  = Rift
 description = Provides the basic combat feedback elements: hitsplats, health bars, prayer icons, and skulls.
-version = 1.0.0
+version = 1.0.1
 engine  = "^1.0.0"
 entry   = co.playrift.default.combatvisuals.CombatVisualsPackage
 

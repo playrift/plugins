@@ -5,11 +5,11 @@ Provides the basic combat feedback elements: hitsplats, health bars, prayer icon
 ## Usage
 
 ```kotlin
-import co.playrift.engine.ecs.component.attributes.Praying
-import co.playrift.engine.ecs.component.attributes.Skulled
-import co.playrift.engine.ecs.component.descriptors.HitSplats
-import co.playrift.engine.ecs.component.descriptors.overhead.HealthBar
-import co.playrift.engine.model.HitSplat
+import rift.components.Praying
+import rift.components.Skulled
+import rift.components.HitSplats
+import rift.components.HealthBar
+import rift.components.HitSplat
 import co.playrift.default.combatvisuals.CombatVisuals
 
 // hitsplats
@@ -26,7 +26,7 @@ target.addComponent(hitsplats)
 
 // health bar
 target.addComponent(
-  val healthbar = HealthBar(
+  HealthBar(
     healthbar = CombatVisuals.HealthBar.health30.healthBar,
     currentPercentage = 80
   )

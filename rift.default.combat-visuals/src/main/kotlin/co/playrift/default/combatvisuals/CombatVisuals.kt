@@ -5,9 +5,7 @@ import rift.assets.HealthBarDefinition
 import rift.assets.HitsplatDefinition
 import rift.assets.OverheadSpriteDefinition
 
-/** What a player sees in combat. */
 public object CombatVisuals {
-  /** A hitsplat. */
   public enum class Hitsplat(private val handle: HitsplatDefinition) {
     damage(Assets.Hitsplat.hitsplat_16),
     damage_others(Assets.Hitsplat.hitsplat_17),
@@ -22,18 +20,14 @@ public object CombatVisuals {
     disease_blocked(Assets.Hitsplat.hitsplat_3),
     heal(Assets.Hitsplat.hitsplat_6);
 
-    /** Its base asset name. */
     public val baseName: String get() = handle.name
 
-    /** Its hitsplat. */
     public val hitsplat: HitsplatDefinition get() = handle
   }
 
-  /** A health bar family. */
   public enum class Family { health, shield, armour, charge }
 
-  /** A health bar. */
-  public enum class HealthBar(private val handle: HealthBarDefinition, /** Its family. */ public val family: Family, /** Its size, 1 to 8. */ public val size: Int) {
+  public enum class HealthBar(private val handle: HealthBarDefinition, public val family: Family, public val size: Int) {
     health30(Assets.HealthBar.health_bar_0, Family.health, 1),
     health40(Assets.HealthBar.health_bar_2, Family.health, 2),
     health50(Assets.HealthBar.health_bar_16, Family.health, 3),
@@ -67,21 +61,17 @@ public object CombatVisuals {
     charge120(Assets.HealthBar.health_bar_37, Family.charge, 7),
     charge140(Assets.HealthBar.health_bar_38, Family.charge, 8);
 
-    /** Its base asset name. */
     public val baseName: String get() = handle.name
 
-    /** Its health bar. */
     public val healthBar: HealthBarDefinition get() = handle
 
     public companion object {
-      /** The health bar of a family and size. */
       public fun of(family: Family, size: Int): HealthBar =
         entries.firstOrNull { it.family == family && it.size == size } ?: throw IllegalArgumentException("a health bar's size is 1 to 8, not $size")
     }
   }
 
-  /** An icon over a player's head. */
-  public enum class Overhead(private val handle: OverheadSpriteDefinition, /** Where it shows over the head. */ public val slot: OverheadSlot) {
+  public enum class Overhead(private val handle: OverheadSpriteDefinition, public val slot: OverheadSlot) {
     protect_melee(Assets.OverheadSprite.protect_melee, OverheadSlot.Prayer),
     protect_ranged(Assets.OverheadSprite.protect_ranged, OverheadSlot.Prayer),
     protect_magic(Assets.OverheadSprite.protect_magic, OverheadSlot.Prayer),
@@ -133,10 +123,8 @@ public object CombatVisuals {
     skull_31(Assets.OverheadSprite.skull_31, OverheadSlot.Skull),
     skull_32(Assets.OverheadSprite.skull_32, OverheadSlot.Skull);
 
-    /** Its overhead sprite's name. */
     public val baseName: String get() = handle.name
 
-    /** Its overhead sprite. */
     public val overhead: OverheadSpriteDefinition get() = handle
   }
 }

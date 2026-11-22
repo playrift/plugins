@@ -3,11 +3,9 @@ package co.playrift.default.combatvisuals
 import rift.ecs.System
 import rift.packages.RiftPackage
 
-/** The combat visuals. */
 public object CombatVisualsPackage : RiftPackage {
   override val systems: List<System<*, *>> = emptyList()
 
-  /** The head-icon sprite each slot names. */
   public val SPRITES: Map<String, String> = linkedMapOf(
     "head_icons_pk" to Assets.Sprite.headicons_pk.name,
     "head_icons_prayer" to Assets.Sprite.headicons_prayer.name,
