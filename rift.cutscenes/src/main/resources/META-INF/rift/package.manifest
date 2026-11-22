@@ -1,0 +1,9 @@
+id      = rift.cutscenes
+name    = Cutscenes
+author  = Rift
+description = Provides helpers for scripted scenes: put players and NPCs in a cutscene stage, hide the game's UI, fade the screen, move the camera, and put everything back when it ends.
+version = 1.0.0
+engine  = "^1.0.0"
+entry   = co.playrift.cutscenes.CutscenesPackage
+
+ts2     = META-INF/rift/ts2/

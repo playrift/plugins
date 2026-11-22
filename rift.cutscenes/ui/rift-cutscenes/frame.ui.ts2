@@ -1,0 +1,72 @@
+import { createRef, requireServerStates, useInterval, useRef, useServerState, useState } from 'ts2';
+
+const CLEAR = 255;
+const BLACK = 0x000000;
+const OPAQUE = 0;
+const FADED_OUT = 1;
+
+export const cutsceneFrameRef = createRef('cutscene_frame');
+
+export const CutsceneStates = requireServerStates('rift.cutscenes', {
+  fade: Int,
+  fade_cycles: Int,
+});
+
+function stepOf(cycles: Int): Int {
+  if (cycles < 1) {
+    return CLEAR;
+  }
+
+  const step = CLEAR / cycles;
+  if (step < 1) {
+    return 1;
+  }
+
+  return step;
+}
+
+function towards(transparency: Int, target: Int, step: Int): Int {
+  if (transparency > target) {
+    return transparency - step > target ? transparency - step : target;
+  }
+
+  return transparency + step < target ? transparency + step : target;
+}
+
+function GameView(): Component {
+  const view = useRef('view');
+
+  return <layer ref={view} x={0} y={0} w="fill" h="fill" contentType="worldView" />;
+}
+
+function Screen(): Component {
+  const screen = useRef('screen');
+
+  return <layer ref={screen} x={0} y={0} w="fill" h="fill" />;
+}
+
+function FadePlate(): Component {
+  const fade: Int = useServerState(CutsceneStates.fade);
+  const cycles: Int = useServerState(CutsceneStates.fade_cycles);
+  const [transparency, setTransparency] = useState(255);
+  const plate = useRef('plate');
+
+  useInterval(() => {
+    const target = fade === FADED_OUT ? OPAQUE : CLEAR;
+    if (transparency === target) {
+      return;
+    }
+
+    setTransparency(towards(transparency, target, stepOf(cycles)));
+  }, plate);
+
+  return <rect ref={plate} x={0} y={0} w="fill" h="fill" color={BLACK} fill transparency={transparency} />;
+}
+
+export const cutsceneFrameUi = (): UI => (
+  <ui ref={cutsceneFrameRef} x="center" y="center" w="fill" h="fill">
+    <GameView />
+    <Screen />
+    <FadePlate />
+  </ui>
+);

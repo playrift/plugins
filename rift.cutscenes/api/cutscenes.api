@@ -1,0 +1,41 @@
+public final class co/playrift/cutscenes/CameraKt {
+	public static final field TURN_CYCLES I
+	public static final fun cutTo (Lrift/scripting/Camera;Lrift/world/Tile4;ILrift/entities/Entity;)V
+	public static final fun flyTo (Lrift/scripting/Camera;Lrift/world/Tile4;IILrift/entities/Entity;ZI)V
+	public static synthetic fun flyTo$default (Lrift/scripting/Camera;Lrift/world/Tile4;IILrift/entities/Entity;ZIILjava/lang/Object;)V
+}
+
+public final class co/playrift/cutscenes/CutscenesKt {
+	public static final field CUTSCENE_FRAME Ljava/lang/String;
+	public static final field FADE_CYCLES I
+	public static final fun addToScene (Lrift/entities/Director;Lrift/entities/Entity;Ljava/lang/String;Z)V
+	public static synthetic fun addToScene$default (Lrift/entities/Director;Lrift/entities/Entity;Ljava/lang/String;ZILjava/lang/Object;)V
+	public static final fun createPrivateStage (Lrift/entities/Director;Lrift/scripting/Scene;II)Lrift/scripting/Shard;
+	public static final fun end (Lrift/entities/Director;)V
+	public static final fun fadeIn (Lrift/entities/Actor;I)V
+	public static synthetic fun fadeIn$default (Lrift/entities/Actor;IILjava/lang/Object;)V
+	public static final fun fadeOut (Lrift/entities/Actor;I)V
+	public static synthetic fun fadeOut$default (Lrift/entities/Actor;IILjava/lang/Object;)V
+	public static final fun getScene (Lrift/entities/Entity;)Lrift/entities/Director;
+	public static final fun getStage (Lrift/entities/Director;)Lrift/scripting/Shard;
+	public static final fun npc (Lrift/entities/Director;Ljava/lang/String;)Lrift/entities/Npc;
+	public static final fun player (Lrift/entities/Director;Ljava/lang/String;)Lrift/entities/Actor;
+	public static final fun spawnInStage (Lrift/entities/Director;Lrift/assets/NpcDefinition;Ljava/lang/String;IIZ)Lrift/entities/Npc;
+	public static synthetic fun spawnInStage$default (Lrift/entities/Director;Lrift/assets/NpcDefinition;Ljava/lang/String;IIZILjava/lang/Object;)Lrift/entities/Npc;
+}
+
+public final class co/playrift/cutscenes/CutscenesPackage : rift/packages/RiftPackage {
+	public static final field INSTANCE Lco/playrift/cutscenes/CutscenesPackage;
+	public fun getComponents ()Ljava/util/List;
+	public fun getSystems ()Ljava/util/List;
+	public fun load ()V
+}
+
+public final class co/playrift/cutscenes/Fade : rift/ecs/Component {
+	public fun <init> ()V
+	public final fun getCycles ()I
+	public final fun getFade ()I
+	public final fun setCycles (I)V
+	public final fun setFade (I)V
+}
+

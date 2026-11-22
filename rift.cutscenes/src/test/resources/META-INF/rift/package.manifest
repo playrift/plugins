@@ -1,0 +1,9 @@
+id      = rift.cutscenes.test
+name    = Cutscenes test cast
+author  = Rift
+description = The cast rift.cutscenes' tests put in a scene: the fixture's NPC man, by its import.
+version = 1.0.0
+engine  = "^1.0.0"
+entry   = co.playrift.cutscenes.CutscenesTestPackage
+
+import = npc man

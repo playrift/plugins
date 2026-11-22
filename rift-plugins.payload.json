@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 22,
+  "seq": 23,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -372,6 +372,26 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.music-1.0.0/rift.music-1.0.0.jar",
           "sha256": "3f9558e916208acaf00322d7648187b756071616c127ea67aa5fd944df79db55",
           "size": 55791
+        }
+      ]
+    },
+    {
+      "id": "rift.cutscenes",
+      "name": "Cutscenes",
+      "author": "Rift",
+      "description": "Provides helpers for scripted scenes: put players and NPCs in a cutscene stage, hide the game's UI, fade the screen, move the camera, and put everything back when it ends.",
+      "licence": "MIT",
+      "source": "https://github.com/playrift/plugins/tree/rift.cutscenes-1.0.0/rift.cutscenes",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.cutscenes-1.0.0/rift.cutscenes-1.0.0.jar",
+          "sha256": "8ca3b5b7da050b2fc5e028d52cb185d61ac0eae7de10b480c40aaf3733ab3cb0",
+          "size": 22662
         }
       ]
     }

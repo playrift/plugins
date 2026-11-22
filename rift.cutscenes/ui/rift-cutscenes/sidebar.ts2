@@ -1,0 +1,5 @@
+import { CS2 } from 'ts2';
+
+export function setSidebarBackground(rgb: Int): void {
+  CS2.sidebar_set_background(rgb);
+}

@@ -1,0 +1,13 @@
+name = "cutscene"
+ui = "cutscene_frame"
+
+[slots]
+screen = "cutscene_frame_screen"
+
+[[on_show]]
+script = "rift-cutscenes.sidebar.setSidebarBackground"
+arguments = [0]
+
+[[on_hide]]
+script = "rift-cutscenes.sidebar.setSidebarBackground"
+arguments = [-1]
