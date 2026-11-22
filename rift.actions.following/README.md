@@ -7,11 +7,11 @@ Lets players follow each other. Choosing "Follow" on another player walks a step
 ### Setup
 
 1. Set up walking with **Actions: movement** (see its README).
-2. In Project Settings → Plugins, turn on **Actions: Follow**.
-3. Put "Follow" on the player menu: open **Project Settings → Plugins → Installed**, select **Actions: Follow**, click **Use template…** and pick `player-follow-option.rift`.
-4. Build, Play, right-click another player and choose **Follow**.
+2. In **Project › Project Settings… › Plugins**, turn on **Actions: Follow**.
+3. Add the **player-follow-option** template (under **Installed**, select **Actions: Follow**, **Use template…**). Installing the plugin doesn't put "Follow" on the player menu: the template does.
+4. **Build**, Play, right-click another player and choose **Follow**.
 
-The template adds "Follow" as the third option on every player's menu. To use a different row, change `option3` in the template.
+The template adds "Follow" as the third option on every player's menu. To use a different row, change `option3` in the copy in your scripts.
 
 ### Following from a script
 

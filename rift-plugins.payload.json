@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 26,
+  "seq": 27,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -355,6 +355,19 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.actions.following-1.0.0/rift.actions.following-1.0.0.jar",
           "sha256": "f8a6602dc220a309863090c716d03633a2ddb72e9e5536dce957d8c4b4582bdc",
           "size": 9882
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.0.0",
+          "depends": {
+            "rift.actions.queue": "^1.0.0",
+            "rift.actions.movement": "^1.0.0"
+          },
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.actions.following-1.0.1/rift.actions.following-1.0.1.jar",
+          "sha256": "79f1ae8fa6a22df54d3680a37d904880b065f6b504fef465dd4bd4b6d66de447",
+          "size": 9903
         }
       ]
     },
