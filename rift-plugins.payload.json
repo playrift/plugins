@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 23,
+  "seq": 24,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -267,6 +267,18 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.pathfinding.bfs-1.0.0/rift.movement.pathfinding.bfs-1.0.0.jar",
           "sha256": "39b5a9f19907b079942a29fb20991ed6db24c539ed16beca98ce0bab49976b73",
           "size": 20816
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.0.0",
+          "depends": {
+            "rift.movement.pathfinding": "^1.0.0"
+          },
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.pathfinding.bfs-1.0.1/rift.movement.pathfinding.bfs-1.0.1.jar",
+          "sha256": "af9d109a9ffd5924f0561f1eb343d9769d7cb54f16be664dee52467fa4f0c8af",
+          "size": 21429
         }
       ]
     },
