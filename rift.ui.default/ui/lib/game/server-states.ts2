@@ -6,7 +6,6 @@ export const RiftEngine = requireServerStates('rift.engine', { running: Boolean 
 
 export const Quiver = requireServerStates('rift.ui.default', { quiver_ammo: Item, quiver_ammo_amount: Int });
 
-/** The game's server states. */
 export const Game = requireServerStates('game', {
   buff_bar_hidden: Int,
   camera_zoom_mouse_disabled: Int,

@@ -14,7 +14,6 @@ import { CHAT_VIEW_COLLAPSED, ChatTab } from './chatbox.data';
 
 const SWITCH_TAB = 1;
 
-/** Handles a chat tab's menu option. */
 export function chatTabOp(tab: Int, op: Int): void {
   if (op === 1) {
     switchTab(tab);

@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 17,
+  "seq": 18,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -10,7 +10,7 @@
       "author": "Rift",
       "description": "Provides a bulk of the basic game UI. Top-level interfaces `resizable`, `classic` and `mobile`. The chat box, equipment, friends list, inventory, logout and minimap orbs.",
       "licence": "MIT",
-      "source": "https://github.com/playrift/plugins/tree/rift.ui.default-1.0.3/rift.ui.default",
+      "source": "https://github.com/playrift/plugins/tree/rift.ui.default-1.0.4/rift.ui.default",
       "versions": [
         {
           "version": "1.0.0",
@@ -33,6 +33,16 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.ui.default-1.0.3/rift.ui.default-1.0.3.jar",
           "sha256": "7d2d98c76aade16a48047dcc315dd75cfbf2afba0da5d7ad16c6334d19c48258",
           "size": 247544
+        },
+        {
+          "version": "1.0.4",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.ui.default-1.0.4/rift.ui.default-1.0.4.jar",
+          "sha256": "bb77660ec1189a38d74f2de7efb416549fd313ba5e8acad7abeace2f6d03d36a",
+          "size": 246738
         }
       ]
     },

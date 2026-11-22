@@ -5,7 +5,6 @@ import { controlRef as classicFrameRef } from '../toplevel_classic/toplevel-clas
 import { controlRef as resizableFrameRef } from '../toplevel_resizable/toplevel-resizable.constants';
 import { GameSounds } from '../game-assets';
 
-/** Whether the game runs on mobile. */
 export function onMobile(): Boolean {
   if (useServerState(ClientVarbits.SIMULATE_MOBILE) === 1) {
     return true;
@@ -43,7 +42,6 @@ export function settingsClientMode(mode: Int): void {
   }
 }
 
-/** Returns the current gameframe layout. */
 export function toplevelComponents(): Int {
   if (CS2.if_top_get() === interfaceOf(controlRef)) {
     return ToplevelComponents.MOBILE;
@@ -81,7 +79,6 @@ export function trackScroll(gutter: Ref, thumb: Ref, capTop: Ref, capBottom: Ref
   capBottom.y = y + thumb.height - CAP;
 }
 
-/** Plays the select sound when an option's bit is set. */
 export function opsound(bit: Int, mask: Int): void {
   if (CS2.testbit(mask, bit)) {
     CS2.sound_effect(GameSounds.interface_select1, 1, 0);

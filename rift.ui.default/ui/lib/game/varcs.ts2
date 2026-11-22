@@ -1,8 +1,6 @@
 import { persistedState, sessionState } from 'ts2';
 
-/** When the tooltip's wait ends. */
 export const tooltipTime = sessionState(-1);
-/** Whether the tooltip is built. */
 export const tooltipBuilt = sessionState(0);
 export const chatoutReadpos = sessionState(-1);
 export const chatoutWritepos = sessionState(-1);
@@ -11,9 +9,7 @@ export const chatLastscrollpos = sessionState(-1);
 export const chatLastscrollsize = sessionState(-1);
 export const friendsLastscrollpos = sessionState(-1);
 export const snapshotOpen = sessionState(-1);
-/** The chat view shown. */
 export const chatView = persistedState(-1, 'chat_view');
-/** The hovered chat tab. */
 export const chatHighlight = sessionState(-1);
 export const chatAlertGame = sessionState(-1);
 export const chatAlertPublic = sessionState(-1);
@@ -30,23 +26,17 @@ export const autochatPause = sessionState(-1);
 export const chatForceChatboxRebuild = sessionState(-1);
 export const objdialogUpdatedelay = sessionState(-1);
 export const bondifConvertPerbondCs = persistedState(-1, 'bondif_convert_perbond_cs');
-/** The last skill with an XP drop. */
 export const xpdropsLastskill = sessionState(-1);
 export const cameraZoomSmall = persistedState(-1, 'camera_zoom_small');
 export const cameraZoomBig = persistedState(-1, 'camera_zoom_big');
-/** Whether XP drops are set up. */
 export const xpdropsFirstinit = sessionState(-1);
-/** Whether the player is a member. */
-export const playermember = sessionState(-1);
 export const toplevelPanel = sessionState(-1);
 export const toplevelMainmodalBgColour = sessionState(-1);
 export const toplevelMainmodalBgTrans = sessionState(-1);
 export const privateChatClearedTime = persistedState(-1, 'private_chat_cleared_time');
 export const friendsSort = persistedState(-1, 'friends_sort');
 export const ignoreSort = persistedState(-1, 'ignore_sort');
-/** Blocks dialogue keys until this time. */
 export const keyboardTimeout = sessionState(-1);
-/** Whether the world map search is active. */
 export const worldmapSearching = sessionState(-1);
 export const chatViewSaved = sessionState(-1);
 export const publicChatClearedTime = persistedState(-1, 'public_chat_cleared_time');

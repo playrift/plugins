@@ -477,6 +477,19 @@ test('the spec orb shows the special attack energy and offers Use with no weapon
   assert.deepEqual(ui.find('orbs', { option: 'Use' }).options.filter((option) => option !== ''), ['Use']);
 });
 
+test('every world plays as a members world: on a free world, for a free player, the spec orb offers Use and fills as on any world', async () => {
+  const free = await loadTs2Build(BUILD, { session: { members: false }, builtins: { map_members: () => false } });
+  const member = await loadTs2Build(BUILD, { session: { members: true } });
+  for (const ui of [free, member]) {
+    ui.state('game:sa_energy', 750);
+    ui.open('orbs');
+    ui.cycles(5);
+  }
+
+  assert.deepEqual(free.find('orbs', { option: 'Use' }).options.filter((option) => option !== ''), ['Use']);
+  assert.deepEqual(free.texts('orbs'), member.texts('orbs'));
+});
+
 test('the world map button is named, and its Floating and Fullscreen World Map reach the server as options 2 and 3', async () => {
   const ui = await frame({ orbs: 'orbs' });
   const button = ui.component('orbs', 'orbs_worldmap');
@@ -891,6 +904,25 @@ test('a worn item\'s own option reaches the server as that worn op, in every wor
     ui.component('wornitems', `wornitems_slot${slot}`).option(2);
 
     assert.deepEqual(ui.calls('if_button').at(-1)?.itemOp, { menu: 'worn', k: 1 }, `slot ${slot}`);
+  }
+});
+
+test('every world plays as a members world: a free player on a free world is offered a members item\'s worn options, in the worn tab and on the equipment screen', async () => {
+  for (const panel of ['wornitems', 'equipment']) {
+    const ui = await loadTs2Build(BUILD, {
+      session: { members: false },
+      params: { 'game:property_451': { [EXAMINED]: 'Rub', default: '' } },
+      builtins: {
+        map_members: () => false,
+        item_members: () => 1,
+        inv_item_get: (inventory, at) => (at === 0 ? EXAMINED : -1),
+        inv_num_get: (inventory, at) => (at === 0 ? 1 : 0),
+      },
+    });
+    ui.open(panel);
+    ui.cycles(5);
+
+    assert.equal(ui.find(panel, { option: 'Rub' }).options[1], 'Rub', panel);
   }
 });
 

@@ -258,7 +258,6 @@ const MOBILE_CHATAREA_H = 165;
 const MOBILE_CHATAREA_INSET = 20;
 const MOBILE_STRIP_H = 30;
 
-/** Lays the chatbox out again when the clan tab is open. */
 export function extraTabOpen(): void {
   if (CS2.if_sub_has(extraTabSlotRef)) {
     chatboxRelayout();

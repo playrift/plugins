@@ -13,9 +13,7 @@ import rift.ts2.Ts2
 import rift.ui.UIName
 import rift.ui.UserInterface
 
-/** The default UI. */
 public object DefaultUiPackage : RiftPackage {
-  /** The toplevel a new player starts with. */
   public const val TOPLEVEL: String = "resizable"
 
   private const val CHAT_SLOT: String = "chat"

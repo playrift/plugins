@@ -13,7 +13,6 @@ export function thumbHeightOf(barHeight: Int, contentHeight: Int, extent: Int, r
   return raw;
 }
 
-/** A vertical scroll bar. */
 export function ScrollbarVertical({
   content,
   track,

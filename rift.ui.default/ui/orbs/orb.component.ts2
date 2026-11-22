@@ -12,7 +12,6 @@ import {
   useWatch,
 } from 'ts2';
 
-import { membersWorld } from '../lib/lib.engine';
 import {
   OrbBox,
   OrbSkills,
@@ -412,24 +411,15 @@ export function SpecOrb({
   useWatch([Game.settings_varp_1, Game.sa_energy], () => specRegenVarWatch(panel), spare);
 
   const energy: Int = useServerState(Game.sa_energy);
-  const barred: Boolean = !membersWorld();
   const armed: Boolean = useServerState(Game.sa_attack) > 0;
   const rest: Sprite = plateSprite();
   const hover: Sprite = plateHoverSprite();
-  let drawn: Sprite = wide ? GameSprites.tli_button01_orbinfo_65x34_0 : GameSprites.orb_frame_0;
-  if (barred) {
-    drawn = rest;
-  }
+  const drawn: Sprite = wide ? GameSprites.tli_button01_orbinfo_65x34_0 : GameSprites.orb_frame_0;
 
   const value: Int = energy / 10;
   const max: Int = SpecMax.ENERGY;
   const icon: Sprite = GameSprites.orb_icon_6;
-  let filler: Sprite = armed ? GameSprites.orb_filler_10 : GameSprites.orb_filler_9;
-  let alpha: Int = OrbBox.FILLER_ALPHA;
-  if (barred) {
-    filler = GameSprites.orb_filler_5;
-    alpha = 50;
-  }
+  const filler: Sprite = armed ? GameSprites.orb_filler_10 : GameSprites.orb_filler_9;
   const meterX: Int = wide ? OrbBox.MOBILE.METER_X : OrbBox.DESKTOP.METER_X;
 
   return (
@@ -447,23 +437,14 @@ export function SpecOrb({
         w={clickW}
         h={clickH}
         optionSubject={subject}
-        options={barred ? undefined : [OrbText.USE]}
-        onOptionSelect={barred ? null : (event) => specOp(event.option)}
-        hide={barred}
-        onMouseRepeat={
-          barred
-            ? null
-            : () => {
-                plate.sprite = hover;
-              }
-        }
-        onMouseLeave={
-          barred
-            ? null
-            : () => {
-                plate.sprite = rest;
-              }
-        }
+        options={[OrbText.USE]}
+        onOptionSelect={(event) => specOp(event.option)}
+        onMouseRepeat={() => {
+          plate.sprite = hover;
+        }}
+        onMouseLeave={() => {
+          plate.sprite = rest;
+        }}
       />
       <text
         x={wide ? OrbBox.MOBILE.TEXT_X : OrbBox.DESKTOP.TEXT_X}
@@ -477,7 +458,7 @@ export function SpecOrb({
         valign="middle"
         shadow
       />
-      <sprite x={meterX} y={OrbBox.METER_Y} w={OrbBox.METER} h={OrbBox.METER} sprite={filler} transparency={alpha} />
+      <sprite x={meterX} y={OrbBox.METER_Y} w={OrbBox.METER} h={OrbBox.METER} sprite={filler} transparency={OrbBox.FILLER_ALPHA} />
       <layer x={meterX} y={OrbBox.METER_Y} w={OrbBox.METER} h={meterEmptyH(value, max)}>
         <sprite x={0} y={0} w={OrbBox.METER} h={OrbBox.METER} sprite={GameSprites.orb_filler_0} />
       </layer>

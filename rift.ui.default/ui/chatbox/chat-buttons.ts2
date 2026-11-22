@@ -100,7 +100,6 @@ export function chatSetFilter(tab: Int, value: Int): void {
   }
 }
 
-/** Highlights or unhighlights a chat tab on hover. */
 export function chatButtonHover(entering: Int, tab: Int): void {
   const [highlight, setHighlight] = useState(chatHighlight);
   if (entering === 1) {
@@ -193,7 +192,6 @@ function plateBit(marks: Int, bit: Int, counter: Int): Int {
   return CS2.bit_clear(marks, bit);
 }
 
-/** Returns the chat tabs that are lit, as bits. */
 export function chatAlertQuarters(): Int {
   const [marks] = useState(chatAlertMarks);
   let bits: Int = 0;
@@ -223,7 +221,6 @@ export function mobileChatStone(): ComponentId {
   return gameframeSlot(GameframeSlot.CHAT_TOGGLE);
 }
 
-/** Returns the sprite for a chat tab button. */
 export function tabArt(tab: Int, view: Int, highlight: Int, mobile: Boolean, alerts: Int): Sprite {
   if (view === tab) {
     if (mobile) {

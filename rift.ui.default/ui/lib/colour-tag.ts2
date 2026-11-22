@@ -2,7 +2,6 @@ export function hexToRgb(colour: Int): [Int, Int, Int] {
   return [(colour / Math.pow(2, 16)) % 256, (colour / Math.pow(2, 8)) % 256, colour % 256];
 }
 
-/** Packs red, green and blue into one colour. */
 export function rgbToHex(red: Int, green: Int, blue: Int): Int {
   const r: Int = Math.max(0, Math.min(255, red));
   const g: Int = Math.max(0, Math.min(255, green));

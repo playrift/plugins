@@ -1,6 +1,5 @@
 import { requireAssets } from 'ts2';
 
-/** The fonts the interfaces use. */
 export const GameFonts = requireAssets('game', {
   font_494: Font,
   font_495: Font,
@@ -26,7 +25,6 @@ export const GameSounds = requireAssets('game', {
   interface_select1: Sound,
 });
 
-/** The sprites the interfaces use. */
 export const GameSprites = requireAssets('game', {
   _9slice_dark01_3x3_0: Sprite,
   _9slice_dark01_3x3_1: Sprite,

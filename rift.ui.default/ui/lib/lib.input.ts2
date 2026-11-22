@@ -1,6 +1,5 @@
 import { CS2 } from 'ts2';
 
-/** Applies a key press to input text. */
 export function addToInputString(text: String, mode: Int, key: Int, keyChar: Char): String {
   const length: Int = text.length;
   if (key === InputKey.BACKSPACE) {

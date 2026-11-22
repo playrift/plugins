@@ -7,7 +7,6 @@ import { ResizableSlots } from './game/gameframe-resizable.data';
 import { ClassicSlots } from './game/gameframe-classic.data';
 import { MobileSlots } from './game/gameframe-mobile.data';
 
-/** The gameframe's slots. */
 export enum GameframeSlot {
   VIEWPORT,
   SUB_MOUNT,
@@ -38,7 +37,6 @@ export enum GameframeSlot {
   SIDE13,
 }
 
-/** Returns the current gameframe's component for a slot. */
 export function gameframeSlot(slot: GameframeSlot): ComponentId {
   const top = CS2.if_top_get();
   if (top === interfaceOf(controlRef)) return MobileSlots.get(slot) ?? -1;

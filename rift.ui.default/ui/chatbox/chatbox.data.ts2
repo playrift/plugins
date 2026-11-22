@@ -1,4 +1,3 @@
-/** The chat tab filter labels by filter. */
 export const ChatFilterLabels = mapOf<Int, String>([
   [-1000, '<br><col=ffff00>Filtered</col>'],
   [1, '<br><col=ffff00>Friends</col>'],
@@ -7,10 +6,8 @@ export const ChatFilterLabels = mapOf<Int, String>([
   [4, '<br><col=00afff>Autochat</col>'],
 ]);
 
-/** The chat tab filter label when on. */
 export const CHAT_FILTER_LABEL_DEFAULT = '<br>On';
 
-/** The chat tabs. */
 export enum ChatTab {
   ALL = 0,
   GAME = 1,

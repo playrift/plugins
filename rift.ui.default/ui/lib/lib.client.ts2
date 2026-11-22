@@ -36,7 +36,6 @@ export function entityHighlightsAvailable(): Boolean {
   return type === OriginalClientType.ENHANCED_ANDROID || type === OriginalClientType.ENHANCED_IOS;
 }
 
-/** Whether the enhanced mouseover is available. */
 export function enhancedMouseoverAvailable(): Boolean {
   return originalEnhancedClient();
 }

@@ -1,6 +1,5 @@
 import { Game } from './game/server-states';
 
-/** The size of a frame corner. */
 export const CORNER = 9;
 
 export interface FrameSprites {

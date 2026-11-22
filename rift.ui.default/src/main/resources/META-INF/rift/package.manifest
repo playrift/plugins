@@ -2,7 +2,7 @@ id      = rift.ui.default
 name    = Default UI
 author  = Rift
 description = Provides a bulk of the basic game UI. Top-level interfaces `resizable`, `classic` and `mobile`. The chat box, equipment, friends list, inventory, logout and minimap orbs.
-version = 1.0.3
+version = 1.0.4
 engine  = "^1.0.0"
 entry   = co.playrift.ui.default.DefaultUiPackage
 
@@ -81,7 +81,7 @@ import = sprite orb_filler_11 the store button's face behind its icon
 import = sprite orb_filler_2 the health orb's fill while poisoned
 import = sprite orb_filler_3 the health orb's fill while diseased
 import = sprite orb_filler_4 the prayer orb's fill
-import = sprite orb_filler_5 the run orb's fill while walking, and the special attack orb's on a free world
+import = sprite orb_filler_5 the run orb's fill while walking
 import = sprite orb_filler_6 the run orb's fill while running
 import = sprite orb_filler_7 the prayer orb's fill while quick prayers are on
 import = sprite orb_filler_9 the special attack orb's fill

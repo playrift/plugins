@@ -1,4 +1,3 @@
-/** Formats a number with digit group separators. */
 export function groupDigits(value: Int, separator: String): String {
   const billions: Int = value / 1000000000;
   const millions: Int = (value - billions * 1000000000) / 1000000;
@@ -17,7 +16,6 @@ export function groupDigits(value: Int, separator: String): String {
   return stringOf(value);
 }
 
-/** Pads a digit group to three digits. */
 export function padGroup(group: Int): String {
   if (group > 99) {
     return stringOf(group);
@@ -31,7 +29,6 @@ export function padGroup(group: Int): String {
   return stringOf(group);
 }
 
-/** Returns the text before the first bar. */
 export function pipeHead(text: String): String {
   const length: Int = text.length;
   if (length <= 0) {
@@ -47,7 +44,6 @@ export function pipeHead(text: String): String {
   return text.substring(0, bar);
 }
 
-/** Returns the text after the first bar. */
 export function pipeTail(text: String): String {
   const length: Int = text.length;
   if (length <= 0) {

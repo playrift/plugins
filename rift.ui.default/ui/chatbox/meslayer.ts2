@@ -65,7 +65,6 @@ import {
 } from './chatbox.state';
 import { GameFonts, GameSounds, GameSprites } from '../game-assets';
 
-/** Hides the mobile keyboard. */
 export function keyboardHide(): void {
   if (!onMobile()) {
     return;
@@ -90,7 +89,6 @@ export function keyboardShowString(mode: Int, limit: Int, initial: String): void
   }
 }
 
-/** Shows the mobile keyboard. */
 export function keyboardShow(mode: Int, limit: Int): void {
   keyboardShowString(mode, limit, '');
 }

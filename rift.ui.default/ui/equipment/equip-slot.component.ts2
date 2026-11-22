@@ -1,7 +1,7 @@
-import { CS2, itemOp, param, useInventory, useRef } from 'ts2';
+import { itemOp, param, useInventory, useRef } from 'ts2';
 
 import { flashFor } from '../lib/lib.components';
-import { EXAMINE, itemName, membersWorld } from '../lib/lib.engine';
+import { EXAMINE, itemName } from '../lib/lib.engine';
 import {
   Fade,
   OP_BASE_PREFIX,
@@ -19,16 +19,6 @@ export function EquipSlot({ slot }: { slot: Int }): Component {
 
   const held: Item = worn[slot];
 
-  let offerable: Boolean = false;
-  if (held !== -1) {
-    if (membersWorld()) {
-      offerable = true;
-    }
-    if (CS2.item_members(held) === 0) {
-      offerable = true;
-    }
-  }
-
   let subject: String = '';
   if (held !== -1) {
     subject = `${OP_BASE_PREFIX}${itemName(held)}${OP_BASE_SUFFIX}`;
@@ -44,14 +34,14 @@ export function EquipSlot({ slot }: { slot: Int }): Component {
         held !== -1
           ? [
               OP_REMOVE,
-              offerable ? itemOp('worn', 1, held) : '',
-              offerable ? itemOp('worn', 2, held) : '',
-              offerable ? itemOp('worn', 3, held) : '',
-              offerable ? itemOp('worn', 4, held) : '',
-              offerable ? itemOp('worn', 5, held) : '',
-              offerable ? itemOp('worn', 6, held) : '',
-              offerable ? itemOp('worn', 7, held) : '',
-              offerable ? itemOp('worn', 8, held) : '',
+              itemOp('worn', 1, held),
+              itemOp('worn', 2, held),
+              itemOp('worn', 3, held),
+              itemOp('worn', 4, held),
+              itemOp('worn', 5, held),
+              itemOp('worn', 6, held),
+              itemOp('worn', 7, held),
+              itemOp('worn', 8, held),
               param(held, GameProperties.has_examine) ? EXAMINE : '',
             ]
           : []

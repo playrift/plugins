@@ -17,7 +17,6 @@ export function accountIcon(): String {
   return IronmanIcons.get(useServerState(Game.ironman)) ?? '';
 }
 
-/** Returns 1 on the mobile game frame, else 0. */
 export function mobileGameframeFlag(): Int {
   if (mobileGameframe(toplevelComponents())) {
     return 1;
