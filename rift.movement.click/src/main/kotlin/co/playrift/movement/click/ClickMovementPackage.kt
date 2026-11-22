@@ -13,7 +13,6 @@ import rift.packages.on_world_click
 import rift.ui.UIName
 import rift.world.Tile3
 
-/** Click to move. */
 public object ClickMovementPackage : RiftPackage {
   override val systems: List<System<*, *>> = listOf(ClickWalkSystem)
 

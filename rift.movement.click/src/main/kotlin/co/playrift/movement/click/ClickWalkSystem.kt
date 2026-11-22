@@ -7,7 +7,6 @@ import rift.ecs.AnonymousSystem
 import rift.ecs.ComponentsOne
 import rift.ecs.system
 
-/** Walks to the clicked tile. */
 public val ClickWalkSystem: AnonymousSystem<ComponentsOne<WalkRequest>> = system<ComponentsOne<WalkRequest>> {
   name = "ClickWalkSystem"
   run { (request) ->

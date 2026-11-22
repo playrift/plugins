@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 16,
+  "seq": 17,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -174,7 +174,7 @@
       "author": "Rift",
       "description": "Provides the bindings moving by clicking the world and minimap, and queuing walk intent.",
       "licence": "MIT",
-      "source": "https://github.com/playrift/plugins/tree/rift.movement.click-1.0.0/rift.movement.click",
+      "source": "https://github.com/playrift/plugins/tree/rift.movement.click-1.0.1/rift.movement.click",
       "versions": [
         {
           "version": "1.0.0",
@@ -185,6 +185,16 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.click-1.0.0/rift.movement.click-1.0.0.jar",
           "sha256": "bf3facd3b36975e686eac4b3eecd0ebd46c3bdaeb6eea8aeec1c20a04cbbf956",
           "size": 11223
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.0.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.click-1.0.1/rift.movement.click-1.0.1.jar",
+          "sha256": "70a5dbd405ea46f669ae0c1f41983bcf425c417d4c085cc2fa91c1a6feecdc47",
+          "size": 11215
         }
       ]
     },

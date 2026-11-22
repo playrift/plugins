@@ -2,7 +2,7 @@ id      = rift.movement.click
 name    = Click to move
 author  = Rift
 description = Provides the bindings moving by clicking the world and minimap, and queuing walk intent.
-version = 1.0.0
+version = 1.0.1
 engine  = "^1.0.0"
 entry   = co.playrift.movement.click.ClickMovementPackage
 
