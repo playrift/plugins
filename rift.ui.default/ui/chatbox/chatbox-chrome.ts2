@@ -48,6 +48,7 @@ import {
   controlsRef,
   line0Ref,
   mesLayerRef,
+  openInputRef,
   reportGraphicRef,
   reportRef,
   tab0Ref,
@@ -298,6 +299,7 @@ export function chatboxRelayout(): void {
     CS2.if_size_set(Layout.CONTROLS_W - MOBILE_STRIP_W - 4, 0, 0, 1, chatboxAreaRef);
     mobileChatboxResize();
     reportRef.hide = true;
+    openInputRef.hide = false;
     controlsRef.noClickThrough = false;
     controlsBackgroundRef.noClickThrough = false;
     controlsRef.noScrollThrough = false;
@@ -313,6 +315,7 @@ export function chatboxRelayout(): void {
     CS2.if_position_set(0, 0, 0, 0, chatareaRef);
     CS2.if_size_set(Layout.CHATAREA_W, Layout.CHATAREA_H_INSET, 0, 1, chatareaRef);
     reportRef.hide = false;
+    openInputRef.hide = true;
     reportGraphicRef.sprite = GameSprites.report_button_0;
     reportRef.onMouseLeave = () => graphicSwapper(reportGraphicRef, GameSprites.report_button_0);
     reportRef.onMouseEnter = () => graphicSwapper(reportGraphicRef, GameSprites.report_button_1);

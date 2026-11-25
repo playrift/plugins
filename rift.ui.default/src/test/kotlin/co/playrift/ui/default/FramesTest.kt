@@ -3,6 +3,7 @@ package co.playrift.ui.default
 import rift.testing.HeadlessWorld
 import rift.testing.Sent
 import rift.ts2.UI
+import rift.ui.Device
 import rift.ui.Toplevels
 import rift.ui.UserInterface
 import kotlin.test.Test
@@ -49,12 +50,24 @@ class FramesTest {
 
   @Test
   fun `mobile opens the same panels where its slots are, and has no popout`() {
-    val sent = HeadlessWorld.login(frame = "mobile").sent()
+    val sent = HeadlessWorld.login(frame = "mobile", device = Device.Mobile).sent()
     val root = UI.ToplevelMobile.interfaceName
 
     assertEquals(listOf(Sent.OpenedToplevel(root)), sent.filterIsInstance<Sent.OpenedToplevel>())
 
     val expected = panels.map { (panel, slot) -> Sent.Opened(panel.interfaceName, root, "${root}_$slot") }
     assertEquals(expected.toSet(), sent.filterIsInstance<Sent.Opened>().toSet())
+  }
+
+  @Test
+  fun `mobile on a phone sets the window mode as resizable does, by resizable's setup with its arguments`() {
+    val scripts = HeadlessWorld.login(frame = "mobile", device = Device.Mobile).sent().filterIsInstance<Sent.ClientScript>()
+    val resizable = Toplevels.find("resizable")!!
+
+    assertTrue(resizable.onShow.isNotEmpty(), "resizable has a setup")
+
+    for (step in resizable.onShow) {
+      assertTrue(scripts.any { it.name.endsWith(step.script.toString()) && it.arguments == step.arguments }, "its setup ran: $step")
+    }
   }
 }

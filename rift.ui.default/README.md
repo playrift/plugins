@@ -6,7 +6,7 @@ Whats included here were things which were deemed game agnostic, so for example 
 
 ## Usage
 
-Just install. When you first login the `resizable` top-level will be set.
+Just install. At login the `resizable` top-level is set, or `mobile` on a phone; a frame your game sets itself is kept.
 
 | Frame       | Screen                                                     |
 |-------------|------------------------------------------------------------|

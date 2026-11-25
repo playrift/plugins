@@ -20,3 +20,7 @@ orbs = "toplevel_mobile_orbs"
 "orbs.button.extra" = { interface = "orbs", component = "orbs_extra_button" }
 "chat.modal" = { interface = "chatbox", component = "chatbox_chatmodal" }
 "chat.tab.extra" = { interface = "chatbox", component = "chatbox_extra_tab" }
+
+[[on_show]]
+script = "lib.lib.helpers.settingsClientMode"
+arguments = [1]

@@ -209,6 +209,67 @@ test('a mode-21 string dialog keeps "jagex" in its answer, and still blanks "adm
 });
 const FILTERED_STRING_DIALOG = 21;
 
+async function chatboxOn(frame, phone) {
+  const keyboard = [];
+  const builtins = {
+    on_mobile: () => phone,
+    mobile_keyboardshowstring: (typed, limit) => keyboard.push(['show', typed, limit]),
+    mobile_keyboardhide: () => keyboard.push(['hide']),
+  };
+  const ui = await loadTs2Build(BUILD, { builtins });
+  ui.state('rift.engine:has_display_name', true);
+  ui.open(frame);
+  ui.open(frame, `${frame}_chat_container`, 'chatbox');
+  ui.cycles(10);
+  return { ui, keyboard };
+}
+
+function tap(component) {
+  component.dragTo(component);
+}
+
+for (const frame of ['toplevel_mobile', 'toplevel_resizable']) {
+  test(`on a phone in ${frame}, a tap on the chat input raises the keyboard with the line typed so far, and sending it drops the keyboard`, async () => {
+    const { ui, keyboard } = await chatboxOn(frame, true);
+
+    for (const char of 'hi') ui.call('chatbox.chatdefault-onkey.chatDefaultOnKey', 0, char.charCodeAt(0));
+    const input = ui.component('chatbox', 'chatbox_open_input');
+    assert.equal(input.hidden, false);
+
+    tap(input);
+    ui.cycles(1);
+    assert.deepEqual(keyboard, [['show', 'hi', CHAT_LIMIT]]);
+
+    ui.call('chatbox.chatdefault-onkey.chatDefaultOnKey', ENTER, 0);
+    assert.deepEqual(keyboard, [['show', 'hi', CHAT_LIMIT], ['hide']]);
+    assert.deepEqual(ui.calls('chat_sendpublic'), [{ builtin: 'chat_sendpublic', args: '"hi", 0' }]);
+  });
+}
+
+test('on a phone, the first tap on the chat input after login raises the keyboard, and a tap while it is up drops it', async () => {
+  const { ui, keyboard } = await chatboxOn('toplevel_mobile', true);
+  const input = ui.component('chatbox', 'chatbox_open_input');
+
+  tap(input);
+  ui.cycles(1);
+  assert.deepEqual(keyboard, [['show', '', CHAT_LIMIT]]);
+
+  tap(input);
+  ui.cycles(1);
+  assert.deepEqual(keyboard, [['show', '', CHAT_LIMIT], ['hide']]);
+});
+
+test('on a desktop, the chat input has no tap layer, and typing and sending a line never call the phone keyboard', async () => {
+  const { ui, keyboard } = await chatboxOn('toplevel_resizable', false);
+
+  assert.equal(ui.component('chatbox', 'chatbox_open_input').hidden, true);
+
+  say(ui, 'hi');
+  ui.call('chatbox.meslayer.chatboxOpenInput');
+  assert.deepEqual(keyboard, []);
+});
+const CHAT_LIMIT = 80;
+
 const IN_CLAN = {
   activeclanchannel_affined_find: (group) => (group === 0 ? 1 : 0),
   activeclanchannel_user_slot_get: () => 0,

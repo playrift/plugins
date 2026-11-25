@@ -120,7 +120,7 @@ export function chatboxOpenInput(): void {
   }
   const [keyboard, setKeyboard] = useState(mobileChatKeyboard);
   const [typed] = useState(chatinput);
-  if (keyboard === 0) {
+  if (keyboard !== 1) {
     setKeyboard(1);
     keyboardShowString(KEYBOARD_STRING, CHAT_LIMIT, typed);
   } else {

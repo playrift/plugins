@@ -10,11 +10,14 @@ import rift.packages.on_login
 import rift.packages.on_ui_component_click
 import rift.ts2.UI
 import rift.ts2.Ts2
+import rift.ui.Device
 import rift.ui.UIName
 import rift.ui.UserInterface
 
 public object DefaultUiPackage : RiftPackage {
   public const val TOPLEVEL: String = "resizable"
+  private const val MOBILE_TOPLEVEL: String = "mobile"
+  private val OWN_TOPLEVELS: Set<String> = setOf(TOPLEVEL, MOBILE_TOPLEVEL)
 
   private const val CHAT_SLOT: String = "chat"
   private const val PRIVATE_CHAT_SLOT: String = "chat.split"
@@ -34,8 +37,8 @@ public object DefaultUiPackage : RiftPackage {
     val missingNames = Ts2.missingNames()
     check(missingNames.isEmpty()) { "rift.ui.default: the served ts2 build has not got ${missingNames.size} name(s) it uses: ${missingNames.take(10).joinToString()}" }
 
-    on_login { actor ->
-      openPanelsAtLogin(actor)
+    on_login { actor, device ->
+      openPanelsAtLogin(actor, device)
     }
 
     on_ui_component_click(UI.Logout.button) { subject ->
@@ -51,9 +54,10 @@ public object DefaultUiPackage : RiftPackage {
     }
   }
 
-  private fun openPanelsAtLogin(actor: Actor) {
+  private fun openPanelsAtLogin(actor: Actor, device: Device) {
     val userInterface = actor.findComponent<UserInterface>() ?: actor.addComponent(UserInterface())
-    if (userInterface.chosenToplevel == null) userInterface.chosenToplevel = TOPLEVEL
+    val toplevel = toplevelAtLogin(userInterface.chosenToplevel, device)
+    if (userInterface.chosenToplevel != toplevel) userInterface.chosenToplevel = toplevel
 
     openInSlot(userInterface, CHAT_SLOT, UI.Chatbox)
     openInSlot(userInterface, PRIVATE_CHAT_SLOT, UI.PmChat)
@@ -63,6 +67,15 @@ public object DefaultUiPackage : RiftPackage {
     openInSlot(userInterface, WORN_ITEMS_SLOT, UI.Wornitems)
     openInSlot(userInterface, FRIENDS_SLOT, UI.Friends)
     openInSlot(userInterface, LOGOUT_SLOT, UI.Logout)
+  }
+
+  private fun toplevelAtLogin(saved: String?, device: Device): String {
+    if (saved != null && saved !in OWN_TOPLEVELS) return saved
+
+    return when (device) {
+      Device.Mobile -> MOBILE_TOPLEVEL
+      Device.Desktop -> TOPLEVEL
+    }
   }
 
   private fun openInSlot(userInterface: UserInterface, slot: String, panel: UIName) {

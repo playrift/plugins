@@ -10,6 +10,7 @@ import rift.testing.TestPlayer
 import rift.ts2.UI
 import rift.ts2.Scripts
 import rift.ts2.Ts2
+import rift.ui.Device
 import rift.ui.Toplevels
 import rift.ui.Ts2Scripts
 import rift.ui.UserInterface
@@ -129,6 +130,58 @@ class DefaultUiTest {
 
     assertEquals("resizable", keptUserInterface.chosenToplevel)
     assertTrue(kept.sent().filterIsInstance<Sent.OpenedToplevel>().size <= 1)
+  }
+
+  @Test
+  fun `a player on a phone with no frame gets mobile`() {
+    val phone = HeadlessWorld.login(device = Device.Mobile)
+    val sent = phone.sent()
+    val phoneUserInterface = phone.actor.getComponent<UserInterface>()
+
+    assertEquals("mobile", phoneUserInterface.chosenToplevel)
+    assertEquals(listOf(Sent.OpenedToplevel(UI.ToplevelMobile.interfaceName)), sent.filterIsInstance<Sent.OpenedToplevel>())
+  }
+
+  @Test
+  fun `a player on a desktop with no frame gets resizable`() {
+    val desktop = HeadlessWorld.login(device = Device.Desktop)
+    val sent = desktop.sent()
+    val desktopUserInterface = desktop.actor.getComponent<UserInterface>()
+
+    assertEquals("resizable", desktopUserInterface.chosenToplevel)
+    assertEquals(listOf(Sent.OpenedToplevel(UI.ToplevelResizable.interfaceName)), sent.filterIsInstance<Sent.OpenedToplevel>())
+  }
+
+  @Test
+  fun `a returning player saved on resizable gets mobile on a phone`() {
+    val returning = HeadlessWorld.login(frame = "resizable", device = Device.Mobile)
+    val sent = returning.sent()
+    val returningUserInterface = returning.actor.getComponent<UserInterface>()
+
+    assertEquals("mobile", returningUserInterface.chosenToplevel)
+    assertEquals(listOf(Sent.OpenedToplevel(UI.ToplevelMobile.interfaceName)), sent.filterIsInstance<Sent.OpenedToplevel>())
+  }
+
+  @Test
+  fun `a returning player saved on mobile gets resizable on a desktop`() {
+    val returning = HeadlessWorld.login(frame = "mobile", device = Device.Desktop)
+    val sent = returning.sent()
+    val returningUserInterface = returning.actor.getComponent<UserInterface>()
+
+    assertEquals("resizable", returningUserInterface.chosenToplevel)
+    assertEquals(listOf(Sent.OpenedToplevel(UI.ToplevelResizable.interfaceName)), sent.filterIsInstance<Sent.OpenedToplevel>())
+  }
+
+  @Test
+  fun `a returning player saved on classic, a frame the game chose, keeps it on a phone and on a desktop`() {
+    for (device in listOf(Device.Mobile, Device.Desktop)) {
+      val chosen = HeadlessWorld.login(frame = "classic", device = device)
+      val sent = chosen.sent()
+      val chosenUserInterface = chosen.actor.getComponent<UserInterface>()
+
+      assertEquals("classic", chosenUserInterface.chosenToplevel, device.name)
+      assertEquals(listOf(Sent.OpenedToplevel(UI.ToplevelClassic.interfaceName)), sent.filterIsInstance<Sent.OpenedToplevel>(), device.name)
+    }
   }
 
   @Test
