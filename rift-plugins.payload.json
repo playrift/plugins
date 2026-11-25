@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 29,
+  "seq": 30,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -409,7 +409,7 @@
       "author": "Rift",
       "description": "A music UI and music player system. Plays your project's music, tracks which songs each player has unlocked.",
       "licence": "MIT",
-      "source": "https://github.com/playrift/plugins/tree/rift.music-1.0.0/rift.music",
+      "source": "https://github.com/playrift/plugins/tree/rift.music-1.0.1/rift.music",
       "versions": [
         {
           "version": "1.0.0",
@@ -420,6 +420,16 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.music-1.0.0/rift.music-1.0.0.jar",
           "sha256": "3f9558e916208acaf00322d7648187b756071616c127ea67aa5fd944df79db55",
           "size": 55791
+        },
+        {
+          "version": "1.0.1",
+          "engine": "^1.2.0",
+          "depends": {},
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.music-1.0.1/rift.music-1.0.1.jar",
+          "sha256": "79624f9d032b83a46f511c4af2f478b437a781c4b64a33cc610c6c68c20ae84a",
+          "size": 55855
         }
       ]
     },

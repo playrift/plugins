@@ -14,7 +14,7 @@ public object MusicPackage : RiftPackage {
   override fun load() {
     val tab = UIName(MusicTab.INTERFACE)
 
-    on_login { actor -> MusicTab.atLogin(actor) }
+    on_login { actor, _ -> MusicTab.atLogin(actor) }
 
     on_music_ended { subject -> subject.musicEnded(track) }
 
