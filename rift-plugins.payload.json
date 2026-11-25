@@ -2,7 +2,7 @@
   "repository": "Rift",
   "product": "plugin-index",
   "channel": "stable",
-  "seq": 27,
+  "seq": 28,
   "plugins": [
     {
       "id": "rift.ui.default",
@@ -451,6 +451,28 @@
           "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.pathfinding.homing-1.0.0/rift.movement.pathfinding.homing-1.0.0.jar",
           "sha256": "4c8aad3cf5d39d7c8328c00f3fe816db43efa6025724462869d75d974c384b5a",
           "size": 12020
+        }
+      ]
+    },
+    {
+      "id": "rift.movement.direct",
+      "name": "Direct movement",
+      "author": "Rift",
+      "description": "Bindings for controller and WASD keyboard movement.",
+      "licence": "MIT",
+      "source": "https://github.com/playrift/plugins/tree/rift.movement.direct-1.0.0/rift.movement.direct",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "engine": "^1.2.0",
+          "depends": {
+            "rift.actions.queue": "^1.0.0"
+          },
+          "optional": {},
+          "ts2_binding": "ts2-kotlin/2",
+          "jar": "https://github.com/playrift/plugins/releases/download/rift.movement.direct-1.0.0/rift.movement.direct-1.0.0.jar",
+          "sha256": "0470543241b8f341e0b68880e1c8b878399c08f32450a887cf83eea8ef7de165",
+          "size": 24976
         }
       ]
     }

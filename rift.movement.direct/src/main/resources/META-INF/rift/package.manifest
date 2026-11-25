@@ -1,0 +1,13 @@
+id      = rift.movement.direct
+name    = Direct movement
+author  = Rift
+description = Bindings for controller and WASD keyboard movement.
+version = 1.0.0
+engine  = "^1.2.0"
+entry   = co.playrift.movement.direct.DirectMovementPackage
+
+depends = rift.actions.queue 1.0.0
+
+system  = co.playrift.movement.direct.DirectWalkSystem at movement.plan
+
+persisted =
