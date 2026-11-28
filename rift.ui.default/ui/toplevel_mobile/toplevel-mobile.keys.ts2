@@ -8,6 +8,7 @@ import { Panel, SideSlots, controlRef, floaterRef, mainmodalRef, sidemodalRef } 
 import { DESELECTS_OPEN_TAB } from './toplevel-mobile.data';
 import { switchSidePanel, toplevelMobileInit } from './toplevel-mobile.helpers';
 import { rendererNoticeBuild } from '../lib/enhanced/renderer-notice.component';
+import { hideSidebarOnLoad } from './toplevel-mobile.sidebar';
 
 export function mobileKeypress(key: Int): void {
   if (dialogueMayAdvance(-1, -1) === false) {
@@ -69,4 +70,5 @@ export function toplevelMobileLoad(): void {
   toplevelMobileInit();
   controlRef.onKey = (event) => mobileKeypress(event.keyCode);
   rendererNoticeBuild();
+  hideSidebarOnLoad();
 }

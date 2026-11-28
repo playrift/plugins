@@ -42,7 +42,7 @@ export const MobileTabs = listOf<MobileTabRow>([
   { group: TabGroup.RIGHT, row: 5, icon: GameSprites.side_icons_22, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
   { group: TabGroup.RIGHT, row: 4, icon: GameSprites.side_icons_8, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
   { group: TabGroup.LOGOUT, row: 0, icon: GameSprites.side_icons_39, highlight: GameSprites.tli_button01_rectangle_58x40_2, expansion: 0 },
-  { group: TabGroup.RIGHT, row: 6, icon: GameSprites.side_icons_11, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
+  { group: TabGroup.RIGHT, row: 5, icon: GameSprites.side_icons_11, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
   { group: TabGroup.RIGHT, row: 1, icon: GameSprites.side_icons_12, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
   { group: TabGroup.RIGHT, row: 2, icon: GameSprites.side_icons_13, highlight: GameSprites.tli_button01_square_40x40_2, expansion: 1 },
 ]);

@@ -4,6 +4,7 @@ import {
   Engine,
   onMounted,
   onUpdated,
+  useDerived,
   useInterval,
   useOnResize,
   useRef,
@@ -45,6 +46,8 @@ import {
   NoSprite,
   Panel,
   SideSlots,
+  SidebarToggle,
+  SidebarToggleOption,
   StatusPoll,
   Strip,
   batteryRef,
@@ -127,6 +130,9 @@ import {
   xpDropsRef,
   zeahRef,
   ehcListenerRef,
+  sidebarToggleArrowRef,
+  sidebarToggleColumnRef,
+  sidebarToggleRef,
 } from './toplevel-mobile.constants';
 import {
   JournalTabIcons,
@@ -159,6 +165,7 @@ import {
   touchDodgers,
 } from './toplevel-mobile.helpers';
 import { toplevelMobileLoad } from './toplevel-mobile.keys';
+import { sidebarShown, toggleSidebar } from './toplevel-mobile.sidebar';
 import {
   batteryCharging,
   batteryLevel,
@@ -511,6 +518,7 @@ export function ToplevelMobile(): Component {
               </layer>
               <layer static ref={tabsRightRef} x="center" y="center" w={Frame.GROUP_W} h="fill">
                 <RightTabs />
+                <SidebarToggleStone />
               </layer>
             </layer>
             <layer static ref={tabsBlockingRef} x="right" y={0} w={0} h="fill" noClickThrough>
@@ -1271,7 +1279,6 @@ function RightTabs(): Component {
   const musicHidden: Boolean = tabHidden(Panel.MUSIC);
   const channelsHidden: Boolean = tabHidden(Panel.CHANNELS);
   const friendsHidden: Boolean = tabHidden(Panel.FRIENDS);
-  const accountHidden: Boolean = tabHidden(Panel.ACCOUNT);
   const settingsHidden: Boolean = tabHidden(Panel.SETTINGS);
 
   return (
@@ -1336,17 +1343,6 @@ function RightTabs(): Component {
         y={Frame.STONE_PITCH * 5}
         w={Frame.STONE}
         h={Frame.STONE}
-        sprite={stoneSprite(Panel.ACCOUNT)}
-        hide={accountHidden}
-        noClickThrough
-        options={[SidePanelOps.at(Panel.ACCOUNT) ?? '', 'Account', 'Community', 'Useful links']}
-        onOptionSelect={(event) => sideTabOp(Panel.ACCOUNT, event.option)}
-      />
-      <sprite
-        x="center"
-        y={Frame.STONE_PITCH * 6}
-        w={Frame.STONE}
-        h={Frame.STONE}
         sprite={stoneSprite(Panel.SETTINGS)}
         hide={settingsHidden}
         noClickThrough
@@ -1398,17 +1394,53 @@ function RightTabs(): Component {
         y={Frame.ICON_Y + Frame.STONE_PITCH * 5}
         w={Frame.ICON_W}
         h={Frame.ICON_H}
-        sprite={GameSprites.side_icons_22}
-        hide={accountHidden}
-      />
-      <sprite
-        x="center"
-        y={Frame.ICON_Y + Frame.STONE_PITCH * 6}
-        w={Frame.ICON_W}
-        h={Frame.ICON_H}
         sprite={GameSprites.side_icons_11}
         hide={settingsHidden}
       />
+    </>
+  );
+}
+
+function SidebarToggleStone(): Component {
+  const stripShown: Int = useDerived(() => sidebarShown());
+  const shown: Boolean = stripShown === 1;
+  const stone: Sprite = shown ? GameSprites.tli_button01_square_40x40_2 : NoSprite.NONE;
+  const label: String = shown ? SidebarToggleOption.HIDE : SidebarToggleOption.SHOW;
+  const stoneY: Int = Frame.STONE_PITCH * 6;
+  const iconY: Int = stoneY + SidebarToggle.ICON_Y;
+
+  return (
+    <>
+      <sprite
+        ref={sidebarToggleRef}
+        x="center"
+        y={stoneY}
+        w={Frame.STONE}
+        h={Frame.STONE}
+        sprite={stone}
+        noClickThrough
+        options={[label]}
+        onOptionSelect={() => toggleSidebar()}
+      />
+      <layer ref={sidebarToggleColumnRef} x={SidebarToggle.COLUMN_X} y={iconY} w={SidebarToggle.COLUMN_W} h={SidebarToggle.ICON_H}>
+        <sprite
+          x={-SidebarToggle.COLUMN_SOURCE_X}
+          y={-SidebarToggle.SOURCE_Y}
+          w={SidebarToggle.SOURCE_W}
+          h={SidebarToggle.SOURCE_H}
+          sprite={GameSprites.side_icons_41}
+        />
+      </layer>
+      <layer ref={sidebarToggleArrowRef} x={SidebarToggle.ARROW_X} y={iconY} w={SidebarToggle.ARROW_W} h={SidebarToggle.ICON_H}>
+        <sprite
+          x={-SidebarToggle.ARROW_SOURCE_X}
+          y={-SidebarToggle.SOURCE_Y}
+          w={SidebarToggle.SOURCE_W}
+          h={SidebarToggle.SOURCE_H}
+          sprite={GameSprites.side_icons_41}
+          hflip
+        />
+      </layer>
     </>
   );
 }
@@ -1613,6 +1645,9 @@ function WifiIcon(): Component {
   if (minimapToggle !== 0) {
     collapsed = true;
   }
+
+  const battery: Int = CS2.mobile_batterylevel();
+  const batteryUnknown: Boolean = battery === StatusPoll.UNKNOWN_BATTERY;
   useInterval(() => {
     if (clientClock() % StatusPoll.WIFI_CYCLES === 0) {
       const [, setOnline] = useState(wifiOnline);
@@ -1628,6 +1663,7 @@ function WifiIcon(): Component {
       w="fill"
       h="fill"
       sprite={connected ? GameSprites.osm_status_icons_7 : GameSprites.osm_status_icons_5}
+      hide={batteryUnknown}
     />
   );
 }
@@ -1655,7 +1691,8 @@ function BatteryIcon(): Component {
   } else if (charging === 1) {
     bolt = true;
   }
-  const boltHidden: Boolean = !bolt;
+  const batteryUnknown: Boolean = percent === StatusPoll.UNKNOWN_BATTERY;
+  const boltHidden: Boolean = !bolt || batteryUnknown;
   let icon: Sprite = GameSprites.osm_status_icons_3;
   if (percent > StatusPoll.HIGH) {
     icon = GameSprites.osm_status_icons_0;
@@ -1714,7 +1751,7 @@ function BatteryIcon(): Component {
         </>
       ) : (
         <>
-          <sprite x="center" y="center" w="fill" h="fill" sprite={icon} onClick={() => batteryTap()} />
+          <sprite x="center" y="center" w="fill" h="fill" sprite={icon} onClick={() => batteryTap()} hide={batteryUnknown} />
           <sprite x="center" y="center" w="fill" h="fill" sprite={GameSprites.osm_status_icons_6} hide={boltHidden} />
         </>
       )}

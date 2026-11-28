@@ -1,0 +1,13 @@
+import { CS2 } from 'ts2';
+
+export function hideSidebarOnLoad(): void {
+  CS2.sidebar_set_shown(0);
+}
+
+export function sidebarShown(): Int {
+  return CS2.sidebar_shown();
+}
+
+export function toggleSidebar(): void {
+  CS2.sidebar_set_shown(1 - sidebarShown());
+}

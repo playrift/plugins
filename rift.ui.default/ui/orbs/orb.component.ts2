@@ -30,6 +30,7 @@ import {
   sidePanelOpen,
   specOp,
 } from './orbs.helpers';
+import { onMobile } from '../lib/lib.helpers';
 import {
   healthOrbStatWatch,
   healthOrbVarWatch,
@@ -51,7 +52,6 @@ export function HealthOrb({
   top,
   fromRight,
   panel,
-  wide,
   clickY,
   clickW,
   clickH,
@@ -60,7 +60,6 @@ export function HealthOrb({
   top: Int;
   fromRight: Boolean;
   panel: Int;
-  wide: Boolean;
   clickY: Int;
   clickW: Int;
   clickH: Int;
@@ -82,6 +81,7 @@ export function HealthOrb({
   const disease: Int = useServerState(Game.disease);
   const afflicted: Boolean = poison > 0 || disease > 0;
   const curable: Boolean = afflicted && sidePanelOpen(SidePanel.INVENTORY);
+  const wide: Boolean = onMobile();
   const rest: Sprite = plateSprite();
   const hover: Sprite = plateHoverSprite();
 
@@ -98,6 +98,7 @@ export function HealthOrb({
     half = GameSprites.orb_filler_8;
   }
   const meterX: Int = wide ? OrbBox.MOBILE.METER_X : OrbBox.DESKTOP.METER_X;
+  const clickWidth: Int = wide ? clickW + OrbBox.MOBILE.CLICK_W - OrbBox.DESKTOP.CLICK_W : clickW;
 
   return (
     <layer
@@ -111,7 +112,7 @@ export function HealthOrb({
       <layer
         x={OrbBox.CLICK_X}
         y={clickY}
-        w={clickW}
+        w={clickWidth}
         h={clickH}
         options={['Cure']}
         hide={!curable}
@@ -206,7 +207,6 @@ export function PrayerOrb({
   left,
   top,
   fromRight,
-  wide,
   clickY,
   clickW,
   clickH,
@@ -214,7 +214,6 @@ export function PrayerOrb({
   left: Int;
   top: Int;
   fromRight: Boolean;
-  wide: Boolean;
   clickY: Int;
   clickW: Int;
   clickH: Int;
@@ -225,7 +224,8 @@ export function PrayerOrb({
   const current: Int = useSkill(OrbSkills.PRAYER);
   const max: Int = useSkillBase(OrbSkills.PRAYER);
   const open: Boolean = sidePanelOpen(SidePanel.PRAYER);
-  const rest: Sprite = open ? plateSprite() : GameSprites.orb_frame_0;
+  const wide: Boolean = onMobile();
+  const rest: Sprite = plateSprite();
   const hover: Sprite = plateHoverSprite();
 
   const active: Boolean = useServerState(Game.quickprayer_active) === 1;
@@ -236,6 +236,7 @@ export function PrayerOrb({
     icon = GameSprites.orb_icon_4;
   }
   const meterX: Int = wide ? OrbBox.MOBILE.METER_X : OrbBox.DESKTOP.METER_X;
+  const clickWidth: Int = wide ? clickW + OrbBox.MOBILE.CLICK_W - OrbBox.DESKTOP.CLICK_W : clickW;
 
   return (
     <layer
@@ -249,7 +250,7 @@ export function PrayerOrb({
       <layer
         x={OrbBox.CLICK_X}
         y={clickY}
-        w={clickW}
+        w={clickWidth}
         h={clickH}
         optionSubject="Quick-prayers"
         options={[active ? OrbText.DEACTIVATE : OrbText.ACTIVATE, 'Setup']}
@@ -302,7 +303,6 @@ export function RunOrb({
   left,
   top,
   fromRight,
-  wide,
   clickY,
   clickW,
   clickH,
@@ -310,7 +310,6 @@ export function RunOrb({
   left: Int;
   top: Int;
   fromRight: Boolean;
-  wide: Boolean;
   clickY: Int;
   clickW: Int;
   clickH: Int;
@@ -320,6 +319,7 @@ export function RunOrb({
   const button = useRef('runbutton');
 
   const energy: Int = CS2.runenergy_visible();
+  const wide: Boolean = onMobile();
   const rest: Sprite = plateSprite();
   const hover: Sprite = plateHoverSprite();
 
@@ -330,6 +330,7 @@ export function RunOrb({
     icon = GameSprites.orb_icon_5;
   }
   const meterX: Int = wide ? OrbBox.MOBILE.METER_X : OrbBox.DESKTOP.METER_X;
+  const clickWidth: Int = wide ? clickW + OrbBox.MOBILE.CLICK_W - OrbBox.DESKTOP.CLICK_W : clickW;
 
   return (
     <layer
@@ -344,7 +345,7 @@ export function RunOrb({
         ref={button}
         x={OrbBox.CLICK_X}
         y={clickY}
-        w={clickW}
+        w={clickWidth}
         h={clickH}
         options={['Toggle Run']}
         onMouseRepeat={() => {
@@ -387,7 +388,6 @@ export function SpecOrb({
   top,
   fromRight,
   panel,
-  wide,
   clickY,
   clickW,
   clickH,
@@ -397,7 +397,6 @@ export function SpecOrb({
   top: Int;
   fromRight: Boolean;
   panel: Int;
-  wide: Boolean;
   clickY: Int;
   clickW: Int;
   clickH: Int;
@@ -412,6 +411,7 @@ export function SpecOrb({
 
   const energy: Int = useServerState(Game.sa_energy);
   const armed: Boolean = useServerState(Game.sa_attack) > 0;
+  const wide: Boolean = onMobile();
   const rest: Sprite = plateSprite();
   const hover: Sprite = plateHoverSprite();
   const drawn: Sprite = wide ? GameSprites.tli_button01_orbinfo_65x34_0 : GameSprites.orb_frame_0;
@@ -421,6 +421,7 @@ export function SpecOrb({
   const icon: Sprite = GameSprites.orb_icon_6;
   const filler: Sprite = armed ? GameSprites.orb_filler_10 : GameSprites.orb_filler_9;
   const meterX: Int = wide ? OrbBox.MOBILE.METER_X : OrbBox.DESKTOP.METER_X;
+  const clickWidth: Int = wide ? clickW + OrbBox.MOBILE.CLICK_W - OrbBox.DESKTOP.CLICK_W : clickW;
 
   return (
     <layer
@@ -434,7 +435,7 @@ export function SpecOrb({
       <layer
         x={OrbBox.CLICK_X}
         y={clickY}
-        w={clickW}
+        w={clickWidth}
         h={clickH}
         optionSubject={subject}
         options={[OrbText.USE]}

@@ -80,6 +80,9 @@ export const popoutRef = createRef('toplevel_mobile_popout');
 export const mouseoverRef = createRef('toplevel_mobile_mouseover');
 export const ehcListenerRef = createRef('toplevel_mobile_ehc_listener');
 export const uiHighlightsRef = createRef('toplevel_mobile_ui_highlights');
+export const sidebarToggleRef = createRef('toplevel_mobile_sidebar_toggle');
+export const sidebarToggleColumnRef = createRef('toplevel_mobile_sidebar_toggle_column');
+export const sidebarToggleArrowRef = createRef('toplevel_mobile_sidebar_toggle_arrow');
 
 export const SideSlots = listOf<ComponentId>([
   side0Ref,
@@ -208,6 +211,25 @@ export const Frame = {
   WARNING_TRANS: 120,
 };
 
+export const SidebarToggleOption = {
+  SHOW: 'Show Sidebar',
+  HIDE: 'Hide Sidebar',
+};
+
+export const SidebarToggle = {
+  ICON_Y: 9,
+  ICON_H: 23,
+  SOURCE_W: 33,
+  SOURCE_H: 36,
+  SOURCE_Y: 8,
+  COLUMN_X: 10,
+  COLUMN_W: 4,
+  COLUMN_SOURCE_X: 6,
+  ARROW_X: 18,
+  ARROW_W: 12,
+  ARROW_SOURCE_X: 3,
+};
+
 export const Inset = {
   LEFT: 58,
   TOP: 0,
@@ -288,6 +310,7 @@ export const StatusPoll = {
   WIFI_CYCLES: 100,
   BATTERY_CYCLES: 250,
   BATTERY_SHOW_CYCLES: 150,
+  UNKNOWN_BATTERY: -1,
   HIGH: 75,
   MID: 50,
   LOW: 25,

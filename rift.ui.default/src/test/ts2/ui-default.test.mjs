@@ -1101,3 +1101,320 @@ test('the compass turns the camera in the client\'s 16384-unit angles, keeping i
     assert.deepEqual(ui.calls('cam_forceangle').at(-1), { builtin: 'cam_forceangle', args: `1800, ${yaw}` }, look);
   }
 });
+
+const MOBILE = 'toplevel_mobile';
+const STONE_PITCH = 39;
+const TAB_ICON_Y = 2;
+const COLLAPSE_ICON = 'side_icons_41';
+const COLLAPSE_GRID_LEFT = 6;
+const COLLAPSE_BOX_COLUMN_W = 4;
+const COLLAPSE_ARROW_LEFT = 18;
+const COLLAPSE_ARROW_W = 12;
+const COLLAPSE_CONTENT_TOP = 8;
+const COLLAPSE_CONTENT_H = 23;
+const COLLAPSE_ICON_W = 33;
+const COLLAPSE_GRID_TO_ARROW_GAP = COLLAPSE_ARROW_LEFT - (COLLAPSE_GRID_LEFT + 8);
+const LIT_STONE = 'tli_button01_square_40x40_2';
+const SHOW_SIDEBAR = 'Show Sidebar';
+const HIDE_SIDEBAR = 'Hide Sidebar';
+
+async function mobileWithSidebar(sides = [9, 11]) {
+  const sidebar = { shown: 1, told: [] };
+  const builtins = {
+    sidebar_shown: () => sidebar.shown,
+    sidebar_set_shown: (shown) => {
+      sidebar.told.push(shown);
+      sidebar.shown = shown === 0 ? 0 : 1;
+    },
+  };
+  const ui = await frameWithTabs(MOBILE, sides, { builtins });
+  return { ui, sidebar };
+}
+
+const shownIn = (ui, ref) => everyComponent(ui.component(MOBILE, ref)).filter((component) => !component.hidden);
+
+const toggleStone = (ui) => ui.component(MOBILE, 'toplevel_mobile_sidebar_toggle');
+
+const pressToggle = (ui) => {
+  toggleStone(ui).option(1);
+  ui.cycles(2);
+};
+
+test('on the phone frame the Settings tab and its wrench sit in the row Account had, under Friends', async () => {
+  const { ui } = await mobileWithSidebar();
+  const friends = ui.find(MOBILE, { option: 'Friends List' }).bounds;
+  const settings = ui.find(MOBILE, { option: 'Settings' }).bounds;
+  const wrench = shownIn(ui, 'toplevel_mobile_tabs_right').find((component) => component.spriteName === 'side_icons_11');
+
+  assert.equal(settings.x, friends.x);
+  assert.equal(settings.y, friends.y + STONE_PITCH);
+  assert.ok(wrench !== undefined, 'the wrench is drawn');
+  assert.equal(wrench.bounds.y, settings.y + TAB_ICON_Y);
+});
+
+test('the phone frame draws no Account tab and offers none of its options, even with a panel open in its slot', async () => {
+  const { ui } = await mobileWithSidebar([8, 9, 11]);
+  const shown = shownIn(ui, 'toplevel_mobile_tabs_right');
+
+  assert.equal(shown.some((component) => component.spriteName === 'side_icons_22'), false, 'no Account icon');
+  for (const option of ['Account Management', 'Account', 'Community', 'Useful links']) {
+    assert.equal(shown.some((component) => component.options.includes(option)), false, `no "${option}"`);
+  }
+});
+
+test('the phone frame\'s sidebar toggle is the bottom stone of the right column, beside collapse, its box column and left arrow centred in it', async () => {
+  const { ui } = await mobileWithSidebar();
+  const settings = ui.find(MOBILE, { option: 'Settings' }).bounds;
+  const stone = toggleStone(ui).bounds;
+  const collapseStone = ui.find(MOBILE, { option: 'Show Less' }).bounds;
+  const collapseIcon = shownIn(ui, 'toplevel_mobile_tabs_left').find((component) => component.spriteName === COLLAPSE_ICON);
+  const column = ui.component(MOBILE, 'toplevel_mobile_sidebar_toggle_column');
+  const arrow = ui.component(MOBILE, 'toplevel_mobile_sidebar_toggle_arrow');
+  const [columnSprite] = column.children;
+  const [arrowSprite] = arrow.children;
+
+  assert.deepEqual([stone.x, stone.y, stone.width, stone.height], [settings.x, settings.y + STONE_PITCH, settings.width, settings.height]);
+  assert.equal(stone.y, collapseStone.y, 'beside collapse');
+  assert.equal(toggleStone(ui).hidden, false);
+
+  assert.equal(columnSprite.spriteName, COLLAPSE_ICON, 'the box column is the collapse icon');
+  assert.equal(arrowSprite.spriteName, COLLAPSE_ICON, 'the arrow is the collapse icon');
+  assert.equal(column.bounds.width, COLLAPSE_BOX_COLUMN_W, 'one box column');
+  assert.equal(column.bounds.x - columnSprite.bounds.x, COLLAPSE_GRID_LEFT, 'its first box column');
+  assert.equal(arrow.bounds.width, COLLAPSE_ARROW_W, 'the arrow alone');
+  assert.equal(arrow.bounds.x - arrowSprite.bounds.x, COLLAPSE_ICON_W - (COLLAPSE_ARROW_LEFT + COLLAPSE_ARROW_W), 'its arrow, mirrored');
+
+  assert.equal(arrow.bounds.x - (column.bounds.x + column.bounds.width), COLLAPSE_GRID_TO_ARROW_GAP, 'the gap collapse has');
+  assert.equal(column.bounds.x - stone.x, stone.x + stone.width - (arrow.bounds.x + arrow.bounds.width), 'centred across');
+  for (const piece of [column, arrow]) {
+    assert.equal(piece.bounds.y, collapseIcon.bounds.y + COLLAPSE_CONTENT_TOP, 'level with collapse');
+    assert.equal(piece.bounds.height, COLLAPSE_CONTENT_H);
+  }
+});
+
+const offered = (ui) => toggleStone(ui).options.filter((option) => option !== '');
+
+const sidebarCalls = (ui) => ui.calls().filter((call) => call.builtin.startsWith('sidebar_'));
+
+test('the phone frame hides the client\'s sidebar strip each time it loads', async () => {
+  const { ui, sidebar } = await mobileWithSidebar();
+  assert.deepEqual(sidebar.told, [0]);
+  assert.equal(sidebar.shown, 0);
+
+  ui.open('toplevel_resizable');
+  ui.cycles(5);
+  sidebar.shown = 1;
+  ui.open(MOBILE);
+  ui.cycles(5);
+
+  assert.deepEqual(sidebar.told, [0, 0], 'loaded again');
+  assert.equal(sidebar.shown, 0);
+});
+
+test('the desktop frames make no sidebar call when they load, on the kit\'s own desktop client', async () => {
+  for (const frame of FRAMES.filter((frame) => frame !== MOBILE)) {
+    const ui = await opened(frame);
+    ui.cycles(5);
+
+    assert.deepEqual(sidebarCalls(ui), [], frame);
+  }
+});
+
+test('the phone frame on the kit\'s own desktop client asks to hide the strip, which stays shown, so the toggle stays lit', async () => {
+  const ui = await frameWithTabs(MOBILE, [9, 11]);
+
+  assert.deepEqual(ui.calls('sidebar_set_shown'), [{ builtin: 'sidebar_set_shown', args: '0' }]);
+  assert.equal(toggleStone(ui).spriteName, LIT_STONE);
+  assert.deepEqual(offered(ui), [HIDE_SIDEBAR]);
+});
+
+test('a press on the toggle while the strip is hidden shows it, and a press while it is shown hides it', async () => {
+  const { ui, sidebar } = await mobileWithSidebar();
+
+  pressToggle(ui);
+  assert.deepEqual(sidebar.told, [0, 1]);
+  assert.equal(sidebar.shown, 1);
+
+  pressToggle(ui);
+  assert.deepEqual(sidebar.told, [0, 1, 0]);
+  assert.equal(sidebar.shown, 0);
+});
+
+test('the toggle is plain and offers its show option while the strip is hidden, and is lit and offers its hide option while it is shown', async () => {
+  const { ui } = await mobileWithSidebar();
+  assert.equal(toggleStone(ui).sprite, NO_STONE);
+  assert.deepEqual(offered(ui), [SHOW_SIDEBAR]);
+
+  pressToggle(ui);
+  assert.equal(toggleStone(ui).spriteName, LIT_STONE);
+  assert.deepEqual(offered(ui), [HIDE_SIDEBAR]);
+
+  pressToggle(ui);
+  assert.equal(toggleStone(ui).sprite, NO_STONE);
+  assert.deepEqual(offered(ui), [SHOW_SIDEBAR]);
+});
+
+test('the toggle follows the strip shown and hidden from outside it, as a panel the player opens from the strip shows it, with no press', async () => {
+  const { ui, sidebar } = await mobileWithSidebar();
+
+  sidebar.shown = 1;
+  ui.cycles(2);
+  assert.equal(toggleStone(ui).spriteName, LIT_STONE);
+  assert.deepEqual(offered(ui), [HIDE_SIDEBAR]);
+
+  sidebar.shown = 0;
+  ui.cycles(2);
+  assert.equal(toggleStone(ui).sprite, NO_STONE);
+  assert.deepEqual(offered(ui), [SHOW_SIDEBAR]);
+
+  assert.deepEqual(sidebar.told, [0], 'the toggle told the client nothing');
+});
+
+const DESKTOP_PLATE = 'orb_frame_0';
+const PHONE_PLATE = 'tli_button01_orbinfo_65x34_0';
+const ORB_H = 34;
+const ORB_METER_Y = 4;
+const ORB_TEXT_H = 13;
+const DESKTOP_ORB = { width: 57, meterX: 27, textX: 4, textY: 16 };
+const PHONE_ORB = { width: 65, meterX: 35, textX: 8, textY: Math.floor((ORB_H - ORB_TEXT_H) / 2) + 2 };
+const ORB_PLACES = [
+  { name: 'hitpoints', icon: 'orb_icon_0', x: 0, y: 37 },
+  { name: 'prayer', icon: 'orb_icon_1', x: 0, y: 71 },
+  { name: 'run', icon: 'orb_icon_2', x: 10, y: 103 },
+  { name: 'special attack', icon: 'orb_icon_6', x: 32, y: 128 },
+];
+
+function insideOut(component) {
+  return component.children.flatMap((child) => [{ component: child, parent: component }, ...insideOut(child)]);
+}
+
+async function orbsOn(frame, phone) {
+  const ui = await loggedIn(frame, { builtins: { on_mobile: () => phone } });
+  const root = ui.component('orbs', 'orbs');
+  const placed = insideOut(root);
+  const plates = placed.filter(({ component }) => [DESKTOP_PLATE, PHONE_PLATE].includes(component.spriteName));
+  assert.equal(plates.length, ORB_PLACES.length, `${frame}: the hitpoints, prayer, run and special attack orbs`);
+
+  return plates.map(({ component: plate, parent: box }) => {
+    const inside = everyComponent(box);
+    const icon = inside.find((component) => (component.spriteName ?? '').startsWith('orb_icon_'));
+    const number = inside.find((component) => typeof component.text === 'string' && component.text !== '');
+    const click = inside.find((component) => (component.options ?? []).some((option) => option !== ''));
+    return { root: root.bounds, box: box.bounds, plate, icon, number, click };
+  });
+}
+
+for (const [frame, phone, look] of [['toplevel_mobile', true, PHONE_ORB], ['toplevel_resizable', false, DESKTOP_ORB]]) {
+  const device = phone ? 'the phone' : 'a desktop';
+
+  test(`on ${device}, each orb in ${frame} takes ${device}'s own box, its meter and number placed for it`, async () => {
+    const orbs = await orbsOn(frame, phone);
+
+    for (const [at, { box, icon, number }] of orbs.entries()) {
+      const { name } = ORB_PLACES[at];
+      assert.deepEqual([box.width, box.height], [look.width, ORB_H], `the ${name} orb's box`);
+      assert.equal(icon.spriteName, ORB_PLACES[at].icon, `the ${name} orb's icon`);
+      assert.deepEqual([icon.bounds.x - box.x, icon.bounds.y - box.y], [look.meterX, ORB_METER_Y], `the ${name} orb's meter`);
+      assert.deepEqual([number.bounds.x - box.x, number.bounds.y - box.y], [look.textX, look.textY], `the ${name} orb's number`);
+    }
+  });
+
+  test(`on ${device}, each orb in ${frame} sits where it sat`, async () => {
+    const orbs = await orbsOn(frame, phone);
+
+    for (const [at, { root, box }] of orbs.entries()) {
+      const { name, x, y } = ORB_PLACES[at];
+      assert.deepEqual([box.x - root.x, box.y - root.y], [x, y], `the ${name} orb`);
+    }
+  });
+
+  test(`on ${device}, the prayer orb in ${frame} rests on ${device}'s own plate`, async () => {
+    const [, prayer] = await orbsOn(frame, phone);
+
+    assert.equal(prayer.plate.spriteName, phone ? PHONE_PLATE : DESKTOP_PLATE);
+  });
+}
+
+const ORB_CLICK_X = 3;
+const ORB_METER = 26;
+const DESKTOP_CLICK_WIDTHS = [50, 49, 50, 50];
+const PHONE_CLICK_WIDENING = 8;
+const FULL_DESKTOP_CLICK = 50;
+
+const rightEdge = (bounds) => bounds.x + bounds.width;
+
+test('on a desktop, each orb\'s tap area keeps its own width', async () => {
+  const orbs = await orbsOn('toplevel_resizable', false);
+
+  for (const [at, { box, click }] of orbs.entries()) {
+    const { name } = ORB_PLACES[at];
+    assert.deepEqual([click.bounds.x - box.x, click.bounds.width], [ORB_CLICK_X, DESKTOP_CLICK_WIDTHS[at]], `the ${name} orb`);
+  }
+});
+
+test('on the phone, each orb\'s tap area spans its wider box: as far across its meter as on a desktop, the whole meter for a full-width one', async () => {
+  const phone = await orbsOn('toplevel_mobile', true);
+  const desktop = await orbsOn('toplevel_resizable', false);
+
+  for (const [at, { box, click, icon }] of phone.entries()) {
+    const { name } = ORB_PLACES[at];
+    const onDesktop = desktop[at];
+    assert.equal(click.bounds.x - box.x, ORB_CLICK_X, `the ${name} orb's tap area starts where it did`);
+    assert.equal(click.bounds.width, DESKTOP_CLICK_WIDTHS[at] + PHONE_CLICK_WIDENING, `the ${name} orb's tap area`);
+    assert.equal(rightEdge(click.bounds) - rightEdge(icon.bounds), rightEdge(onDesktop.click.bounds) - rightEdge(onDesktop.icon.bounds), `the ${name} orb's tap area reaches as far across its meter as on a desktop`);
+    if (DESKTOP_CLICK_WIDTHS[at] === FULL_DESKTOP_CLICK) {
+      assert.ok(rightEdge(click.bounds) >= icon.bounds.x + ORB_METER, `the ${name} orb's tap area covers its whole meter`);
+    }
+  }
+});
+
+const BATTERY_ICONS = ['osm_status_icons_0', 'osm_status_icons_1', 'osm_status_icons_2', 'osm_status_icons_3'];
+const CHARGING_BOLT = 'osm_status_icons_6';
+const WIFI_ON = 'osm_status_icons_7';
+const WIFI_OFF = 'osm_status_icons_5';
+const UNKNOWN_BATTERY = -1;
+
+async function phoneStatus({ level, charging, wifi }) {
+  const builtins = {
+    on_mobile: () => true,
+    mobile_batterylevel: () => level,
+    mobile_batterycharging: () => (charging ? 1 : 0),
+    mobile_wifiavailable: () => (wifi ? 1 : 0),
+  };
+  const ui = await loadTs2Build(BUILD, { builtins });
+  ui.open(MOBILE);
+  ui.cycles(10);
+  const sprites = (ref) => everyComponent(ui.component(MOBILE, ref)).filter((component) => component.spriteName !== undefined);
+  const battery = sprites('toplevel_mobile_battery');
+  const wifiSprites = sprites('toplevel_mobile_wifi');
+  return {
+    battery: battery.find((component) => BATTERY_ICONS.includes(component.spriteName)),
+    bolt: battery.find((component) => component.spriteName === CHARGING_BOLT),
+    wifi: wifiSprites.find((component) => [WIFI_ON, WIFI_OFF].includes(component.spriteName)),
+  };
+}
+
+test('the phone frame hides its battery, charging bolt and wifi while the host can\'t tell the battery (level -1)', async () => {
+  for (const wifi of [true, false]) {
+    const status = await phoneStatus({ level: UNKNOWN_BATTERY, charging: true, wifi });
+
+    assert.equal(status.battery.hidden, true, `the battery, wifi ${wifi}`);
+    assert.equal(status.bolt.hidden, true, `the charging bolt, wifi ${wifi}`);
+    assert.equal(status.wifi.hidden, true, `the wifi, wifi ${wifi}`);
+  }
+});
+
+test('the phone frame shows its battery at its level, the bolt while charging, and the wifi as the host says, once the host tells the battery', async () => {
+  const charging = await phoneStatus({ level: 50, charging: true, wifi: true });
+  assert.equal(charging.battery.hidden, false);
+  assert.equal(charging.battery.spriteName, 'osm_status_icons_2');
+  assert.equal(charging.bolt.hidden, false);
+  assert.equal(charging.wifi.hidden, false);
+  assert.equal(charging.wifi.spriteName, WIFI_ON);
+
+  const draining = await phoneStatus({ level: 50, charging: false, wifi: false });
+  assert.equal(draining.battery.hidden, false);
+  assert.equal(draining.bolt.hidden, true);
+  assert.equal(draining.wifi.hidden, false);
+  assert.equal(draining.wifi.spriteName, WIFI_OFF);
+});

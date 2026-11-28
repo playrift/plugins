@@ -14,19 +14,17 @@ export function Orbs(): Component {
         top={37}
         fromRight={false}
         panel={OrbsPanel.DESKTOP}
-        wide={false}
         clickY={5}
         clickW={50}
         clickH={26}
       />
-      <PrayerOrb left={0} top={71} fromRight={false} wide={false} clickY={5} clickW={49} clickH={26} />
-      <RunOrb left={10} top={103} fromRight={false} wide={false} clickY={5} clickW={50} clickH={26} />
+      <PrayerOrb left={0} top={71} fromRight={false} clickY={5} clickW={49} clickH={26} />
+      <RunOrb left={10} top={103} fromRight={false} clickY={5} clickW={50} clickH={26} />
       <SpecOrb
         left={32}
         top={128}
         fromRight={false}
         panel={OrbsPanel.DESKTOP}
-        wide={false}
         clickY={6}
         clickW={50}
         clickH={25}
